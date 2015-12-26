@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Class-Path: /Users/ace/Desktop/mm21/test-clients/java/mm21-java-test-c
+ lient/out/production/mm21-java-test-client
+Main-Class: com.mm21.Main
+

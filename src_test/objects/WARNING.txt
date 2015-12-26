@@ -1,0 +1,6 @@
+The files in this directory are the "last word" on how the game is supposed to function.
+DO NOT push changes to them without either:
+	a) doing a pull request, or
+	b) asking Ace first
+
+In the event of a discrepancy between the tests and the wiki, ask Ace for clarification.
