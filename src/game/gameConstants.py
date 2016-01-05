@@ -32,17 +32,17 @@ Defines the abilities
     Cooldown - number of ticks to refresh ability
     Range - range of ability
 """
-abilitiesList = [
-        [
-            "StatChanges": [{
-                "Target": 1,
-                "Attribute": "MovementSpeed",
-                "Change": -2,
-                "Time": 5
-            }],
-            "Cooldown"  : 10,
-            "Range"     : 5,
-        ]
+# abilitiesList = [
+        
+#             "StatChanges": [
+#                 "Target": 1,
+#                 "Attribute": "MovementSpeed",
+#                 "Change": -2,
+#                 "Time": 5
+#             ],
+#             "Cooldown"  : 10,
+#             "Range"     : 5,
+#         ]
 
 numPlayersPerRound = 2
 numCharacterPerTeam = 3
