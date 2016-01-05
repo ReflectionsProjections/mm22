@@ -47,15 +47,15 @@ class Character:
 	     modifications to the Attributes of the Character.
 
 	     Call this function in the game loop that loops for
-		every tick of the game.
+		every tick of the game (probably before damage
+		to the Character is resolved).
 
 	     If the duration of any of the buffs or debuffs
 	     reaches zero, it is removed from the list. 
 
-	     If any more attributes are added on later,
-	     the if/else chains of this function will
-	     need to have additional clauses for each
-	     of the added attributes
+	     If any more attributes are added on later, the if/else 
+	     chains of this function will need to have additional
+	     clauses for each of the added attributes
 	"""
 
 	#handle restoration of attributes when buffs 
@@ -65,17 +65,17 @@ class Character:
 	  if buff.duration == 0 and (not buff.lasting):
 	    attr = buff.attribute
 	    if attr == "Health":
-                self.attributes.health -= buff.modification
+                self.attributes.health -= buff.restoreValue
 	    elif attr == "Damage":
-	        self.attributes.damage -= buff.modification
+	        self.attributes.damage -= buff.restoreValue
 	    elif attr == "AttackRange":
-		self.attributes.attackRange -= buff.modification
+		self.attributes.attackRange -= buff.restoreValue
             elif attr == "AbilityDamage":
-		self.attributes.abilityDamage -= buff.modification
+		self.attributes.abilityDamage -= buff.restoreValue
 	    elif attr == "Armor":
-		self.attributes.armor -= buff.modification
+		self.attributes.armor -= buff.restoreValue
 	    elif attr == "MovementSpeed":
-		self.attributes.movementSpeed -= buff.modification
+		self.attributes.movementSpeed -= buff.restoreValue
             else:
 		raise NameError("Invalid Attribute Name")			
 
@@ -173,21 +173,23 @@ class BuffDebuff:
 	:param attribute: (string) name of the attribute that is to be
 		 affected. 
 	:param modification (float) the amount that is added to the 
-	 	targeted attribute.  If you want to decrease the amount,
-	       	pass in a negative value 
+	 	targeted attribute.  If you want to decrease the value
+		of an attribute, pass in a negative value 
 	:param timesApplied: (int) the amount of times the b/d 
 		is applied.  For example, a shield buff would 
 		buff health once and thus would have this param
 		set to 1.  A bleeding debuff would set this param
 		to the same as 'duration' param to have the health
 		parameter decreased multiple times.
-	:param lasting (boolean) if False, the modification is 
-		reverted once the duration of the buff runs out
-		(i.e. when a movementSpeed buff runs out, the
+	:param lasting (boolean) If False, the modification is 
+		reverted once the duration of the buff runs out.
+		For example, if a speed buff was added, the
 		movementSpeed attribute will be reverted to what 
-		its value was before the buff was applied). if True,
-		the modification lasts even after the buff runs out
-		(i.e. a shield)
+		its value was before the buff was applied. For
+		most buffs and debuffs 'lasting' should be false.
+
+	        If True, the modification lasts even after the
+	        buff runs out out(i.e. a shield).
 	"""
 	self.name = name
 	self.duration = duration
@@ -195,6 +197,8 @@ class BuffDebuff:
 	self.modification = modification
 	self.timesApplied = timesApplied
 	self.lasting = lasting	
+	#used for restoring attributes when the buff is finished
+	self.restoreValue = timesApplied * modification
   
     def toJson():
 	""" Returns json of BuffDebuff's information
@@ -208,6 +212,7 @@ class BuffDebuff:
 	json['Modification'] = self.modification
 	json['TimesApplied'] = self.timesApplied
 	json['Lasting'] = self.lasting
+	json['RestoreValue'] = self.restoreValue
 	return json
 
 
