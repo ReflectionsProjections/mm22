@@ -37,8 +37,49 @@ class Character:
         self.buffs_and_debuffs = []
 
     def addBuffDebuff(self, buffDebuff):
+	"""Adds a buff or debuff to the Character object
+	"""
 	self.buffs_and_debuffs.append(buffDebuff)    
+    
+    def updateBuffs(self):
+        """ Goes through all the buffs and debuffs within the
+	    'buffs_and_debuffs' list and applies their
+	     modifications to the Attributes of the Character.
+	     If the duration of any of the buffs or debuffs
+	     reaches zero, it is removed from the list. 
+	"""
+	#go through the buffs_and_debuffs container, applying
+	#  modifications if necessary and decreasing the duration
+	#  of the b/d	
+	for buff in self.buffs_and_debuffs:
+	    if buff.timesApplied > 0:
+		attr = buff.attribute
+		if attr == "Health":
+		    self.attributes.health += buff.modification
+		elif attr == "Damage":
+		    self.attributes.damage += buff.modification
+		elif attr == "AttackRange":
+		    self.attributes.attackRange += buff.modification
+		elif attr == "Ability Damage":
+		    self.attributes.abilityDamage += buff.modification
+		elif attr == "Armor":
+		    self.attributes.armor += buff.modification
+		elif attr == "MovementSpeed":
+		    self.attributes.movementSpeed += buff.modification
+		else:
+		    raise NameError("Invalid Attribute Name")			
+		buff.timesApplied -= 1
+	    buff.duration -= 1
 
+	#TODO handle the restore() function of diff types of b/d's	
+	
+	#remove any buffs from the container if they are done,
+	#  that being the duration has run out (equals 0)
+	self.buffs_and_debuffs = [buff for buff in
+	    self.buffs_and_debuffs if buff.duration > 0]
+	
+
+	
     def toJson():
         """ Returns information about character as a json
         """
@@ -95,7 +136,7 @@ class BuffDebuff:
 		is decremented every turn until it reaches 0 (then the b/d
 		 removed)
 	:param attribute: (string) name of the attribute that is to be
-		 affected
+		 affected. 
 	:param modification (float) the amount that is added to the 
 	 	targeted attribute.  If you want to decrease the amount,
 	       	pass in a negative value 
@@ -111,6 +152,7 @@ class BuffDebuff:
 	self.attribute = attribute
 	self.modification = modification
 	self.timesApplied = timesApplied
+	
   
     def toJson():
 	""" Returns json of BuffDebuff's information
@@ -122,7 +164,7 @@ class BuffDebuff:
 	json['Duration'] = self.duration
 	json['Attribute'] = self.attribute
 	json['Modification'] = self.modification
-	json['Constant'] = self.constant
+	json['TimesApplied'] = self.timesApplied
 
 	return json
 
