@@ -20,7 +20,6 @@ classesJson = {
             "Abilities"     : [ 1 ]
     }
 }
-
 """
 Defines the abilities
 - Must contain in json:
@@ -33,7 +32,7 @@ Defines the abilities
     Range - range of ability
 """
 abilitiesList = [
-        [
+    {
             "StatChanges": [{
                 "Target": 1,
                 "Attribute": "MovementSpeed",
@@ -42,7 +41,8 @@ abilitiesList = [
             }],
             "Cooldown"  : 10,
             "Range"     : 5,
-        ]
+    }
+]
 
 numPlayersPerRound = 2
 numCharacterPerTeam = 3
