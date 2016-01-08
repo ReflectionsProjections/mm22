@@ -92,9 +92,7 @@ class Game(object):
             for actionJson in actions:
                 action = actionJson.get("action", "").lower()
                 targetId = actionJson.get("target", -1)
-                multiplier = actionJson.get("multiplier", 1)
-                supplierIds = actionJson.get("supplierIds", [])
-                actionResult = {"teamId": playerId, "action": action, "target": targetId, "multiplier": multiplier}
+                actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
                     target = self.map.nodes.get(int(targetId), None)
@@ -172,18 +170,6 @@ class Game(object):
     def get_info(self, playerId):
         if playerId not in self.playerInfos:
             raise InvalidPlayerException("Player " + playerId + " doesn't exist.")
-
-        # Get list of nodes visible to player
-        isPortScan = playerId in self.map.portScans
-        ownedNodes = [x for x in self.map.nodes.values() if isPortScan or x.ownerId == playerId]
-        visibleNodes = set(ownedNodes)
-        if not isPortScan:
-            for n in ownedNodes:
-                buff = []
-                n.getVisibleNodes(buff)
-                visibleNodes.update(buff)
-        else:
-            visibleNodes = self.map.nodes.values()
 
         return {
             "playerInfo": self.playerInfos[playerId],

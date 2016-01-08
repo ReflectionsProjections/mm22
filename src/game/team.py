@@ -1,5 +1,6 @@
 from character import Character
 
+
 class Team:
 
     def __init__(self, id, name, characters):
