@@ -16,11 +16,13 @@ classesJson = {
             "Damage"        : 50,
             "AbilityPower" : 50,
             "AttackRange"   : 5,
+            "AttackSpeed"   : 2,
             "Armor"         : 10,
             "MovementSpeed" : 5,
             "Abilities"     : [ 1 ]
     }
 }
+
 """
 Defines the abilities
 - Must contain in json:

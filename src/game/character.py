@@ -1,9 +1,9 @@
-import gameConstants
+import src.game.gameConstants as gameConstants
 
 
 class Character(object):
 
-    def __init__(self, charId, name="AI", classId=0):
+    def __init__(self, charId, name="AI", classId="warrior"):
         """ Init a character class based on class key defined in game consts
 
         :param charId: (int) id of the character, based off of team
@@ -26,11 +26,11 @@ class Character(object):
 
         self.attributes = Attributes( classJson['Health'],
                             classJson['Damage'],
-                            classJson['AbilityDamage'],
+                            classJson['AbilityPower'],
                             classJson['AttackRange'],
                             classJson['AttackSpeed'],
                             classJson['Armor'],
-                            classJson['movementSpeed'])
+                            classJson['MovementSpeed'])
 
         # A Json that contains abilities by id and their cooldown by id
         self.abilities = {}
@@ -187,7 +187,27 @@ class Attributes(object):
         self.armor = max(0, self.armor + change)
 
     def change_movement_speed(self, change):
-        self.movementSpeed = max(0, self.movementSpeed)
+        new_change = change_in_Value()
+        self.movementSpeed = max(0, self.movementSpeed + change)
+
+    def change_in_value(self, value, change, max=None, min=None):
+        """ Given a initial value and change to that value along with a min or max, it will return the required change up to min/max if needed
+        :param value: (int) Original value
+        :param change: (int) change to value
+        :param max: (int)
+        :param min: (int)
+        :return:
+        """
+        if not value and not change:
+            return 0
+
+        new_value = value + change
+
+        if min:
+            return change + (min - new_value)
+        if max:
+            return change + (max - new_value)
+        return change
 
     def toJson(self):
         """ Return json of information containing all attribute information
