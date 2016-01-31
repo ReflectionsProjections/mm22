@@ -26,7 +26,6 @@ class Character(object):
 
         self.attributes = Attributes( classJson['Health'],
                             classJson['Damage'],
-                            classJson['AbilityPower'],
                             classJson['AttackRange'],
                             classJson['AttackSpeed'],
                             classJson['Armor'],
@@ -143,7 +142,6 @@ class Attributes(object):
         self.maxHealth = health
         self.health = health
         self.damage = damage
-        self.abilityPower= abilityPower
         self.attackRange = attackRange
         self.attackSpeed = attackSpeed
         self.armor = armor
@@ -154,8 +152,6 @@ class Attributes(object):
             return self.change_health(change)
         if attribute_name == 'Damage':
             return self.change_damage(change)
-        if attribute_name == 'AbilityDamage':
-            return self.change_ability_damage(change)
         if attribute_name == 'AttackSpeed':
             return self.change_attack_speed(change)
         if attribute_name == 'AttackRange':
@@ -173,9 +169,6 @@ class Attributes(object):
 
     def change_damage(self, change):
         self.damage = max(0, self.damage + change)
-
-    def change_ability_damage(self, change):
-        self.abilityPower = max(0, self.abilityPower + change)
 
     def change_attack_speed(self, change):
         self.attackSpeed = max(0, self.attackSpeed + change)
@@ -217,7 +210,6 @@ class Attributes(object):
         json['MaxHealth'] = self.maxHealth
         json['Health'] = self.health
         json['Damage'] = self.damage
-        json['AbilityPower'] = self.abilityPower
         json['AttackSpeed'] = self.attackSpeed
         json['AttackRange'] = self.attackRange
         json['Armor'] = self.armor
