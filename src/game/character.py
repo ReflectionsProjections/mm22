@@ -154,7 +154,7 @@ class Attributes(object):
             return self.change_health(change)
         if attribute_name == 'Damage':
             return self.change_damage(change)
-        if attribute_name == 'AbilitiyDamage':
+        if attribute_name == 'AbilityDamage':
             return self.change_ability_damage(change)
         if attribute_name == 'AttackSpeed':
             return self.change_attack_speed(change)
