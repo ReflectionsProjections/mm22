@@ -111,7 +111,8 @@ function preload () {
     game.load.image('dude2', 'assets/dude2.png');
     game.load.image('spell1', 'assets/spell1.png');
     
-    
+    //log success
+    console.log("preload() complete");
 }
 
 //add the assets to the game 
@@ -127,17 +128,24 @@ function create () {
 
     //create group for characters
     characters = game.add.group();
-    
 
     //dummy characters
-    star = game.add.sprite(game.world.centerX, game.world.centerY, 'star');
-    dude1 = game.add.sprite(550, 450, 'dude1');
-    dude2 = game.add.sprite(200, 100, 'dude2');
-    
-  
+    star = characters.create(game.world.centerX, game.world.centerY, 'star');
+    dude1 = characters.create(100, 450, 'dude1');
+    dude2 = characters.create(200, 100, 'dude2');
+
+    //enable click input for characters
+    characters.setAll('inputEnabled', true);
+    //fix this!!!
+    characters.callAll('events.onInputDown.add', 'events.onInputDown', 
+        changeStatScreen);
+
+
+    //log success
+    console.log("create() complete");
 }
 
-//call every frame, roughly 60 frames per second
+//called every frame, roughly 60 frames per second
 function update () {
 
     //Uncomment this if you want to move one step at a time with a mouse click
@@ -222,7 +230,6 @@ var spellList = [];
 function addSpell(caster, target, spellName){
     spells.create(caster.x, caster.y, spellName);
     spellList.push({"caster" : caster, "target" : target});
-    console.log(spellList);
 }
 
 /*
@@ -231,7 +238,6 @@ function addSpell(caster, target, spellName){
     This function clears both spellList and the spells group.
 */
 function releaseSpells(){
-    console.log("releaseSpells() called");
     //Go through all the spells in the spells group
     //  and tween them to their targets
     var index = spellList.length-1;
@@ -250,8 +256,14 @@ function releaseSpells(){
     tween.onComplete.add(removeSpells, this);
     function removeSpells(){
         spells.removeAll(true, false);
-    }
+    };
     
+}
+
+//TODO: Have this display the stats of each sprite on the
+//  side bar
+function changeStatScreen(){
+    console.log("changeStatScreen called");
 }
 
 
