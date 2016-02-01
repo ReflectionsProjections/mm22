@@ -18,12 +18,28 @@
         at my discretion (popping from a queue).
 
     
-    TODO: Keep track of asset Lists
+    TODO: Keep track of Asset Lists
+    TODO: Figure out how the movement system will be translated
+        into the JSON, a.k.a what calculation will be done by the
+        visualizer (Jack, Eric)
+    TODO: Stats screen layout
+    TODO: Create queue for JSON to be parsed
+    TODO: Remove any dummy data/variables/JSON
+
 
     -----MAP----
     120x120 pixel quadrants, w/ pillars
     I'll have to fit all of the characters in each quadrant
     ----/MAP----
+
+    What Will Happen For Every Bit Of JSON
+        Update Stats Screen Data
+        Move Characters
+        Add any spells/actions to the spells group w/ addSpell()
+        Release any of the spells with releaseSpells()
+
+
+
 
 
 */
@@ -58,8 +74,8 @@ var OFF_SCREEN = -500;
 //Reference to the core game object
 //If you want to use game.debug in the render() function, you need to set
 //  Phaser.AUTO to Phaser.CANVAS (the renderer)
-var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO, '', 
-    { preload: preload, create: create, update: update});
+var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
+ 'phaser-game', { preload: preload, create: create, update: update});
 
 //Variables to refer to the characters by
 var star;
@@ -136,7 +152,6 @@ function create () {
 
     //enable click input for characters
     characters.setAll('inputEnabled', true);
-    //fix this!!!
     characters.callAll('events.onInputDown.add', 'events.onInputDown', 
         changeStatScreen);
 
@@ -159,8 +174,6 @@ function update () {
 }
 
 //DEBUG ONLY WORKS IF RENDERER IS SET TO Phaser.CANVAS
-//I would use game.debug function calls but they don't work for
-// some reason :P
 //If you delete this function (it is not needed for the game to work)
 //  then you must remove the 'render' key/value from the core game
 //  object's constructor
@@ -171,7 +184,10 @@ function update () {
 // }
 
 
-
+//TODO: Modify this to work w/ the JSON given by the server
+//TODO: Modify this so that characters move to quadrants and 
+//  auto fit into each one (allow multiple characters to be in 
+//  a quadrant without overlapping)
 function moveCharacters(){
      for (var k in locationUpdate){
         //switch statement to know which character to update
