@@ -1,5 +1,5 @@
 /*
-    Michael Rechenberg
+    Author: Michael Rechenberg
 
     Phaser Visualizer code for mm22
 
@@ -19,8 +19,6 @@
 
     
     TODO: Keep track of asset Lists
-    TODO: Try using TimelineMax for simaltaneous Tweens, 
-        otherwise, use moveToXY and arcade physics
 
     -----MAP----
     120x120 pixel quadrants, w/ pillars
@@ -31,7 +29,12 @@
 */
 
 //Number of milliseconds until the next bit of JSON will be processed
-var TIME_TO_NEXT_UPDATE = 500; 
+//  and the visualizer is updated
+var TIME_TO_NEXT_UPDATE = 500;
+
+//Number of milliseconds allowed for each spell to be tweened
+//  i.e. to move from caster to target 
+var TIME_FOR_SPELLS = 500;
 
 //designates how many a sprite for every unit of movement designated by the JSON
 //This is unecessary if the JSON sends the absolute position of characters
@@ -47,6 +50,10 @@ var GAME_HEIGHT = 600;
 //Width of the space where to display the stats of each player
 var STAT_WIDTH = 400;
 
+//Constant to define the x and y coords of any sprite we load
+//  but don't want to be visible
+var OFF_SCREEN = -500;
+
 
 //Reference to the core game object
 //If you want to use game.debug in the render() function, you need to set
@@ -59,12 +66,14 @@ var star;
 var dude1;
 var dude2;
 
-//Vars to refer to spells
-var spell1;
-var spell2;
+//TODO: Have all characters added to this group instead
+//  of indiv names like star or dude2
+//Group containing all of the characters we want to use
+var characters;
 
-//Tween variable
-var tween;
+//Group containing all the spells to be cast
+var spells;
+
 
 //dummy JSON data for updating the location of the characters
 //Format:
@@ -93,7 +102,7 @@ var locationUpdate = {
 
 //load our assets
 function preload () {
-    //background
+    //background image
     game.load.image('desertBackground', 'assets/desert-tiles.png');
 
     //sprites for the characters
@@ -107,36 +116,29 @@ function preload () {
 
 //add the assets to the game 
 function create () {
-    
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+    //enable physics, only needed to move multiple spells
+    //game.physics.startSystem(Phaser.Physics.ARCADE);
 
+    //set background image
     var desertBackground = game.add.sprite(0, 0, 'desertBackground');
+
+    //create group for spells
+    spells = game.add.group();
+
+    //create group for characters
+    characters = game.add.group();
+    
+
+    //dummy characters
     star = game.add.sprite(game.world.centerX, game.world.centerY, 'star');
     dude1 = game.add.sprite(550, 450, 'dude1');
     dude2 = game.add.sprite(200, 100, 'dude2');
-    spell1 = game.add.sprite(-20, -20, 'spell1');
+    
   
 }
 
 //call every frame, roughly 60 frames per second
 function update () {
-
-
-    //Uncomment this if you want to move around with the keyboard
-    //This is difficult if you want to see one movement at a time
-
-    // if(game.input.keyboard.isDown(Phaser.Keyboard.LEFT)){
-    //     star.x-=MOVEMENT_PIXELS;
-    // }
-    // else if(game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)){
-    //     star.x += MOVEMENT_PIXELS;
-    // }
-    // else if (game.input.keyboard.isDown(Phaser.Keyboard.UP)){
-    //     star.y -= MOVEMENT_PIXELS;
-    // }
-    // else if (game.input.keyboard.isDown(Phaser.Keyboard.DOWN)){
-    //     star.y += MOVEMENT_PIXELS;
-    // }
 
     //Uncomment this if you want to move one step at a time with a mouse click
     game.input.onTap.add(moveCharacters, this);
@@ -195,15 +197,62 @@ function moveCharacters(){
         }
     }
     //dummy function to show casting spells
-    castSpell(dude2, dude1);
+    addSpell(dude2, dude1, "spell1");
+    addSpell(dude1, star, "spell1");
+    addSpell(star, dude2, "spell1");
+    releaseSpells();
 }
 
-//TODO: Handle multiple tweens simaltaneously
-//This will send a sprite from the caster to the target
-function castSpell(caster, target){
-    spell1.x = caster.x + 20;
-    spell1.y = caster.y + 20;
-    tween = game.add.tween(spell1).to({x: target.x, y: target.y}, TIME_TO_NEXT_UPDATE -10, null, true);  
+//List to keep track of caster and target
+var spellList = [];
+
+/*
+    Adds a spell to the spells group.
+    Call releaseSpells() to move all the spell sprites
+        to their respective targets.
+    If you want a spell to target the caster (self-heal, 
+        self-buff), just set caster and target to the
+        same value.
+
+    caster--the sprite of the character casting the spell
+    target--the sprite of the charcter targetted by the spell
+    spellName--string of the key denoting the sprite of a 
+        certain spell.
+*/
+function addSpell(caster, target, spellName){
+    spells.create(caster.x, caster.y, spellName);
+    spellList.push({"caster" : caster, "target" : target});
+    console.log(spellList);
 }
+
+/*
+    Releases all the spells that were added by addSpell(),
+    moving each spell sprite to their respective target.
+    This function clears both spellList and the spells group.
+*/
+function releaseSpells(){
+    console.log("releaseSpells() called");
+    //Go through all the spells in the spells group
+    //  and tween them to their targets
+    var index = spellList.length-1;
+    var tween;
+    while(index >= 0){
+        //get the last child
+        var currentSpell = spells.getChildAt(index);
+        //moves the spell
+        tween = game.add.tween(currentSpell).to({x: spellList[index].target.x, 
+            y: spellList[index].target.y}, TIME_FOR_SPELLS, null, true);
+        index--;
+    }
+    
+    //cleanup
+    spellList = [];
+    tween.onComplete.add(removeSpells, this);
+    function removeSpells(){
+        spells.removeAll(true, false);
+    }
+    
+}
+
 
 
