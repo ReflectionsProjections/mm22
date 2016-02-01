@@ -19,6 +19,8 @@
 
     
     TODO: Keep track of asset Lists
+    TODO: Try using TimelineMax for simaltaneous Tweens, 
+        otherwise, use moveToXY and arcade physics
 
     -----MAP----
     120x120 pixel quadrants, w/ pillars
@@ -64,7 +66,6 @@ var spell2;
 //Tween variable
 var tween;
 
-
 //dummy JSON data for updating the location of the characters
 //Format:
 //
@@ -106,6 +107,8 @@ function preload () {
 
 //add the assets to the game 
 function create () {
+    
+    game.physics.startSystem(Phaser.Physics.ARCADE);
 
     var desertBackground = game.add.sprite(0, 0, 'desertBackground');
     star = game.add.sprite(game.world.centerX, game.world.centerY, 'star');
