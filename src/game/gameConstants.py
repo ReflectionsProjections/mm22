@@ -77,7 +77,7 @@ abilitiesList = [
             "Time": 5
         }],
         "Cooldown"  : 10,
-        "Range"     : 1,
+        "Range"     : 0,
     },
     {   #1 warrior stun (PROBABLY BROKEN)
         "StatChanges": [{

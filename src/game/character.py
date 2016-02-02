@@ -30,7 +30,10 @@ class Character(object):
                             classJson['AttackRange'],
                             classJson['AttackSpeed'],
                             classJson['Armor'],
-                            classJson['MovementSpeed'])
+                            classJson['MovementSpeed'],
+                            self.stunned,
+                            self.rooted,
+                            self.silenced)
 
         # A Json that contains abilities by id and their cooldown by id
         self.abilities = {}
@@ -69,6 +72,16 @@ class Character(object):
         """
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
+            return False
+        return self.abilities[ability_id] == 0
+        
+        # Is the character stunned?
+        if (self.stunned):
+            return False
+        return self.abilities[ability_id] == 0
+        
+        # Is the character silenced?
+        if (self.silenced):
             return False
         return self.abilities[ability_id] == 0
 
@@ -130,7 +143,7 @@ class Character(object):
 
 class Attributes(object):
 
-    def __init_(self, health, damage, attackRange, attackSpeed, armor, movementSpeed):
+    def __init_(self, health, damage, attackRange, attackSpeed, armor, movementSpeed, stunned, rooted, silenced):
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
@@ -138,6 +151,9 @@ class Attributes(object):
         :param attackSpeed: (int) attackSpeed of auto attacks
         :param armor: (float) damage removed from attacks
         :param movementSpeed: (int) movement per tick
+        :param stunned: (bool) stun status
+        :param rooted: (bool) root status
+        :param silenced: (bool) silence status
         """
 
         self.maxHealth = health
@@ -147,6 +163,9 @@ class Attributes(object):
         self.attackSpeed = attackSpeed
         self.armor = armor
         self.movementSpeed = movementSpeed
+        self.stunned = stunned
+        self.rooted = rooted
+        self.silenced = silenced
 
     def change_attribute(self, attribute_name, change):
         if attribute_name == 'Health':
@@ -161,6 +180,12 @@ class Attributes(object):
             return self.change_armor(change)
         if attribute_name == 'MovementSpeed':
             return self.change_movement_speed(change)
+        if attribute_name == 'Stunned':
+            return self.change_stunned(change)
+        if attribute_name == 'Rooted':
+            return self.change_rooted(change)
+        if attribute_name == 'Silenced':
+            return self.change_silenced(change)
 
     def change_health(self, change):
         if change < 0:
@@ -175,7 +200,7 @@ class Attributes(object):
         self.attackSpeed = max(1, self.attackSpeed + change)
 
     def change_attack_range(self, change):
-        self.attackRange = max(1, self.attackRange + change)
+        self.attackRange = max(0, self.attackRange + change)
 
     def change_armor(self, change):
         self.armor = max(0, self.armor + change)
@@ -183,6 +208,21 @@ class Attributes(object):
     def change_movement_speed(self, change):
         new_change = change_in_Value()
         self.movementSpeed = max(0, self.movementSpeed + change)
+
+    def change_stunned(self, change):
+        if (change):
+            self.stunned = (self.stunned || change)
+        self.stunned = (self.stunned && change)
+
+    def change_rooted(self, change):
+        if (change):
+            self.rooted = (self.rooted || change)
+        self.rooted = (self.rooted && change)
+
+    def change_silenced(self, change):
+        if (change):
+            self.silenced = (self.silenced || change)
+        self.silenced = (self.silenced && change)
 
     def change_in_value(self, value, change, max=None, min=None):
         """ Given a initial value and change to that value along with a min or max, it will return the required change up to min/max if needed
