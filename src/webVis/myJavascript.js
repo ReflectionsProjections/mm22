@@ -4,8 +4,11 @@
     Phaser Visualizer code for mm22
 
     This will draw the sprites for each of the characters using
-    the JSON from the server (however we decide to send it).
+    the JSON from the server (however we decide to send it) and
+    any spells casted by any players.
     The server is responsible for making sure the movements are valid.
+
+    Assumes that there are 6 players total (3 on each team)
 
     A good reference for Phaser things: https://leanpub.com/html5shootemupinanafternoon/read
     Phaser website: http://phaser.io/
@@ -17,25 +20,26 @@
         update()
         render()
 
-    preload() and create only run once, while update() and render()
+    preload() and create() only run once, while update() and render()
     run every frame
     render() is usually not needed, but is good for debugging
 
-
-    New JSON will be sent every (1/2) second???
     
     Loose JSON??? What does this mean exactly.
 
     The server will send a lot of JSON, but it will be added
      to a queue and the front element will be dequeued every
-     time the turn is displayed onto the screen.
+     time the turn is displayed onto the screen, as determined by
+     TIME_TO_NEXT_UPDATE.
 
     
     TODO: Keep track of Asset Lists
     TODO: Figure out how the movement system will be translated
-        into the JSON, a.k.a what calculation will be done by the
-        visualizer (Jack, Eric)
+        into the JSON, a.k.a what calculation has to be done by the
+        visualizer (Jack, Eric, Asaf)
     TODO: Stats screen layout
+        Menu to select player
+        Select a player on click
     TODO: Create queue for JSON to be parsed
     TODO: Remove any dummy data/variables/JSON
 
@@ -44,7 +48,15 @@
     A 5x5 configuration with 120x120 pixel spaces for "quadrants"
     Each quadrant has a 3x3 configuration, with each element 
         a 40x40 pixel space
-    I'll have to fit all of the characters in each quadrant
+    Characters will be placed within each quadrant such that
+        all 6 characters can fit in one quadrant at one time
+
+    x ----->
+    y 
+    |
+    |
+    V
+
     ----/MAP----
 
     What Will Happen For Every Bit Of JSON
@@ -63,7 +75,7 @@
 
 //Number of milliseconds until the next bit of JSON will be processed
 //  and the visualizer is updated
-var TIME_TO_NEXT_UPDATE = 500;
+var TIME_TO_NEXT_UPDATE = 1000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
@@ -98,6 +110,8 @@ var OFF_SCREEN = -500;
 var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
  'phaser-game', { preload: preload, create: create, update: update});
 
+//Reference to the game's timer
+var timer;
 
 //width and height of a character's sprite, in pixels
 var CHARACTER_DIMENSION = 40;
@@ -137,10 +151,11 @@ var playerSix;
 var spells;
 
 
+
 //load our assets
 function preload () {
     //background image
-    game.load.image('desertBackground', 'assets/desert-tiles.png');
+    game.load.image('background', 'assets/grid-background.jpg');
 
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
@@ -157,13 +172,13 @@ function preload () {
     console.log("preload() complete");
 }
 
-//add the assets to the game 
+//add the assets to the game and make them visible
 function create () {
     //enable physics, so far not necessary
     //game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //set background image
-    var desertBackground = game.add.sprite(0, 0, 'desertBackground');
+    var background = game.add.sprite(0, 0, 'background');
 
     //create group for spells
     spells = game.add.group();
@@ -171,28 +186,39 @@ function create () {
     //create group for characters
     characters = game.add.group();
     //Add all players to the characters group at their initial locations
-    //TODO: add all characters to their intitial locations
+    //TODO: add all characters to their intitial locations according to JSON
+    //TODO: Let participants choose names for their character???
     playerOne = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
+    playerOne.name = "playerOne";
     playerTwo = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
+    playerTwo.name = "playerTwo";
     playerThree = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
+    playerThree.name = "playerThree";
     playerFour = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
+    playerFour.name = "playerFour";
     playerFive = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
+    playerFive.name = "playerFive";
     playerSix = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
+    playerSix.name = "playerSix";
 
     //TODO: Code to add each player to teamA or teamB, use the JSON
 
 
 
 
-    //enable click input for characters
+    //enable input for all character sprites
     characters.setAll('inputEnabled', true);
-    //when a character is clicked, changeStatScreen is called
-    //TODO: have changeStatScreen detect which sprite was clicked
+    //When input is detected (currently only clicking on a sprite is detected)
+    // changeStatScreen is called by the sprite's corresponding player variable
+    //Pass the variable of the calling character sprite to
+    // changeStatScreen() 
     characters.callAll('events.onInputDown.add', 'events.onInputDown', 
-        changeStatScreen);
+        changeStatScreen, this);
 
+    //Have the timer call a moveCharactersQuadrant every TIME_TO_NEXT_UPDATE 
+    //  milliseconds
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantTest, this);
 
-    //log success
     console.log("create() complete");
 }
 
@@ -200,26 +226,36 @@ function create () {
 function update () {
 
 
+    //Adds callback to event listener for clicking
     //Uncomment this if you want to move one step at a time with a mouse click
-    game.input.onTap.add(moveCharactersQuadrant, this);
+    game.input.onTap.add(moveCharactersQuadrantTest, this);
 
-    //Uncomment this if you want to move the characters by pushing the up arrow
-    if(game.input.keyboard.isDown(Phaser.Keyboard.UP)){
-        //moveCharacters();
-        moveCharactersQuadrant();
-    }
+    // //Uncomment this if you want to move the characters by pushing the up arrow
+    // if(game.input.keyboard.isDown(Phaser.Keyboard.UP)){
+    //     //moveCharacters();
+    //     moveCharactersQuadrant();
+    // }
+
 
 }
 
-//DEBUG ONLY WORKS IF RENDERER IS SET TO Phaser.CANVAS
-//If you delete this function (it is not needed for the game to work)
-//  then you must remove the 'render' key/value from the core game
-//  object's constructor
-// function render(){
-//     console.log("playerOne is at x: " + playerOne.x + ", y: ", playerOne.y);
-//     console.log("playerTwo is at x: " + playerTwo.x + ", y", playerTwo.y);
-//     console.log("playerThree is at x: " + playerThree.x + ", y", playerThree.y);
-// }
+
+//-------------END OF PHASER CODE-------------------//
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -312,6 +348,8 @@ function moveCharacters(){
 //List to keep track of caster and target of spells
 var spellList = [];
 
+
+//TODO: Have spells go to "center" of sprite
 /*
     Adds a spell to the spells group.
     Call releaseSpells() to move all the spell sprites
@@ -349,8 +387,8 @@ function releaseSpells(){
         //  and moving towards the first element
         var currentSpell = spells.getChildAt(index);
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
-        tween = game.add.tween(currentSpell).to({x: spellList[index].target.x, 
-            y: spellList[index].target.y}, TIME_FOR_SPELLS, null, true);
+        tween = game.add.tween(currentSpell).to({x: spellList[index].target.x + 10, 
+            y: spellList[index].target.y + 10}, TIME_FOR_SPELLS, null, true);
         index--;
     }
     
@@ -405,8 +443,16 @@ var dummyMovement = {
 //  the next sprite to be inserted
 //Access this array in the following way:
 //  nextQuadrantSpaceAvailable[quadrantRow][quadrantColumn][0 or 1]
-//  0 denotes a row within the quadrant
-//  1 denotes a column within the quadrant
+//      0 denotes a row within the quadrant
+//      1 denotes a column within the quadrant
+//  
+//  column ---->
+//  row
+//   |
+//   |
+//   V
+//
+
 var nextQuadrantSpaceAvailable = [
     [[0,0],[0,0],[0,0],[0,0],[0,0] ],
     [[0,0],[0,0],[0,0],[0,0],[0,0] ],
@@ -416,17 +462,7 @@ var nextQuadrantSpaceAvailable = [
 
 ];
 
-//A constant to set nextQuadrantSpaceAvailable to in order
-//  to reset it (if using a loop is too expensive)
-//TODO: Delete if not necessary
-var RESET_QUADRANT_SPACE_AVAILABLE = [
-    [[0,0],[0,0],[0,0],[0,0],[0,0] ],
-    [[0,0],[0,0],[0,0],[0,0],[0,0] ],
-    [[0,0],[0,0],[0,0],[0,0],[0,0] ],
-    [[0,0],[0,0],[0,0],[0,0],[0,0] ],
-    [[0,0],[0,0],[0,0],[0,0],[0,0] ],
 
-];
 /**
     Moves a character from one quadrant to another.
     
@@ -438,24 +474,27 @@ var RESET_QUADRANT_SPACE_AVAILABLE = [
 
     If multiple characters are in the same quadrant,
       space them out so each character sprite can be 
-      visible. (Have them be in rows)
+      visible. 
 
     Each quadrant is defined to be 120x120 pixels
 
-    Does not check to see if the move is valid
-        (does the sprite move off the stage, into a pillar)
+    NOTE: Does not check to see if the move is valid
+        (does not check if the character will move off of the map,
+        into a pillar)
+
+    TODO: Use jQuery's .each method to clean up this code
 */
 function moveCharactersQuadrant(){
     //TODO: Use absolute position if JSON from server gives that
 
-    //reset nextQuadrantSpaceAvailable so every space is "available"
-    for(var i = 0; i < 5; i++){
-        for(var j = 0; j < 5; j++){
-            for(var k = 0; k < 2; k++)
-                nextQuadrantSpaceAvailable[i][j][k] = 0;
-        }
+    //reset nextQuadrantSpaceAvailable so all spaces are available
+    for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
+        for(var j = 0; j < nextQuadrantSpaceAvailable[i].length; j++){
+            nextQuadrantSpaceAvailable[i][j][0] = 0;
+            nextQuadrantSpaceAvailable[i][j][1] = 0;
+        } 
     }
-    
+
     for(var k in dummyMovement){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
@@ -465,7 +504,7 @@ function moveCharactersQuadrant(){
                 //calculate the player's new destination
                 newQuadrantCol = (playerOne.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 newQuadrantRow = (playerOne.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
+                //move them into the quadrant at the top-left corner
                 playerOne.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerOne.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
@@ -486,9 +525,6 @@ function moveCharactersQuadrant(){
                 playerTwo.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerTwo.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                console.log("Player2");
-                console.log("newQuadrantCol" + newQuadrantCol);
-                console.log("newQuadrantRow" + newQuadrantRow);
                 playerTwo.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerTwo.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
@@ -570,56 +606,162 @@ function moveCharactersQuadrant(){
             default:
                 break;
         }
-        console.log(nextQuadrantSpaceAvailable);
-        console.log("newQuadrantCol" + newQuadrantCol);
-        console.log("newQuadrantRow" + newQuadrantRow);
     }
 
 
 
 
+}
 
 
+//Tests the quadrant spacing by randomizing locations for each player
+//Uses assignment from the JSON rather than a +=, so use this if
+//  the JSON gives ABSOLUTE position rather than relative displacement
+function moveCharactersQuadrantTest(){
+
+   //reset nextQuadrantSpaceAvailable so all spaces are available
+    for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
+        for(var j = 0; j < nextQuadrantSpaceAvailable[i].length; j++){
+            nextQuadrantSpaceAvailable[i][j][0] = 0;
+            nextQuadrantSpaceAvailable[i][j][1] = 0;
+        } 
+    }
+    //have the sprites to to a random location (x,y) = ((0-4),(0-4))
+    randomizeMovement();
 
 
+    for(var k in dummyMovement){
+        //marks the coordinates of where the player will be after moving
+        var newQuadrantRow = 0;
+        var newQuadrantCol = 0;
+        switch(k){
+            case "playerOne":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant at the top-left corner
+                playerOne.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerOne.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerOne.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerOne.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            case "playerTwo":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant
+                playerTwo.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerTwo.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerTwo.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerTwo.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            case "playerThree":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant
+                playerThree.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerThree.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerThree.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerThree.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            case "playerFour":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant
+                playerFour.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerFour.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerFour.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerFour.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            case "playerFive":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant
+                playerFive.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerFive.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerFive.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerFive.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            case "playerSix":
+                newQuadrantCol = dummyMovement[k]["x"];
+                newQuadrantRow = dummyMovement[k]["y"];
+                //move them into the quadrant
+                playerSix.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                playerSix.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                //move them again to the next column if they're isn't room in the quadrant
+                playerSix.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                playerSix.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                //update the column part of the "tuple"
+                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+                //if the column is 3, move to the next row
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    addSpell(playerThree, playerTwo, "spell1");
+    addSpell(playerTwo, playerOne, "spell1");
+    addSpell(playerOne, playerThree, "spell1");
+    releaseSpells();
+}
 
-
-
-
-
-
-    //old movement by quadrant system, did not see if space was "available"
-
-    // for(var k in dummyMovement){
-    //     switch(k){
-    //         case "playerOne":
-    //             playerOne.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerOne.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         case "playerTwo":
-    //             playerTwo.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerTwo.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         case "playerThree":
-    //             playerThree.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerThree.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         case "playerFour":
-    //             playerFour.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerFour.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         case "playerFive":
-    //             playerFive.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerFive.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         case "playerSix":
-    //             playerSix.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-    //             playerSix.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-    //             break;
-    //         default:
-    //             break;
-    //     }
-    // }
+//Helper function for moveCharactersQuadrantTest()
+//Randomizes the x and y of dummyLocation to an integer [0-4]
+function randomizeMovement(){
+    dummyMovement["playerOne"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerOne"]["y"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerTwo"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerTwo"]["y"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerThree"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerThree"]["y"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerFour"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerFour"]["y"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerFive"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerFive"]["y"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerSix"]["x"] = Math.floor(Math.random() * 5);
+    dummyMovement["playerSix"]["y"] = Math.floor(Math.random() * 5);    
 
 }
 
@@ -628,10 +770,14 @@ function moveCharactersQuadrant(){
 
 
 
+
 //TODO: Have this display the stats of each sprite on the
 //  side bar
-function changeStatScreen(){
+//caller - character variable that called this function
+function changeStatScreen(caller){
     console.log("changeStatScreen called");
+    console.log(caller.name);
+
 }
 
 
