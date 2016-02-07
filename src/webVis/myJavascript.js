@@ -217,7 +217,7 @@ function create () {
 
     //Have the timer call a moveCharactersQuadrant every TIME_TO_NEXT_UPDATE 
     //  milliseconds
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantTest, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
 
     console.log("create() complete");
 }
@@ -228,7 +228,7 @@ function update () {
 
     //Adds callback to event listener for clicking
     //Uncomment this if you want to move one step at a time with a mouse click
-    game.input.onTap.add(moveCharactersQuadrantTest, this);
+    game.input.onTap.add(moveCharactersQuadrantAbsolute, this);
 
     // //Uncomment this if you want to move the characters by pushing the up arrow
     // if(game.input.keyboard.isDown(Phaser.Keyboard.UP)){
@@ -614,10 +614,9 @@ function moveCharactersQuadrant(){
 }
 
 
-//Tests the quadrant spacing by randomizing locations for each player
 //Uses assignment from the JSON rather than a +=, so use this if
 //  the JSON gives ABSOLUTE position rather than relative displacement
-function moveCharactersQuadrantTest(){
+function moveCharactersQuadrantAbsolute(){
 
    //reset nextQuadrantSpaceAvailable so all spaces are available
     for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
@@ -626,7 +625,7 @@ function moveCharactersQuadrantTest(){
             nextQuadrantSpaceAvailable[i][j][1] = 0;
         } 
     }
-    //have the sprites to to a random location (x,y) = ((0-4),(0-4))
+    //have the sprites move to a random location (x,y) = ((0-4),(0-4))
     randomizeMovement();
 
 
@@ -634,111 +633,66 @@ function moveCharactersQuadrantTest(){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
+        newQuadrantCol = dummyMovement[k]["x"];
+        newQuadrantRow = dummyMovement[k]["y"];
         switch(k){
             case "playerOne":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant at the top-left corner
                 playerOne.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerOne.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerOne.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerOne.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             case "playerTwo":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant
                 playerTwo.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerTwo.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerTwo.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerTwo.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             case "playerThree":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant
                 playerThree.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerThree.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerThree.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerThree.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             case "playerFour":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant
                 playerFour.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerFour.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerFour.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerFour.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             case "playerFive":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant
                 playerFive.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerFive.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerFive.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerFive.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             case "playerSix":
-                newQuadrantCol = dummyMovement[k]["x"];
-                newQuadrantRow = dummyMovement[k]["y"];
                 //move them into the quadrant
                 playerSix.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
                 playerSix.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
                 playerSix.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
                 playerSix.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
                 break;
             default:
                 break;
+        }
+        //update the column part of the "tuple"
+        nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
+        //if the column is 3, move to the next row
+        if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+            nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
+            nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
         }
     }
     addSpell(playerThree, playerTwo, "spell1");
@@ -750,19 +704,14 @@ function moveCharactersQuadrantTest(){
 //Helper function for moveCharactersQuadrantTest()
 //Randomizes the x and y of dummyLocation to an integer [0-4]
 function randomizeMovement(){
-    dummyMovement["playerOne"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerOne"]["y"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerTwo"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerTwo"]["y"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerThree"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerThree"]["y"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerFour"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerFour"]["y"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerFive"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerFive"]["y"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerSix"]["x"] = Math.floor(Math.random() * 5);
-    dummyMovement["playerSix"]["y"] = Math.floor(Math.random() * 5);    
-
+    for (var k in dummyMovement){
+        if(dummyMovement.hasOwnProperty(k)){
+             for(var l in dummyMovement[k]){
+                dummyMovement[k][l] = Math.floor(Math.random()*5);
+            }
+        }
+       
+    }
 }
 
 
