@@ -81,10 +81,6 @@ var TIME_TO_NEXT_UPDATE = 1000;
 //  i.e. to move from caster to target 
 var TIME_FOR_SPELLS = 500;
 
-//designates how many a sprite for every unit of movement designated by the JSON
-//This is unecessary if the JSON sends the absolute position of characters
-//Used in moveCharacters only
-var MOVEMENT_PIXELS = 5;
 
 
 //Constants to define Phaser's width and height
@@ -110,8 +106,13 @@ var OFF_SCREEN = -500;
 var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
  'phaser-game', { preload: preload, create: create, update: update});
 
+
 //Reference to the game's timer
 var timer;
+
+//Reference to the game's graphics class
+var graphics;
+
 
 //width and height of a character's sprite, in pixels
 var CHARACTER_DIMENSION = 40;
@@ -121,14 +122,9 @@ var CHARACTER_DIMENSION = 40;
 //  by 0, 1, 2, 3, or 4
 var QUADRANT_DIMENSION = 120;
 
-//Boolean array that keeps track of if a sprite is in certain location
-//Access section by 
 
 
 
-
-
-        
 
 //Group containing all of the characters we want to use
 var characters;
@@ -149,7 +145,6 @@ var playerSix;
 
 //Group containing all the spells to be cast on one turn
 var spells;
-
 
 
 //load our assets
@@ -173,6 +168,7 @@ function preload () {
 }
 
 //add the assets to the game and make them visible
+//initate any functions to be called on a looping schedule
 function create () {
     //enable physics, so far not necessary
     //game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -215,10 +211,28 @@ function create () {
     characters.callAll('events.onInputDown.add', 'events.onInputDown', 
         changeStatScreen, this);
 
-    //Have the timer call a moveCharactersQuadrant every TIME_TO_NEXT_UPDATE 
-    //  milliseconds
+    //Have the timer call all of the following functions every
+    //  TIME_TO_NEXT_UPDATE milliseconds
     game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
 
+    //create handle for game graphics 
+    //All things drawn by graphics have x and y origin
+    //  at 0, 0
+    graphics = game.add.graphics();
+    graphics.beginFill(HEALTH_BAR_COLOR);
+    healthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+        STAT_WIDTH - 20, HEALTH_BAR_HEIGHT);
+    console.log(healthBar);
+    graphics.endFill();
+
+    //add the character's name to the stats screen
+    characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYER ONE", {font: "4em Arial", fill: "#ff944d"});
+    //Display the word 'Health' underneath the health bar
+    game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
+
+
+    //log success
     console.log("create() complete");
 }
 
@@ -228,14 +242,13 @@ function update () {
 
     //Adds callback to event listener for clicking
     //Uncomment this if you want to move one step at a time with a mouse click
-    game.input.onTap.add(moveCharactersQuadrantAbsolute, this);
+    //game.input.onTap.add(moveCharactersQuadrantAbsolute, this);
 
     // //Uncomment this if you want to move the characters by pushing the up arrow
     // if(game.input.keyboard.isDown(Phaser.Keyboard.UP)){
     //     //moveCharacters();
     //     moveCharactersQuadrant();
     // }
-
 
 }
 
@@ -259,91 +272,8 @@ function update () {
 
 
 
-//TODO: Delete this dummy JSON for final release
-//dummy JSON data for moveCharacters()
-//Format:
-//
-//  characterName--The name of the character you want to update
-//      x--The number of MOVEMENT_PIXELS to move in the x-direction
-//      y--The number of MOVEMENT_PIXELS to move in the y-direction
-//
-var locationUpdate = {
-    "playerOne" : 
-    {
-        "x" : 1, 
-        "y" : -1
-    },
-    "playerTwo" : 
-    {
-        "x" : 0, 
-        "y" : 3
-    },
-    "playerThree" : 
-    {
-        "x" : 0,
-        "y" : -1
-    },
-    "playerFour" : 
-    {
-        "x" : 1,
-        "y" : 1
-    },
-    "playerFive" : 
-    {
-        "x" : -1,
-        "y" : 0
-    },
-    "playerSix" : 
-    {
-        "x" : 1,
-        "y" : 0
-    }
-};
 
-/**
-    Move characters by multiples of MOVEMENT_PIXELS
-    Sprites may overlap
-    Will probably be deprecated in favor of 
-      moveCharactersQuadrant()
-*/
-function moveCharacters(){
-     for (var k in locationUpdate){
-        //switch statement to know which character to update
-        // by updating the corresponding sprite variable's x and 
-        // y fields.
-        //The characters move in multiples of MOVEMENT_PIXELS
-        switch(k){
-            case "playerOne":
-                playerOne.x += locationUpdate[k]["x"] * MOVEMENT_PIXELS;
-                playerOne.y += locationUpdate[k]["y"] * MOVEMENT_PIXELS;
-                break;
-            case "playerTwo":
-                playerTwo.x += locationUpdate[k]["x"] * MOVEMENT_PIXELS;
-                playerTwo.y += locationUpdate[k]["y"] * MOVEMENT_PIXELS;
-                break;
-            case "playerThree":
-                playerThree.x += locationUpdate[k]["x"] * MOVEMENT_PIXELS;
-                playerThree.y += locationUpdate[k]["y"] * MOVEMENT_PIXELS;
-                break;
-            default:
-                break;
-        }
-        //randomize the movement data [-2, 2]
-        locationUpdate[k]["x"] = Math.floor((Math.random()* 3));
-        if(Math.floor(Math.random()*2) == 0){
-            locationUpdate[k]["x"] *= -1;
-        }
-        locationUpdate[k]["y"] = Math.floor((Math.random()* 3));
-        if(Math.floor(Math.random()*2) == 0){
-            locationUpdate[k]["y"] *= -1;
-        }
-    }
-    //dummy function to show casting spells
-    addSpell(playerThree, playerTwo, "spell1");
-    addSpell(playerTwo, playerOne, "spell1");
-    addSpell(playerOne, playerThree, "spell1");
-    releaseSpells();
-}
+
 
 //List to keep track of caster and target of spells
 var spellList = [];
@@ -436,6 +366,7 @@ var dummyMovement = {
     }
 };
 
+//----------------Code for Movemement---------------//
 
 
 //Represents the map wih a 5x5 array of "tuples"
@@ -705,6 +636,7 @@ function moveCharactersQuadrantAbsolute(){
 //Randomizes the x and y of dummyLocation to an integer [0-4]
 function randomizeMovement(){
     for (var k in dummyMovement){
+        //ensure the property is not part of the prototype
         if(dummyMovement.hasOwnProperty(k)){
              for(var l in dummyMovement[k]){
                 dummyMovement[k][l] = Math.floor(Math.random()*5);
@@ -716,17 +648,59 @@ function randomizeMovement(){
 
 
 
+//-----------------Code for Stats Screen---------------------//
 
-
-
-
-//TODO: Have this display the stats of each sprite on the
-//  side bar
-//caller - character variable that called this function
-function changeStatScreen(caller){
+//Reference to the Text object where the name will be displayed
+var characterName;
+/**
+    Changes which character's stats are displayed
+        in the stats screen.
+*/
+function changeStatScreen(character){
     console.log("changeStatScreen called");
-    console.log(caller.name);
+    console.log(character.name);
+    currentCharacter = character;
+    //clear all graphics drawn from the graphics reference
+    graphics.clear();
+    //updates the name of the character whose stats are displayed
+    //NOTE: Does not check to see if name will fit yet
+    characterName.setText((character.name).toUpperCase());
+    updateHealthBar(character);
 
+
+}
+
+/**
+    Called to update all the graphics associated with the 
+        Stats Screen.
+    If the character selected has changed, call changeStatScreen()
+*/
+function updateStatScreen(character){
+    graphics.clear();
+    updateHealthBar(character);
+}
+
+
+//Reference to the health bar of the stats screen
+var healthBar;
+var HEALTH_BAR_COLOR = 0x33CC33;
+var HEALTH_BAR_X = GAME_WIDTH + 10;
+var HEALTH_BAR_Y = 100;
+var HEALTH_BAR_HEIGHT = 20;
+
+/**
+    Redraws the Health Bar
+    Currently it sets to health bar to a random value,
+        but later it will set to the health of the current
+        player.
+*/
+function updateHealthBar(character){
+    //redraw the health bar
+    graphics.beginFill(HEALTH_BAR_COLOR);
+    healthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        HEALTH_BAR_HEIGHT);
+    graphics.endFill();
 }
 
 
