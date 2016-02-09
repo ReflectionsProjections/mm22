@@ -444,7 +444,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -461,7 +461,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -478,7 +478,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -495,7 +495,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -512,7 +512,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -529,7 +529,7 @@ function moveCharactersQuadrant(){
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
                     nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
                 }
@@ -621,7 +621,7 @@ function moveCharactersQuadrantAbsolute(){
         //update the column part of the "tuple"
         nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
         //if the column is 3, move to the next row
-        if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] == 3){
+        if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
         }
