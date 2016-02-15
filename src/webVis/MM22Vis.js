@@ -68,10 +68,13 @@
         Release any of the spells with releaseSpells()
 
 
-
-
-
 */
+
+//----------Constants and Global Variables------------//
+
+//Queue containing all the JSON from the server
+var serverJSON = [];
+
 
 //Number of milliseconds until the next bit of JSON will be processed
 //  and the visualizer is updated
@@ -184,6 +187,7 @@ var dummyPlayer = {
 
 
 
+//------------Main Phaser Code---------------//
 
 //load our assets
 function preload () {
@@ -210,6 +214,11 @@ function preload () {
 function create () {
     //enable physics, so far not necessary
     //game.physics.startSystem(Phaser.Physics.ARCADE);
+
+    // //tests queue system
+    // //TODO: Delete these 2 lines
+    populateQueue();
+    console.log(serverJSON);
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
@@ -265,24 +274,24 @@ function create () {
     graphics.endFill();
 
     //add the character's name to the stats screen
-    statScreen.characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYER ONE", {font: "4em Arial", fill: "#ff944d"});
+    statScreen.characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYERONE", {font: "4em Arial", fill: "#ff944d"});
 
     //Set up the strings for each player's stats in the Stat Screen
     //TODO: Replace dummyPlayer.stats.X with stats of the JSON
     //TODO: Pad the strings so the numbers all align nicely
     var attrStrSpacing = 35;
     statScreen.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
-        "Movement Speed:" + dummyPlayer.stats.Health, {font: "3em Arial", fill: "#ffa366"});
+        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: "#ffa366"});
     statScreen.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
-        "Damage:        " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
+        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
     statScreen.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
         "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: "#ffa366"});
     statScreen.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range:  " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
+        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
     statScreen.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Attack Speed:  " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
+        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
     statScreen.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
-        "Armor:         " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
+        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
 
 
 
@@ -313,7 +322,7 @@ function update () {
 }
 
 
-//-------------END OF PHASER CODE-------------------//
+//-------------END OF MAIN PHASER CODE-------------------//
 
 
 
@@ -605,8 +614,10 @@ function moveCharactersQuadrant(){
 }
 
 
-//Uses assignment from the JSON rather than a +=, so use this if
-//  the JSON gives ABSOLUTE position rather than relative displacement
+/**
+    Uses assignment from the JSON rather than a +=, so use this if
+    the JSON gives ABSOLUTE position rather than relative displacement
+*/
 function moveCharactersQuadrantAbsolute(){
 
    //reset nextQuadrantSpaceAvailable so all spaces are available
@@ -716,6 +727,7 @@ function randomizeMovement(){
     Changes which character's stats are displayed
         in the stats screen.
 */
+//TODO: Have this function change the character being tracked by statScreen
 function changeStatScreen(character){
     console.log("changeStatScreen called");
     console.log(character.name);
@@ -735,9 +747,62 @@ function changeStatScreen(character){
         Stats Screen.
     If the character selected has changed, call changeStatScreen()
 */
+//TODO: Repalce dummyPlayer with actual JSON from server
 function updateStatScreen(character){
     graphics.clear();
     updateHealthBar(character);
+
+    //dequeue from the queue
+    var asdf = serverJSON.shift();
+ 
+
+    //update each Attribute String with the random data, and randomly switch each string to be red or green
+    statScreen.AttributeStrings.MovementSpeed.setText("Movement Speed: " + asdf.stats.MovementSpeed);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    statScreen.AttributeStrings.Armor.setText("Armor: " + asdf.stats.Armor);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    statScreen.AttributeStrings.AttackSpeed.setText("Attack Speed: " + asdf.stats.AttackSpeed);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    statScreen.AttributeStrings.AttackRange.setText("Attack Range: " + asdf.stats.AttackRange);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    statScreen.AttributeStrings.AbilityPower.setText("Ability Power: " + asdf.stats.AbilityPower);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    statScreen.AttributeStrings.Damage.setText("Damage: " + asdf.stats.Damage);
+    if(Math.floor(Math.random()*2)==0){
+        statScreen.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#ff0000"});
+    }
+    else{
+        statScreen.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#00ff00"});
+    }
+    
+    
+    
+
 }
 
 
@@ -763,5 +828,41 @@ function updateHealthBar(character){
     graphics.endFill();
 }
 
+
+
+
+//-----------------Test Functions--------------//
+
+
+
+
+function populateQueue(){
+    for(i = 0; i < 1500; i++){
+        var derp = {
+            "name" : null,
+            "stats" : {
+                "Health"        : 0,
+                "Damage"        : 0,
+                "AbilityPower" : 0,
+                "AttackRange"   : 0,
+                "AttackSpeed"   : 0,
+                "Armor"         : 0,
+                "MovementSpeed" : 0,
+                "Abilities"     : [ 1 ]
+            }, 
+            "actions" : {
+                "1" : "My Action"
+            }
+        };
+        derp["name"] = "Johnson";
+        for(var k in derp["stats"]){
+            if(derp["stats"].hasOwnProperty(k)){
+                derp["stats"][k] = Math.floor(Math.random()*300);
+            }
+        }
+        serverJSON.push(derp);
+    }
+
+}
 
 
