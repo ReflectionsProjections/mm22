@@ -659,7 +659,6 @@ var characterName;
 function changeStatScreen(character){
     console.log("changeStatScreen called");
     console.log(character.name);
-    currentCharacter = character;
     //clear all graphics drawn from the graphics reference
     graphics.clear();
     //updates the name of the character whose stats are displayed
