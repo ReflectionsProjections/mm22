@@ -146,6 +146,44 @@ var playerSix;
 //Group containing all the spells to be cast on one turn
 var spells;
 
+//Object to contain all of the handles to Phaser text objects 
+//  and other things relevant to the stats screen
+//TODO: Have CurrentPlayer allow for iteration to redesignate AttributeStrings' text 
+//  in changeStatScreen
+var statScreen = {
+    //Keeps track of the name of the player currently being tracked
+    "CharacterName" : null,
+    "AttributeStrings" : {
+        "Health" : null,
+        "Damage" : null,
+        "AbilityPower" : null,
+        "AttackRange" : null,
+        "AttackSpeed" : null,
+        "Armor" : null,
+        "MovementSpeed" : null
+    }
+};
+//constant of Y-position of where the text of attributes will be positioned
+//  relative to this coordinate
+var ATTRIBUTE_STRINGS_Y = 300;
+
+//dummyJSON for testing
+var dummyPlayer = {
+    "stats" : {
+            "Health"        : 500,
+            "Damage"        : 50,
+            "AbilityPower" : 50,
+            "AttackRange"   : 5,
+            "AttackSpeed"   : 2,
+            "Armor"         : 10,
+            "MovementSpeed" : 5,
+            "Abilities"     : [ 1 ]
+    }
+
+};
+
+
+
 
 //load our assets
 function preload () {
@@ -227,7 +265,29 @@ function create () {
     graphics.endFill();
 
     //add the character's name to the stats screen
-    characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYER ONE", {font: "4em Arial", fill: "#ff944d"});
+    statScreen.characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYER ONE", {font: "4em Arial", fill: "#ff944d"});
+
+    //Set up the strings for each player's stats in the Stat Screen
+    //TODO: Replace dummyPlayer.stats.X with stats of the JSON
+    //TODO: Pad the strings so the numbers all align nicely
+    var attrStrSpacing = 35;
+    statScreen.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
+        "Movement Speed:" + dummyPlayer.stats.Health, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
+        "Damage:        " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
+        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
+        "Attack Range:  " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        "Attack Speed:  " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
+        "Armor:         " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
+
+
+
+
+
     //Display the word 'Health' underneath the health bar
     game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
 
@@ -650,8 +710,8 @@ function randomizeMovement(){
 
 //-----------------Code for Stats Screen---------------------//
 
-//Reference to the Text object where the name will be displayed
-var characterName;
+
+
 /**
     Changes which character's stats are displayed
         in the stats screen.
@@ -659,12 +719,12 @@ var characterName;
 function changeStatScreen(character){
     console.log("changeStatScreen called");
     console.log(character.name);
-    currentCharacter = character;
+    statScreen.CharacterName = character.name;
     //clear all graphics drawn from the graphics reference
     graphics.clear();
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
-    characterName.setText((character.name).toUpperCase());
+    statScreen.characterName.setText((character.name).toUpperCase());
     updateHealthBar(character);
 
 
