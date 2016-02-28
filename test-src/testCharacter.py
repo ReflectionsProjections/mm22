@@ -11,4 +11,7 @@ class TestCharacter(unittest.TestCase):
 
         self.assertEqual(char.id, 0)
         self.assertEqual(char.name, "AI")
-        self.assertEqual(char.classId, 0)
+        self.assertEqual(char.classId, "warrior")
+        self.assertEqual(char.id, 0)
+
+    def test

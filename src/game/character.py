@@ -22,6 +22,10 @@ class Character(object):
         self.stunned = False
         self.silenced = False
 
+        # A json object if the character is casting an ability
+        # {"abilityId": (int), "currentCastTime": (int)}
+        self.casting = None
+
         classJson = gameConstants.classesJson[classId]
 
         self.attributes = Attributes( classJson['Health'],
@@ -41,6 +45,11 @@ class Character(object):
         self.debuffs = []
 
     def update(self):
+        if self.casting:
+            self.casting["currentCastTime"] -= 1
+            if self.casting["currentCastTime"] == 0:
+                self.cast_ability(self.casting["abilityId"])
+
         # Update ability cooldowns
         for ability in self.abilities:
             if self.abilities[ability] > 0:
@@ -79,6 +88,14 @@ class Character(object):
         # Is the ability on cooldown?
         if not self.can_use_ability(self, ability_id):
             return False
+
+        if gameConstants.abilitiesList[ability_id]['Casttime'] > 0:
+            self.casting = {"abilityId": ability_id, "currentCastTime": 0}
+        else:
+            self.cast_ability(ability_id, character)
+
+    def cast_ability(self, ability_id, character):
+        self.casting = None
 
         # Apply Cooldown
         self.abilities[ability_id] = gameConstants.abilitiesList[ability_id]["Cooldown"]
@@ -130,7 +147,7 @@ class Character(object):
 
 class Attributes(object):
 
-    def __init_(self, health, damage, abilityPower, attackRange, attackSpeed, armor, movementSpeed):
+    def __init__(self, health, damage, abilityPower, attackRange, attackSpeed, armor, movementSpeed):
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
