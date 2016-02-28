@@ -154,17 +154,32 @@ var spells;
 //TODO: Have CurrentPlayer allow for iteration to redesignate AttributeStrings' text 
 //  in changeStatScreen
 var statScreen = {
-    //Keeps track of the name of the player currently being tracked
-    "CharacterName" : null,
-    "AttributeStrings" : {
-        "Health" : null,
-        "Damage" : null,
-        "AbilityPower" : null,
-        "AttackRange" : null,
-        "AttackSpeed" : null,
-        "Armor" : null,
-        "MovementSpeed" : null
-    }
+    //If true, display all the character's stats
+    //If false, only display the stats of "CharacterName"
+    "ShowAll" : false,
+    "SinglePlayer" : {
+        //Holds the string of the character's name that is being tracked
+        "CharacterNameString" : null,
+        //Handle to the Text Object containing the tracked character's name
+        "CharacterName" : null,
+        //Handles to the Phaser.Text Objects of each attribute
+        //Use this object if we are tracking only one characer
+        "AttributeStrings" : {
+            "Damage" : null,
+            "AbilityPower" : null,
+            "AttackRange" : null,
+            "AttackSpeed" : null,
+            "Armor" : null,
+            "MovementSpeed" : null
+        },
+        //Contains handles to the rectangle and Text object representing
+        //  The health bar
+        "HealthBar" : {
+            "Bar" : null,
+            "HealthText" : null
+        }
+    },
+
 };
 //constant of Y-position of where the text of attributes will be positioned
 //  relative to this coordinate
@@ -186,6 +201,8 @@ var dummyPlayer = {
 };
 
 
+var killButton;
+var reviveButton;
 
 //------------Main Phaser Code---------------//
 
@@ -232,17 +249,17 @@ function create () {
     //TODO: add all characters to their intitial locations according to JSON
     //TODO: Let participants choose names for their character???
     playerOne = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
-    playerOne.name = "playerOne";
+    playerOne.name = "player One";
     playerTwo = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
-    playerTwo.name = "playerTwo";
+    playerTwo.name = "player Two";
     playerThree = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
-    playerThree.name = "playerThree";
+    playerThree.name = "player Three";
     playerFour = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
-    playerFour.name = "playerFour";
+    playerFour.name = "player Four";
     playerFive = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
-    playerFive.name = "playerFive";
+    playerFive.name = "player Five";
     playerSix = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
-    playerSix.name = "playerSix";
+    playerSix.name = "player Six";
 
     //TODO: Code to add each player to teamA or teamB, use the JSON
 
@@ -260,45 +277,23 @@ function create () {
 
     //Have the timer call all of the following functions every
     //  TIME_TO_NEXT_UPDATE milliseconds
+    //TODO: Have all of these functions run in one function
     game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
     game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
 
-    //create handle for game graphics 
-    //All things drawn by graphics have x and y origin
-    //  at 0, 0
+    //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     graphics = game.add.graphics();
-    graphics.beginFill(HEALTH_BAR_COLOR);
-    healthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        STAT_WIDTH - 20, HEALTH_BAR_HEIGHT);
-    console.log(healthBar);
-    graphics.endFill();
 
-    //add the character's name to the stats screen
-    statScreen.characterName = game.add.text(GAME_WIDTH + 10, 10, "PLAYERONE", {font: "4em Arial", fill: "#ff944d"});
+    //draw the Single Player Stat Screen
+    initSinglePlayerScreen(playerOne);
 
-    //Set up the strings for each player's stats in the Stat Screen
-    //TODO: Replace dummyPlayer.stats.X with stats of the JSON
-    //TODO: Pad the strings so the numbers all align nicely
-    var attrStrSpacing = 35;
-    statScreen.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
-        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: "#ffa366"});
-    statScreen.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
-        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
-    statScreen.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: "#ffa366"});
-    statScreen.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
-    statScreen.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
-    statScreen.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
-        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
+    killButton = game.add.text(GAME_WIDTH+300, 550, "Kill", {font: "4em Arial", fill: "#ff944d"});
+    killButton.inputEnabled = true;
+    killButton.events.onInputDown.add(killSinglePlayerScreen, this);
 
-
-
-
-
-    //Display the word 'Health' underneath the health bar
-    game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
+    reviveButton = game.add.text(GAME_WIDTH+20, 550, "Revive", {font: "4em Arial", fill: "#ff944d"});
+    reviveButton.inputEnabled = true;
+    reviveButton.events.onInputDown.add(reviveSinglePlayerScreen, this);
 
 
     //log success
@@ -340,7 +335,7 @@ function update () {
 
 
 
-
+//--------------CODE FOR ACTIONS/SPELLS-------------------//
 
 
 
@@ -400,6 +395,16 @@ function releaseSpells(){
     
 }
 
+
+
+
+
+
+
+//----------------Code for Movemement---------------//
+
+
+
 //Dummy JSON to test moveCharactersQuadrant()
 //number of quadrants to move in the x or y direction
 var dummyMovement = {
@@ -434,8 +439,6 @@ var dummyMovement = {
         "y" : 0
     }
 };
-
-//----------------Code for Movemement---------------//
 
 
 //Represents the map wih a 5x5 array of "tuples"
@@ -719,9 +722,124 @@ function randomizeMovement(){
 
 
 
+
+
+
+
+
+
+
+
+
+
 //-----------------Code for Stats Screen---------------------//
 
 
+
+//Initalizes the strings for each player's stats in the Stat Screen
+//TODO: Replace dummyPlayer.stats.X with stats of the JSON
+//TODO: Pad the strings so the numbers all align nicely
+/**
+    Draws the SinglePlayer Stat Screen and tracks the character's stats
+    This should be called only once as it actually creates Text Objects.
+    If you want to redraw the single player stats screen after killing it,
+        call reviveSinglePlayerScreen()
+
+    character--The variable referring to the character we want to track
+*/
+function initSinglePlayerScreen(character){
+    console.log("initSinglePlayerScreen");
+    statScreen.ShowAll = false;
+
+    //set the Text displaying which character we are tracking
+    statScreen.SinglePlayer.CharacterNameString = character.name;
+    statScreen.SinglePlayer.CharacterName = game.add.text(GAME_WIDTH + 10, 10, character.name.toUpperCase(), {font: "4em Arial", fill: "#ff944d"});
+
+    graphics.clear();
+    //redraw the healthbar and the text saying 'Health'
+    graphics.beginFill(HEALTH_BAR_COLOR);
+    statScreen.SinglePlayer.HealthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        HEALTH_BAR_HEIGHT);
+    graphics.endFill();
+    statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
+
+
+    //Constant used to specify how many pixels to space out each attribute in the y-direction
+    var attrStrSpacing = 35;
+    //add the Attribute Strings to the StatScreen
+    statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
+        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
+        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.SinglePlayer.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
+        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
+        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.SinglePlayer.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
+        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
+
+}
+
+
+/*
+    Kills all of the single player stat screen's objects from being seen
+    This does not destroy the object, but makes it invisible
+    To show the single player stat screen again, call reviveSinglePlayerScreen
+*/
+function killSinglePlayerScreen(){
+    //indicate we are showing all of the player's stats
+    statScreen.ShowAll = true;
+    //Kill the healthbar
+    graphics.clear();
+    statScreen.SinglePlayer.HealthBar.Bar = null;
+    statScreen.SinglePlayer.HealthBar.HealthText.kill();
+    //kill all the Text objects for the singlePlayer screen
+    for (var k in statScreen.SinglePlayer.AttributeStrings){
+        if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(k)){
+            statScreen.SinglePlayer.AttributeStrings[k].kill();
+        }
+    }
+    //kill the Text object containing the player name
+    statScreen.SinglePlayer.CharacterName.kill();
+
+}
+
+
+/**
+    Revives (redraws) the single player screen
+    This must be called after initSinglePlayerScreen() has been called
+    This method does not create new Text Objects, but rather "revives" the Text objects
+        by calling Phaser's revive() method on them
+*/
+function reviveSinglePlayerScreen(){
+    console.log("reviveSinglePlayerScreen");
+    statScreen.ShowAll = false;
+    statScreen.SinglePlayer.CharacterName.revive();
+
+    graphics.clear();
+    //redraw the healthbar and the text saying 'Health'
+    graphics.beginFill(HEALTH_BAR_COLOR);
+    statScreen.SinglePlayer.HealthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        HEALTH_BAR_HEIGHT);
+    graphics.endFill();
+
+    statScreen.SinglePlayer.HealthBar.HealthText.revive();
+
+
+    //Revive all the Attribute Strings
+    statScreen.SinglePlayer.AttributeStrings.MovementSpeed.revive();
+    statScreen.SinglePlayer.AttributeStrings.Damage.revive();
+    statScreen.SinglePlayer.AttributeStrings.AbilityPower.revive();
+    statScreen.SinglePlayer.AttributeStrings.AttackRange.revive();
+    statScreen.SinglePlayer.AttributeStrings.AttackSpeed.revive();
+    statScreen.SinglePlayer.AttributeStrings.Armor.revive();
+
+    
+}
 
 /**
     Changes which character's stats are displayed
@@ -731,12 +849,12 @@ function randomizeMovement(){
 function changeStatScreen(character){
     console.log("changeStatScreen called");
     console.log(character.name);
-    statScreen.CharacterName = character.name;
+    statScreen.SinglePlayer.CharacterNameString = character.name;
     //clear all graphics drawn from the graphics reference
     graphics.clear();
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
-    statScreen.characterName.setText((character.name).toUpperCase());
+    statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
     updateHealthBar(character);
 
 
@@ -750,64 +868,64 @@ function changeStatScreen(character){
 //TODO: Repalce dummyPlayer with actual JSON from server
 function updateStatScreen(character){
     graphics.clear();
-    updateHealthBar(character);
+    if(statScreen.ShowAll==false)
+        updateHealthBar(character);
 
     //dequeue from the queue
     var asdf = serverJSON.shift();
  
 
     //update each Attribute String with the random data, and randomly switch each string to be red or green
-    statScreen.AttributeStrings.MovementSpeed.setText("Movement Speed: " + asdf.stats.MovementSpeed);
+    statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setText("Movement Speed: " + asdf.stats.MovementSpeed);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
-    statScreen.AttributeStrings.Armor.setText("Armor: " + asdf.stats.Armor);
+    statScreen.SinglePlayer.AttributeStrings.Armor.setText("Armor: " + asdf.stats.Armor);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
-    statScreen.AttributeStrings.AttackSpeed.setText("Attack Speed: " + asdf.stats.AttackSpeed);
+    statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setText("Attack Speed: " + asdf.stats.AttackSpeed);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
-    statScreen.AttributeStrings.AttackRange.setText("Attack Range: " + asdf.stats.AttackRange);
+    statScreen.SinglePlayer.AttributeStrings.AttackRange.setText("Attack Range: " + asdf.stats.AttackRange);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
-    statScreen.AttributeStrings.AbilityPower.setText("Ability Power: " + asdf.stats.AbilityPower);
+    statScreen.SinglePlayer.AttributeStrings.AbilityPower.setText("Ability Power: " + asdf.stats.AbilityPower);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
-    statScreen.AttributeStrings.Damage.setText("Damage: " + asdf.stats.Damage);
+    statScreen.SinglePlayer.AttributeStrings.Damage.setText("Damage: " + asdf.stats.Damage);
     if(Math.floor(Math.random()*2)==0){
-        statScreen.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#ff0000"});
+        statScreen.SinglePlayer.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#ff0000"});
     }
     else{
-        statScreen.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#00ff00"});
+        statScreen.SinglePlayer.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#00ff00"});
     }
     
     
-    
+    //killSinglePlayerScreen();
 
 }
 
 
 //Reference to the health bar of the stats screen
-var healthBar;
 var HEALTH_BAR_COLOR = 0x33CC33;
 var HEALTH_BAR_X = GAME_WIDTH + 10;
 var HEALTH_BAR_Y = 100;
@@ -819,10 +937,11 @@ var HEALTH_BAR_HEIGHT = 20;
         but later it will set to the health of the current
         player.
 */
+//TODO: Have this fill the bar proportional to the % of the health the player has
 function updateHealthBar(character){
     //redraw the health bar
     graphics.beginFill(HEALTH_BAR_COLOR);
-    healthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+    statScreen.SinglePlayer.HealthBar.Text = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         HEALTH_BAR_HEIGHT);
     graphics.endFill();
@@ -835,6 +954,7 @@ function updateHealthBar(character){
 
 
 
+//Populates the queue with random data 
 
 function populateQueue(){
     for(i = 0; i < 1500; i++){
@@ -862,7 +982,9 @@ function populateQueue(){
         }
         serverJSON.push(derp);
     }
-
 }
+
+
+
 
 
