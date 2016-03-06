@@ -21,6 +21,7 @@ class Character(object):
         #Crowd controls
         self.stunned = False
         self.silenced = False
+        self.rooted = False
 
         # A json object if the character is casting an ability
         # {"abilityId": (int), "currentCastTime": (int)}
@@ -30,11 +31,13 @@ class Character(object):
 
         self.attributes = Attributes( classJson['Health'],
                             classJson['Damage'],
-                            classJson['AbilityPower'],
                             classJson['AttackRange'],
                             classJson['AttackSpeed'],
                             classJson['Armor'],
-                            classJson['MovementSpeed'])
+                            classJson['MovementSpeed'],
+                            self.stunned,
+                            self.rooted,
+                            self.silenced)
 
         # A Json that contains abilities by id and their cooldown by id
         self.abilities = {}
@@ -80,6 +83,16 @@ class Character(object):
         if ability_id not in self.abilities:
             return False
         return self.abilities[ability_id] == 0
+        
+        # Is the character stunned?
+        if (self.stunned):
+            return False
+        return self.abilities[ability_id] == 0
+        
+        # Is the character silenced?
+        if (self.silenced):
+            return False
+        return self.abilities[ability_id] == 0
 
     def use_ability(self, ability_id, character):
         # Does this ability even exist?
@@ -106,18 +119,18 @@ class Character(object):
         # Iterate through stat changes
         for stat_change in ability['StatChanges']:
             if stat_change['Target'] == 0:
-                self.apply_stat_change(stat_change, self.attributes.abilityPower)
+                self.apply_stat_change(stat_change)
             if stat_change['Target'] == 1:
-                character.apply_stat_change(stat_change, -self.attributes.abilityPower)
+                character.apply_stat_change(stat_change)
 
-    def apply_stat_change(self, stat_change, abilityPower):
+    def apply_stat_change(self, stat_change):
 
         # Will hold the value the change for reverting after the buff/debuff fades (if it is one)
         actual_change = 0
 
         # Apply stat change
         if stat_change['Health']:
-            actual_change = self.attributes.change_attribute(self, stat_change['Attribute'], stat_change['change'] + abilityPower)
+            actual_change = self.attributes.change_attribute(self, stat_change['Attribute'], stat_change['change'])
         else:
             actual_change = self.attributes.change_attribute(self, stat_change['Attribute'], stat_change['change'])
 
@@ -155,24 +168,27 @@ class Attributes(object):
         :param attackSpeed: (int) attackSpeed of auto attacks
         :param armor: (float) damage removed from attacks
         :param movementSpeed: (int) movement per tick
+        :param stunned: (bool) stun status
+        :param rooted: (bool) root status
+        :param silenced: (bool) silence status
         """
 
         self.maxHealth = health
         self.health = health
         self.damage = damage
-        self.abilityPower= abilityPower
         self.attackRange = attackRange
         self.attackSpeed = attackSpeed
         self.armor = armor
         self.movementSpeed = movementSpeed
+        self.stunned = stunned
+        self.rooted = rooted
+        self.silenced = silenced
 
     def change_attribute(self, attribute_name, change):
         if attribute_name == 'Health':
             return self.change_health(change)
         if attribute_name == 'Damage':
             return self.change_damage(change)
-        if attribute_name == 'AbilitiyDamage':
-            return self.change_ability_damage(change)
         if attribute_name == 'AttackSpeed':
             return self.change_attack_speed(change)
         if attribute_name == 'AttackRange':
@@ -181,6 +197,12 @@ class Attributes(object):
             return self.change_armor(change)
         if attribute_name == 'MovementSpeed':
             return self.change_movement_speed(change)
+        if attribute_name == 'Stunned':
+            return self.change_stunned(change)
+        if attribute_name == 'Rooted':
+            return self.change_rooted(change)
+        if attribute_name == 'Silenced':
+            return self.change_silenced(change)
 
     def change_health(self, change):
         if change < 0:
@@ -191,14 +213,11 @@ class Attributes(object):
     def change_damage(self, change):
         self.damage = max(0, self.damage + change)
 
-    def change_ability_damage(self, change):
-        self.abilityPower = max(0, self.abilityPower + change)
-
     def change_attack_speed(self, change):
-        self.attackSpeed = max(0, self.attackSpeed + change)
+        self.attackSpeed = max(1, self.attackSpeed + change)
 
     def change_attack_range(self, change):
-        self.attackRange = max(1, self.attackRange + change)
+        self.attackRange = max(0, self.attackRange + change)
 
     def change_armor(self, change):
         self.armor = max(0, self.armor + change)
@@ -206,6 +225,21 @@ class Attributes(object):
     def change_movement_speed(self, change):
         new_change = change_in_Value()
         self.movementSpeed = max(0, self.movementSpeed + change)
+
+    def change_stunned(self, change):
+        if (change):
+            self.stunned = (self.stunned || change)
+        self.stunned = (self.stunned && change)
+
+    def change_rooted(self, change):
+        if (change):
+            self.rooted = (self.rooted || change)
+        self.rooted = (self.rooted && change)
+
+    def change_silenced(self, change):
+        if (change):
+            self.silenced = (self.silenced || change)
+        self.silenced = (self.silenced && change)
 
     def change_in_value(self, value, change, max=None, min=None):
         """ Given a initial value and change to that value along with a min or max, it will return the required change up to min/max if needed
@@ -234,7 +268,6 @@ class Attributes(object):
         json['MaxHealth'] = self.maxHealth
         json['Health'] = self.health
         json['Damage'] = self.damage
-        json['AbilityPower'] = self.abilityPower
         json['AttackSpeed'] = self.attackSpeed
         json['AttackRange'] = self.attackRange
         json['Armor'] = self.armor
