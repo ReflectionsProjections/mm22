@@ -1,4 +1,4 @@
-from character import Character
+from src.game.character import Character
 
 
 class Team:
@@ -14,11 +14,15 @@ class Team:
         """
 
         self.name = name
+        self.characters = {}
         for i in range(len(characters)):
             try:
                 self.characters[i] = Character(i, characters[i]['characterName'], characters[i]['classId'])
             except KeyError:
-                self.character[i] = Character(i)
+                self.characters[i] = Character(i)
+
+    def size(self):
+        return len(self.characters)
 
     def toJson(self):
         """ Returns information about the team as a json
