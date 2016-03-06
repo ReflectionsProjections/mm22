@@ -74,6 +74,17 @@ class Character(object):
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
             return False
+
+        return self.abilities[ability_id] == 0
+        
+        # Is the character stunned?
+        if (self.stunned):
+            return False
+        return self.abilities[ability_id] == 0
+        
+        # Is the character silenced?
+        if (self.silenced):
+            return False
         return self.abilities[ability_id] == 0
 
     def use_ability(self, ability_id, character):
@@ -173,6 +184,9 @@ class Attributes(object):
         :param attackSpeed: (int) attackSpeed of auto attacks
         :param armor: (float) damage removed from attacks
         :param movementSpeed: (int) movement per tick
+        :param stunned: (bool) stun status
+        :param rooted: (bool) root status
+        :param silenced: (bool) silence status
         """
 
         self.maxHealth = health
@@ -182,8 +196,8 @@ class Attributes(object):
         self.attackSpeed = attackSpeed
         self.armor = armor
         self.movementSpeed = movementSpeed
-        self.stunned = silenced
-        self.silenced = stunned
+        self.stunned = stunned
+        self.silenced = silenced
 
     def change_attribute(self, attribute_name, change):
         # Health is the only one that has a limit on it
@@ -221,6 +235,12 @@ class Attributes(object):
             return self.stunned < 0
         if attribute_name == 'Silenced':
             return self.silenced < 0
+        if attribute_name == 'Stunned':
+            return self.change_stunned(change)
+        if attribute_name == 'Rooted':
+            return self.change_rooted(change)
+        if attribute_name == 'Silenced':
+            return self.change_silenced(change)
 
     def toJson(self):
         """ Return json of information containing all attribute information
@@ -236,5 +256,4 @@ class Attributes(object):
         json['MovementSpeed'] = self.get_attribute('MovementSpeed')
         json['Silenced'] = self.get_attribute('Silenced')
         json['Stunned'] = self.get_attribute('Stunned')
-
         return json
