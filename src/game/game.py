@@ -61,7 +61,7 @@ class Game(object):
         # Return response (as a JSON object)
         return (True, {"id": teamId, 
                         "teamName": jsonObject["teamName"],
-                        "teamInfo": self.teams[teamId].toJson()})
+                        "teamInfo": self.teams[teamId].toJson()}) #TODO team-name
 
     # Add a player's actions to the turn queue
     def queue_turn(self, turnJson, playerId):

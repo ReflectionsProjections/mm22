@@ -13,11 +13,10 @@ Defines the classes
 classesJson = {
     "warrior" : {
             "Health"        : 500,
-            "Damage"        : 50,
-            "AbilityPower" : 50,
-            "AttackRange"   : 5,
-            "AttackSpeed"   : 2,
-            "Armor"         : 10,
+            "Damage"        : 100,
+            "AttackRange"   : 0,
+            "AttackSpeed"   : 5,
+            "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 1 ]
     }
