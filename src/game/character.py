@@ -3,7 +3,8 @@ import gameConstants as gameConstants
 
 class Character(object):
 
-    def __init__(self, charId, name="AI", classId="warrior"):
+
+    def __init__(self, classKey):
         """ Init a character class based on class key defined in game consts
 
         :param charId: (int) id of the character, based off of team
@@ -12,11 +13,10 @@ class Character(object):
         """
 
         #Game related attributes
-        self.posX = 0.0
-        self.posY = 0.0
-        self.id = charId
-        self.name = name
-        self.classId = classId
+        self.positionX = 0.0
+        self.positionY = 0.0
+        self.characterId = Character.numCharacters
+        Character.numCharacters += 1
 
         #Crowd controls
         self.stunned = False
@@ -37,81 +37,85 @@ class Character(object):
         for ability in classJson['Abilities']:
             self.abilities[ability] = 0.0
 
-        self.buffs = []
-        self.debuffs = []
+	#Container for BuffDebuff Objects
+        self.buffs_and_debuffs = []
 
-    def update(self):
-        # Update ability cooldowns
-        for ability in self.abilities:
-            if self.abilities[ability] > 0:
-                self.abilities[ability] -= 0
+    def addBuffDebuff(self, buffDebuff):
+	"""Adds a buff or debuff to the Character object
+	"""
+	self.buffs_and_debuffs.append(buffDebuff)    
+    
+    def updateBuffs(self):
+        """ Goes through all the buffs and debuffs within the
+	    'buffs_and_debuffs' list and applies their
+	     modifications to the Attributes of the Character.
 
-        # Update buffs
-        for buff in self.buffs:
-            if buff['Time'] == 0:
-                self.apply_stat_change(buff['StatChange']['Attribute'], -buff['ActualChange'])
-                self.buffs.remove(buff)
+	     Call this function in the game loop that loops for
+		every tick of the game (probably before damage
+		to the Character is resolved).
+
+	     If the duration of any of the buffs or debuffs
+	     reaches zero, it is removed from the list. 
+
+	     If any more attributes are added on later, the if/else 
+	     chains of this function will need to have additional
+	     clauses for each of the added attributes
+	"""
+
+	#handle restoration of attributes when buffs 
+   	#  run out of time
+	for buff in self.buffs_and_debuffs:
+	  
+	  if buff.duration == 0 and (not buff.lasting):
+	    attr = buff.attribute
+	    if attr == "Health":
+                self.attributes.health -= buff.restoreValue
+	    elif attr == "Damage":
+	        self.attributes.damage -= buff.restoreValue
+	    elif attr == "AttackRange":
+		self.attributes.attackRange -= buff.restoreValue
+            elif attr == "AbilityDamage":
+		self.attributes.abilityDamage -= buff.restoreValue
+	    elif attr == "Armor":
+		self.attributes.armor -= buff.restoreValue
+	    elif attr == "MovementSpeed":
+		self.attributes.movementSpeed -= buff.restoreValue
             else:
-                buff['Time'] -= 0
+		raise NameError("Invalid Attribute Name")			
 
-        # Update debuffs
-        for debuff in self.debuffs:
-            if debuff['Time'] == 0:
-                self.apply_stat_change(debuff['StatChange']['Attribute'], -debuff['ActualChange'])
-                self.debuffs.remove(debuff)
-            else:
-                debuff['Time'] -= 0
+        #remove any buffs from the container if they are done,
+	#  that being the duration has run out (equals 0)
+	self.buffs_and_debuffs = [buff for buff in
+	    self.buffs_and_debuffs if buff.duration > 0]
 
-    def can_use_ability(self, ability_id):
-        """ Checks if a character can use an ability (must have that ability)
-        :param ability_id: id of the ability to check
-        :return: True if yes, False if no
-        """
-        # Does this character actually have the ability?
-        if ability_id not in self.abilities:
-            return False
-        return self.abilities[ability_id] == 0
+	#go through the buffs_and_debuffs container, applying
+	#  modifications if necessary and decreasing the duration
+	#  of the b/d	
+	for buff in self.buffs_and_debuffs:
+	    #apply the buff's modification
+	    if buff.timesApplied > 0:
+		attr = buff.attribute
+		if attr == "Health":
+		    self.attributes.health += buff.modification
+		elif attr == "Damage":
+		    self.attributes.damage += buff.modification
+		elif attr == "AttackRange":
+		    self.attributes.attackRange += buff.modification
+		elif attr == "AbilityDamage":
+		    self.attributes.abilityDamage += buff.modification
+		elif attr == "Armor":
+		    self.attributes.armor += buff.modification
+		elif attr == "MovementSpeed":
+		    self.attributes.movementSpeed += buff.modification
+		else:
+		    raise NameError("Invalid Attribute Name")			
+		buff.timesApplied -= 1
+		
+	    buff.duration -= 1
 
-    def use_ability(self, ability_id, character):
-        # Does this ability even exist?
-        if ability_id < len(gameConstants.abilitiesList):
-            return False
-        # Is the ability on cooldown?
-        if not self.can_use_ability(self, ability_id):
-            return False
-
-        # Apply Cooldown
-        self.abilities[ability_id] = gameConstants.abilitiesList[ability_id]["Cooldown"]
-
-        # Get ability json
-        ability = gameConstants.abilitiesList[ability_id]
-
-        # Iterate through stat changes
-        for stat_change in ability['StatChanges']:
-            if stat_change['Target'] == 0:
-                self.apply_stat_change(stat_change, self.attributes.abilityPower)
-            if stat_change['Target'] == 1:
-                character.apply_stat_change(stat_change, -self.attributes.abilityPower)
-
-    def apply_stat_change(self, stat_change, abilityPower):
-
-        # Will hold the value the change for reverting after the buff/debuff fades (if it is one)
-        actual_change = 0
-
-        # Apply stat change
-        if stat_change['Health']:
-            actual_change = self.attributes.change_attribute(self, stat_change['Attribute'], stat_change['change'] + abilityPower)
-        else:
-            actual_change = self.attributes.change_attribute(self, stat_change['Attribute'], stat_change['change'])
-
-        # If there a time on the buff/debuff, make note
-        buff_json = {"StatChange": stat_change, "Time": stat_change['Time'], "ActualChange": actual_change}
-        if actual_change < 0:
-            self.debuffs.append(buff_json)
-        else:
-            self.buffs.append(buff_json)
-
-    def toJson(self):
+	
+	
+    def toJson():
         """ Returns information about character as a json
         """
 
@@ -126,11 +130,11 @@ class Character(object):
         json['attributes'] = self.attributes.toJson()
 
         return json
-
+		
 
 class Attributes(object):
 
-    def __init_(self, health, damage, abilityPower, attackRange, attackSpeed, armor, movementSpeed):
+    def __init__(self, health, damage, abilityDamage, attackRange, armor, movementSpeed):
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
@@ -224,3 +228,63 @@ class Attributes(object):
         json['MovementSpeed'] = self.movementSpeed
 
         return json
+
+class BuffDebuff:
+    """ BuffDebuff objects are added to the buffs_and_debuffs
+	    list of a Character and affect a Character's attributes.
+	View the parameters of the constructor to see how to tailor
+	    a buff/debuff accordingly.
+    """
+    def __init__(self, name, duration, attribute, modification,
+	timesApplied, lasting):
+	"""
+	:param name (string) name of the buff/debuff
+	:param duration: (int) how  many ticks the buff/debuff lasts,
+		is decremented every turn until it reaches 0 (then the b/d
+		 removed)
+	:param attribute: (string) name of the attribute that is to be
+		 affected. 
+	:param modification (float) the amount that is added to the 
+	 	targeted attribute.  If you want to decrease the value
+		of an attribute, pass in a negative value 
+	:param timesApplied: (int) the amount of times the b/d 
+		is applied.  For example, a shield buff would 
+		buff health once and thus would have this param
+		set to 1.  A bleeding debuff would set this param
+		to the same as 'duration' param to have the health
+		parameter decreased multiple times.
+	:param lasting (boolean) If False, the modification is 
+		reverted once the duration of the buff runs out.
+		For example, if a speed buff was added, the
+		movementSpeed attribute will be reverted to what 
+		its value was before the buff was applied. For
+		most buffs and debuffs 'lasting' should be false.
+
+	        If True, the modification lasts even after the
+	        buff runs out out(i.e. a shield).
+	"""
+	self.name = name
+	self.duration = duration
+	self.attribute = attribute
+	self.modification = modification
+	self.timesApplied = timesApplied
+	self.lasting = lasting	
+	#used for restoring attributes when the buff is finished
+	self.restoreValue = timesApplied * modification
+  
+    def toJson():
+	""" Returns json of BuffDebuff's information
+	    This is here b/c it seemed necessary, but delete if not :P
+	"""
+
+	json = {}
+	json['Name'] = self.name
+	json['Duration'] = self.duration
+	json['Attribute'] = self.attribute
+	json['Modification'] = self.modification
+	json['TimesApplied'] = self.timesApplied
+	json['Lasting'] = self.lasting
+	json['RestoreValue'] = self.restoreValue
+	return json
+
+
