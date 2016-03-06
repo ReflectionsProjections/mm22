@@ -1,6 +1,5 @@
 import physics
 
-
 class GameMap:
 
     def __init__(self):

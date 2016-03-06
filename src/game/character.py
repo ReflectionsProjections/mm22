@@ -1,4 +1,4 @@
-import src.game.gameConstants as gameConstants
+import gameConstants as gameConstants
 
 
 class Character(object):
