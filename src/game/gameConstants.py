@@ -10,6 +10,24 @@ Defines the classes
     Abilties - list of abilities
 """
 classesJson = {
+    "dummy_one" : {
+			"Health"        : 500,
+            "Damage"        : 100,
+            "AttackRange"   : 0,
+            "AttackSpeed"   : 5,
+            "Armor"         : 50,
+            "MovementSpeed" : 5,
+            "Abilities"     : [ 0,5 ]
+	}
+    "dummy_two" : {
+			"Health"        : 500,
+            "Damage"        : 100,
+            "AttackRange"   : 0,
+            "AttackSpeed"   : 5,
+            "Armor"         : 50,
+            "MovementSpeed" : 5,
+            "Abilities"     : [ 0,5 ]
+	}
 	"archer" : {
 			"Health"        : 500,
             "Damage"        : 100,
@@ -242,7 +260,173 @@ abilitiesList = [
         }],
         "Cooldown"  : 30,
         "Range"     : 1,
+    },
+    {   #12 dummy_health_pos
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Health",
+            "Change": 100,
+            "Time": 0
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #13 dummy_health_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Health",
+            "Change": -100,
+            "Time": 0
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #14 dummy_damage_buff
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Damage",
+            "Change": 100,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #15 dummy_damage_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Damage",
+            "Change": -100,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #16 dummy_attackrange_pos
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "AttackRange",
+            "Change": 1,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #17 dummy_attackrange_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "AttackRange",
+            "Change": -1,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #18 dummy_attackspeed_pos
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "AttackSpeed",
+            "Change": 1,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #19 dummy_attackspeed_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "AttackSpeed",
+            "Change": 100,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #20 dummy_armor_pos
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Armor",
+            "Change": 100,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #21 dummy_armor_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Armor",
+            "Change": 100,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #22 dummy_movementspeed_pos
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "MovementSpeed",
+            "Change": 1,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #23 dummy_movementspeed_neg
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "MovementSpeed",
+            "Change": -1,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
     }
+    {   #24 dummy_stun
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Stunned",
+            "Change": True,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #25 dummy_silence
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Silenced",
+            "Change": True,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    {   #24 dummy_root
+        "StatChanges": [{
+        {
+            "Target": 3,
+            "Attribute": "Rooted",
+            "Change": True,
+            "Time": 30
+        }],
+        "Cooldown"  : 30,
+        "Range"     : 1,
+    },
+    
 ]
 
 numPlayersPerRound = 2
