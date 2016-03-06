@@ -179,6 +179,107 @@ var statScreen = {
             "HealthText" : null
         }
     },
+    //TODO: Create healthbar for each character???
+    "MultiPlayer" : {
+        "PlayerOne" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerTwo" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerThree" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerFour" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerFour" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerFive" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        },
+        "PlayerSix" : {
+            //Handle to the Text Object containing the tracked character's name
+            "CharacterName" : null,
+            //Handles to the Phaser.Text Objects of each attribute
+            //Use this object if we are tracking only one characer
+            "AttributeStrings" : {
+                "Damage" : null,
+                "AbilityPower" : null,
+                "AttackRange" : null,
+                "AttackSpeed" : null,
+                "Armor" : null,
+                "MovementSpeed" : null
+            },
+        }
+    }
 
 };
 //constant of Y-position of where the text of attributes will be positioned
@@ -201,8 +302,8 @@ var dummyPlayer = {
 };
 
 
-var killButton;
-var reviveButton;
+var multiButton;
+var singleButton;
 
 //------------Main Phaser Code---------------//
 
@@ -226,8 +327,10 @@ function preload () {
     console.log("preload() complete");
 }
 
-//add the assets to the game and make them visible
-//initate any functions to be called on a looping schedule
+/**
+    Add the assets to the game and make them visible
+    Initate any functions to be called on a looping schedule
+*/
 function create () {
     //enable physics, so far not necessary
     //game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -279,21 +382,24 @@ function create () {
     //  TIME_TO_NEXT_UPDATE milliseconds
     //TODO: Have all of these functions run in one function
     game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateSinglePlayerStatScreen, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     graphics = game.add.graphics();
 
+    //TODO: Decide if we want to start with multiplayer or single player overlay
     //draw the Single Player Stat Screen
     initSinglePlayerScreen(playerOne);
+    killSinglePlayerStatScreen();
+    initMultiPlayerStatScreen();
 
-    killButton = game.add.text(GAME_WIDTH+300, 550, "Kill", {font: "4em Arial", fill: "#ff944d"});
-    killButton.inputEnabled = true;
-    killButton.events.onInputDown.add(killSinglePlayerScreen, this);
+    multiButton = game.add.text(GAME_WIDTH+250, 550, "MULTI", {font: "4em Arial", fill: "#ff944d"});
+    multiButton.inputEnabled = true;
+    multiButton.events.onInputDown.add(reviveMultiPlayerStatScreen, this);
 
-    reviveButton = game.add.text(GAME_WIDTH+20, 550, "Revive", {font: "4em Arial", fill: "#ff944d"});
-    reviveButton.inputEnabled = true;
-    reviveButton.events.onInputDown.add(reviveSinglePlayerScreen, this);
+    singleButton = game.add.text(GAME_WIDTH+20, 550, "SINGLE", {font: "4em Arial", fill: "#ff944d"});
+    singleButton.inputEnabled = true;
+    singleButton.events.onInputDown.add(reviveSinglePlayerScreen, this);
 
 
     //log success
@@ -301,6 +407,7 @@ function create () {
 }
 
 //called every frame, roughly 60 frames per second
+//this is unnecessary
 function update () {
 
 
@@ -745,7 +852,8 @@ function randomizeMovement(){
     If you want to redraw the single player stats screen after killing it,
         call reviveSinglePlayerScreen()
 
-    character--The variable referring to the character we want to track
+    character--The variable referring to the character we want to track initially
+        (defaults to player one)
 */
 function initSinglePlayerScreen(character){
     console.log("initSinglePlayerScreen");
@@ -783,13 +891,53 @@ function initSinglePlayerScreen(character){
 
 }
 
+/**
+    Creates The Text Objects for the multiplayer stat screen
+*/
+function initMultiPlayerStatScreen(){
+    console.log("initMultiPlayerStatScreen");
+    //defines how many pixels to have between the top of one line and the top of the next line (y-spacing)
+    //  underneath it
+    var lineHeight = 20;
+    //Create all the Text Objects for each player
+    //init character name
+    statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(GAME_WIDTH + 20, 5, playerOne.name, {font: "3em Arial", fill: "#ffa366"});
+    //init attribute strings
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", {font: "2em Arial", fill: "#ffa366"});
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.Damage.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", {font: "2em Arial", fill: "#ffa366"});
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AbilityPower.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", {font: "2em Arial", fill: "#ffa366"});
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackRange.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", {font: "2em Arial", fill: "#ffa366"});
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackSpeed.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", {font: "2em Arial", fill: "#ffa366"});
+    // console.log("derp");
+    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20 statScreen.MultiPlayer.PlayerOne.AttributeStrings.Armor.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", {font: "2em Arial", fill: "#ffa366"});
+}
+
+/**
+    Revives the Multiplayer screen by calling killSinglePlayerStatScreen()
+        and then calling revive() on all the text objects associated with
+        the multiplayer screen
+*/
+function reviveMultiPlayerStatScreen(){
+    console.log("reviveMultiPlayerStatScreen");
+    killSinglePlayerStatScreen();
+}
+
+/**
+    Helper function that calls kill() on all the Text Objects associated with the
+        multiplayer stat screen
+*/
+//TODO: Finish this after finishing initMultiPlayerStatScreen
+function killMultiPlayerStatScreen(){
+    console.log("killMultiPlayerStatScreen");
+}
 
 /*
     Kills all of the single player stat screen's objects from being seen
     This does not destroy the object, but makes it invisible
     To show the single player stat screen again, call reviveSinglePlayerScreen
 */
-function killSinglePlayerScreen(){
+function killSinglePlayerStatScreen(){
+    console.log("killSinglePlayerStatScreen")
     //indicate we are showing all of the player's stats
     statScreen.ShowAll = true;
     //Kill the healthbar
@@ -815,7 +963,8 @@ function killSinglePlayerScreen(){
         by calling Phaser's revive() method on them
 */
 function reviveSinglePlayerScreen(){
-    console.log("reviveSinglePlayerScreen");
+    console.log("reviveSinglePlayerStatScreen");
+    killMultiPlayerStatScreen();
     statScreen.ShowAll = false;
     statScreen.SinglePlayer.CharacterName.revive();
 
@@ -843,7 +992,7 @@ function reviveSinglePlayerScreen(){
 
 /**
     Changes which character's stats are displayed
-        in the stats screen.
+        in the SinglePlayer screen.
 */
 //TODO: Have this function change the character being tracked by statScreen
 function changeStatScreen(character){
@@ -863,10 +1012,10 @@ function changeStatScreen(character){
 /**
     Called to update all the graphics associated with the 
         Stats Screen.
-    If the character selected has changed, call changeStatScreen()
+    If the character selected has changed, call changeStatScreen() before this
 */
 //TODO: Repalce dummyPlayer with actual JSON from server
-function updateStatScreen(character){
+function updateSinglePlayerStatScreen(character){
     graphics.clear();
     if(statScreen.ShowAll==false)
         updateHealthBar(character);
@@ -920,7 +1069,6 @@ function updateStatScreen(character){
     }
     
     
-    //killSinglePlayerScreen();
 
 }
 
