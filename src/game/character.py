@@ -1,12 +1,15 @@
-import gameConstants
+import gameConstants as gameConstants
 
-class Character:
 
-    numCharacters = 0
+class Character(object):
+
 
     def __init__(self, classKey):
         """ Init a character class based on class key defined in game consts
-        :param classKey: (string) class key
+
+        :param charId: (int) id of the character, based off of team
+        :param name: (string) name of the character
+        :param classId: (int) class key
         """
 
         #Game related attributes
@@ -19,16 +22,17 @@ class Character:
         self.stunned = False
         self.silenced = False
 
-
-        classJson = gameConstants.classesJson[classKey]
+        classJson = gameConstants.classesJson[classId]
 
         self.attributes = Attributes( classJson['Health'],
                             classJson['Damage'],
-                            classJson['AbilityDamage'],
+                            classJson['AbilityPower'],
                             classJson['AttackRange'],
+                            classJson['AttackSpeed'],
                             classJson['Armor'],
                             classJson['MovementSpeed'])
 
+        # A Json that contains abilities by id and their cooldown by id
         self.abilities = {}
         for ability in classJson['Abilities']:
             self.abilities[ability] = 0.0
@@ -118,39 +122,107 @@ class Character:
         #TODO finish
 
         json = {}
-        json['x'] = self.positionX
-        json['y'] = self.positionY
+        json['charId'] = self.id
+        json['x'] = self.posX
+        json['y'] = self.posY
+        json['name'] = self.name
+        json['class'] = self.classId
         json['attributes'] = self.attributes.toJson()
 
         return json
 		
 
-class Attributes:
+class Attributes(object):
 
     def __init__(self, health, damage, abilityDamage, attackRange, armor, movementSpeed):
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
         :param attackRange: (int) attackRange of auto attack
+        :param attackSpeed: (int) attackSpeed of auto attacks
         :param armor: (float) damage removed from attacks
         :param movementSpeed: (int) movement per tick
         """
 
+        self.maxHealth = health
         self.health = health
         self.damage = damage
-        self.abilityDamage = abilityDamage
+        self.abilityPower= abilityPower
         self.attackRange = attackRange
+        self.attackSpeed = attackSpeed
         self.armor = armor
         self.movementSpeed = movementSpeed
 
-    def toJson():
+    def change_attribute(self, attribute_name, change):
+        if attribute_name == 'Health':
+            return self.change_health(change)
+        if attribute_name == 'Damage':
+            return self.change_damage(change)
+        if attribute_name == 'AbilitiyDamage':
+            return self.change_ability_damage(change)
+        if attribute_name == 'AttackSpeed':
+            return self.change_attack_speed(change)
+        if attribute_name == 'AttackRange':
+            return self.change_attack_range(change)
+        if attribute_name == 'Armor':
+            return self.change_armor(change)
+        if attribute_name == 'MovementSpeed':
+            return self.change_movement_speed(change)
+
+    def change_health(self, change):
+        if change < 0:
+            self.health = max(0, self.health + max(0, change + self.armor))
+        if change > 0:
+            self.health = min(self.maxHealth, self.health + change)
+
+    def change_damage(self, change):
+        self.damage = max(0, self.damage + change)
+
+    def change_ability_damage(self, change):
+        self.abilityPower = max(0, self.abilityPower + change)
+
+    def change_attack_speed(self, change):
+        self.attackSpeed = max(0, self.attackSpeed + change)
+
+    def change_attack_range(self, change):
+        self.attackRange = max(1, self.attackRange + change)
+
+    def change_armor(self, change):
+        self.armor = max(0, self.armor + change)
+
+    def change_movement_speed(self, change):
+        new_change = change_in_Value()
+        self.movementSpeed = max(0, self.movementSpeed + change)
+
+    def change_in_value(self, value, change, max=None, min=None):
+        """ Given a initial value and change to that value along with a min or max, it will return the required change up to min/max if needed
+        :param value: (int) Original value
+        :param change: (int) change to value
+        :param max: (int)
+        :param min: (int)
+        :return:
+        """
+        if not value and not change:
+            return 0
+
+        new_value = value + change
+
+        if min:
+            return change + (min - new_value)
+        if max:
+            return change + (max - new_value)
+        return change
+
+    def toJson(self):
         """ Return json of information containing all attribute information
         """
 
         json = {}
+        json['MaxHealth'] = self.maxHealth
         json['Health'] = self.health
         json['Damage'] = self.damage
-        json['AbilitiyDamage'] = self.abilityDamage
+        json['AbilityPower'] = self.abilityPower
+        json['AttackSpeed'] = self.attackSpeed
         json['AttackRange'] = self.attackRange
         json['Armor'] = self.armor
         json['MovementSpeed'] = self.movementSpeed

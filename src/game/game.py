@@ -1,9 +1,5 @@
-"""
-This class binds on to the MM20 server.py file
-"""
 from gamemap import *
-from node import *
-from team import *
+from team import Team
 
 # Useful for debugging
 import sys
@@ -16,9 +12,8 @@ class InvalidPlayerException(Exception):
 
 class Game(object):
 
-    def __init__(self, mapPath, totalTurns):
+    def __init__(self, totalTurns):
         """ Init the game object
-        :param mapPath:
         :param totalTurns: (int) max number of ticks in a game
         """
 
@@ -30,7 +25,7 @@ class Game(object):
         self.teams = {}
 
         # Load map
-        self.map = GameMap(mapPath)
+        self.map = GameMap()
 
     def add_new_player(self, jsonObject):
         """ Add new player to the game
@@ -46,19 +41,27 @@ class Game(object):
                 error = "'teamName' cannot be an empty string"
             elif len(jsonObject["classes"]) == 0:
                 error = "list of classes can not be empty"
+            else:
+                for characterJson in jsonObject:
+                    if "characterName" not in characterJson:
+                        error = "Missing 'characterName' for a character"
+                    elif "classId" not in characterJson:
+                        error = "Missing 'classId' for a character"
         except KeyError as e:
-            error = "json response doesn't have teamName or classes as keys"
+            error = "json response doesn't have the correct format"
 
         # If there is an error, return false and error
         if error:
             return (False, error)
 
         # Add player to game data
-        newPlayer = Team(jsonObject['teamName'], jsonObject['classes'])
-        self.teams[newPlayer.teamName] = newPlayer
+        teamId = len(self.teams)
+        self.teams[teamId] = Team(teamId, jsonObject['teamName'], jsonObject['classes'])
 
         # Return response (as a JSON object)
-        return (True, {"id": playerId, "teamName": jsonObject["teamName"]})
+        return (True, {"id": teamId, 
+                        "teamName": jsonObject["teamName"],
+                        "teamInfo": self.teams[teamId].toJson()})
 
     # Add a player's actions to the turn queue
     def queue_turn(self, turnJson, playerId):
@@ -89,9 +92,7 @@ class Game(object):
             for actionJson in actions:
                 action = actionJson.get("action", "").lower()
                 targetId = actionJson.get("target", -1)
-                multiplier = actionJson.get("multiplier", 1)
-                supplierIds = actionJson.get("supplierIds", [])
-                actionResult = {"teamId": playerId, "action": action, "target": targetId, "multiplier": multiplier}
+                actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
                     target = self.map.nodes.get(int(targetId), None)
@@ -169,18 +170,6 @@ class Game(object):
     def get_info(self, playerId):
         if playerId not in self.playerInfos:
             raise InvalidPlayerException("Player " + playerId + " doesn't exist.")
-
-        # Get list of nodes visible to player
-        isPortScan = playerId in self.map.portScans
-        ownedNodes = [x for x in self.map.nodes.values() if isPortScan or x.ownerId == playerId]
-        visibleNodes = set(ownedNodes)
-        if not isPortScan:
-            for n in ownedNodes:
-                buff = []
-                n.getVisibleNodes(buff)
-                visibleNodes.update(buff)
-        else:
-            visibleNodes = self.map.nodes.values()
 
         return {
             "playerInfo": self.playerInfos[playerId],
