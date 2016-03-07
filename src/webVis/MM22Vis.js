@@ -23,9 +23,10 @@
     preload() and create() only run once, while update() and render()
     run every frame
     render() is usually not needed, but is good for debugging
-
-    
-    Loose JSON??? What does this mean exactly.
+    For this MechMania, the visualizer is updated every TIME_TO_NEXT_UPDATE milliseconds:
+        this is done by adding all of the functions that update the visualizer to Phaser's
+        internal clock and having the functions be called after TIME_TO_NEXT_UPDATE 
+        milliseconds have elapsed
 
     The server will send a lot of JSON, but it will be added
      to a queue and the front element will be dequeued every
@@ -302,8 +303,17 @@ var dummyPlayer = {
 };
 
 
+//Handles to the Text objects that will act like buttons to switch
+//  between the single player and multi-player overlay
 var multiButton;
 var singleButton;
+
+
+//Color Constants
+var DEF_COLOR = "#ffa366"
+
+
+
 
 //------------Main Phaser Code---------------//
 
@@ -381,15 +391,16 @@ function create () {
     //Have the timer call all of the following functions every
     //  TIME_TO_NEXT_UPDATE milliseconds
     //TODO: Have all of these functions run in one function
+    //TODO: Check to make sure that serverJSON is not empty before calling the update functions
     game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateSinglePlayerStatScreen, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     graphics = game.add.graphics();
 
     //TODO: Decide if we want to start with multiplayer or single player overlay
     //draw the Single Player Stat Screen
-    initSinglePlayerScreen(playerOne);
+    initSinglePlayerStatScreen(playerOne);
     killSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
@@ -843,9 +854,6 @@ function randomizeMovement(){
 
 
 
-//Initalizes the strings for each player's stats in the Stat Screen
-//TODO: Replace dummyPlayer.stats.X with stats of the JSON
-//TODO: Pad the strings so the numbers all align nicely
 /**
     Draws the SinglePlayer Stat Screen and tracks the character's stats
     This should be called only once as it actually creates Text Objects.
@@ -855,7 +863,7 @@ function randomizeMovement(){
     character--The variable referring to the character we want to track initially
         (defaults to player one)
 */
-function initSinglePlayerScreen(character){
+function initSinglePlayerStatScreen(character){
     console.log("initSinglePlayerScreen");
     statScreen.ShowAll = false;
 
@@ -877,63 +885,280 @@ function initSinglePlayerScreen(character){
     var attrStrSpacing = 35;
     //add the Attribute Strings to the StatScreen
     statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
-        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: "#ffa366"});
+        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
-        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: "#ffa366"});
+        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: "#ffa366"});
+        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: "#ffa366"});
+        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: "#ffa366"});
+        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
-        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: "#ffa366"});
+        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: DEF_COLOR});
 
 }
 
 /**
-    Creates The Text Objects for the multiplayer stat screen
+    Creates The Text Objects for the multiplayer stat screen.
+    Like initSinglePlayerScreen, this method should be called only once 
 */
 function initMultiPlayerStatScreen(){
     console.log("initMultiPlayerStatScreen");
-    //defines how many pixels to have between the top of one line and the top of the next line (y-spacing)
-    //  underneath it
-    var lineHeight = 20;
-    //Create all the Text Objects for each player
+
+    var attrstyle = {font: "2em Arial", fill: DEF_COLOR};
+    var nameStyle = {font: "3em Arial", fill: DEF_COLOR};
+
+    //defines where to start drawing text objects
+    var startX = GAME_WIDTH + 20;
     //init character name
-    statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(GAME_WIDTH + 20, 5, playerOne.name, {font: "3em Arial", fill: "#ffa366"});
+    statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(startX, 5, 
+        playerOne.name.toUpperCase(), nameStyle);
+
+    //Create all the Text Objects for each player
     //init attribute strings
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", {font: "2em Arial", fill: "#ffa366"});
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.Damage.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", {font: "2em Arial", fill: "#ffa366"});
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AbilityPower.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", {font: "2em Arial", fill: "#ffa366"});
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackRange.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", {font: "2em Arial", fill: "#ffa366"});
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20 + statScreen.MultiPlayer.PlayerOne.AttributeStrings.AttackSpeed.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", {font: "2em Arial", fill: "#ffa366"});
-    // console.log("derp");
-    // statScreen.MultiPlayer.PlayerOne.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20 statScreen.MultiPlayer.PlayerOne.AttributeStrings.Armor.width, 5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", {font: "2em Arial", fill: "#ffa366"});
+    //handle to the Attribute Strings...saves on typing
+    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings;
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x 
+        + strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x 
+        + strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x 
+        + strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x 
+        + strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x 
+        + strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", attrstyle);
+
+
+    //calculate the new Y position, relative to the attribute strings of the previous player
+    var newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //update strings to reference player two
+    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
+        statScreen.MultiPlayer.PlayerTwo.CharacterName = game.add.text(startX, newY, 
+        playerTwo.name.toUpperCase(), nameStyle);
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerTwo.CharacterName.y, 
+        "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x +
+            strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
+        "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x +
+            strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
+        "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
+            strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerTwo.CharacterName.y, 
+        "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x +
+            strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
+        "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x +
+            strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
+        "MS", attrstyle);
+    
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //update strings to reference player three
+    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
+        statScreen.MultiPlayer.PlayerThree.CharacterName = game.add.text(startX, newY, 
+        playerThree.name.toUpperCase(), nameStyle);
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerThree.CharacterName.y, 
+        "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x +
+            strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
+        "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x +
+            strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerThree.CharacterName.y,
+        "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
+            strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerThree.CharacterName.y, 
+        "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x +
+            strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
+        "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x +
+            strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
+        "MS", attrstyle);
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //update strings to reference player four
+    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
+        statScreen.MultiPlayer.PlayerFour.CharacterName = game.add.text(startX, newY, 
+        playerFour.name.toUpperCase(), nameStyle);
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFour.CharacterName.y, 
+        "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x +
+            strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
+        "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x +
+            strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerFour.CharacterName.y,
+        "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
+            strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerFour.CharacterName.y, 
+        "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x +
+            strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
+        "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x +
+            strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
+        "MS", attrstyle);
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //update strings to reference player five
+    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
+        statScreen.MultiPlayer.PlayerFive.CharacterName = game.add.text(startX, newY, 
+        playerFive.name.toUpperCase(), nameStyle);
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFive.CharacterName.y, 
+        "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x +
+            strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
+        "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x +
+            strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerFive.CharacterName.y,
+        "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
+            strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerFive.CharacterName.y, 
+        "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x +
+            strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
+        "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x +
+            strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
+        "MS", attrstyle);
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //update strings to reference player three
+    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
+        statScreen.MultiPlayer.PlayerSix.CharacterName = game.add.text(startX, newY, 
+        playerSix.name.toUpperCase(), nameStyle);
+    strings.Damage = game.add.text(startX, 
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerSix.CharacterName.y, 
+        "DMG", attrstyle);
+    strings.AbilityPower = game.add.text(strings.Damage.x +
+            strings.Damage.width + 5,
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
+        "AP", attrstyle);
+    strings.AttackRange = game.add.text(strings.AbilityPower.x +
+            strings.AbilityPower.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerSix.CharacterName.y,
+        "AR", attrstyle);
+    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
+            strings.AttackRange.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+        statScreen.MultiPlayer.PlayerSix.CharacterName.y, 
+        "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x +
+            strings.AttackSpeed.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
+        "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x +
+            strings.Armor.width + 5, 
+        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
+            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
+        "MS", attrstyle);
+
 }
 
 /**
     Revives the Multiplayer screen by calling killSinglePlayerStatScreen()
         and then calling revive() on all the text objects associated with
         the multiplayer screen
+    This must be called after initMultiPlayerStatScreen has been called
 */
 function reviveMultiPlayerStatScreen(){
     console.log("reviveMultiPlayerStatScreen");
     killSinglePlayerStatScreen();
+    for (var player in statScreen.MultiPlayer){
+        if(statScreen.MultiPlayer.hasOwnProperty(player)){
+            statScreen.MultiPlayer[player]["CharacterName"].revive();
+            for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
+                if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
+                    statScreen.MultiPlayer[player]["AttributeStrings"][attrString].revive();
+                }
+            }
+        }
+    }
 }
 
 /**
     Helper function that calls kill() on all the Text Objects associated with the
         multiplayer stat screen
 */
-//TODO: Finish this after finishing initMultiPlayerStatScreen
 function killMultiPlayerStatScreen(){
     console.log("killMultiPlayerStatScreen");
+    for (var player in statScreen.MultiPlayer){
+        if(statScreen.MultiPlayer.hasOwnProperty(player)){
+            statScreen.MultiPlayer[player]["CharacterName"].kill();
+            for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
+                if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
+                    statScreen.MultiPlayer[player]["AttributeStrings"][attrString].kill();
+                }
+            }
+        }
+
+    }
 }
 
 /*
     Kills all of the single player stat screen's objects from being seen
-    This does not destroy the object, but makes it invisible
+    This does not destroy the object, but makes it invisible.
     To show the single player stat screen again, call reviveSinglePlayerScreen
 */
 function killSinglePlayerStatScreen(){
@@ -991,10 +1216,27 @@ function reviveSinglePlayerScreen(){
 }
 
 /**
+    This function decides which screen to update:
+        MultiPlayer StatScreen
+        SinglePlayer StatScreen
+*/
+function updateStatScreen(){
+    if(statScreen.ShowAll == true){
+        updateMultiPlayerStatScreen();
+    }
+    else
+        updateSinglePlayerStatScreen();
+}
+
+
+function updateMultiPlayerStatScreen(){
+    console.log("updateMultiPlayerStatScreen");
+}
+
+/**
     Changes which character's stats are displayed
         in the SinglePlayer screen.
 */
-//TODO: Have this function change the character being tracked by statScreen
 function changeStatScreen(character){
     console.log("changeStatScreen called");
     console.log(character.name);
@@ -1004,8 +1246,55 @@ function changeStatScreen(character){
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
-    updateHealthBar(character);
+    if(statScreen.ShowAll == false)
+        updateHealthBar(character);
 
+
+}
+
+
+/**
+    Updates the colors of the AtrributeStrings of each player
+        green if they have a buff
+        red if they have a debuff
+        orange if neutral
+
+
+    Currently this has random data, but once the JSON is finalized
+        I can add in the logic
+
+    Warning: This has a hardcoded font size for the AttributeStrings rather than attrStyle
+        (didn't want to make that a global variable)
+*/
+//TODO: Work with actual JSON rather than random data
+function updateMultiPlayerStatScreen(){
+    //dequeue from the queue
+    var asdf = serverJSON.shift();
+    for (var player in statScreen.MultiPlayer){
+        if(statScreen.MultiPlayer.hasOwnProperty(player)){
+            for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
+                if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
+                    switch(Math.floor(Math.random()*3)){
+                        //make the string red
+                        case 0:
+                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#ff0000"});
+                            break;
+                        //make the string green
+                        case 1:
+                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#00ff00"});
+                            break;
+                        //make the string orange (neutral)
+                        default:
+                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: DEF_COLOR});
+                            break;
+
+                    }
+                        
+                }
+            }
+        }
+
+    }
 
 }
 
@@ -1017,14 +1306,15 @@ function changeStatScreen(character){
 //TODO: Repalce dummyPlayer with actual JSON from server
 function updateSinglePlayerStatScreen(character){
     graphics.clear();
-    if(statScreen.ShowAll==false)
-        updateHealthBar(character);
+
+    updateHealthBar(character);
 
     //dequeue from the queue
     var asdf = serverJSON.shift();
  
 
-    //update each Attribute String with the random data, and randomly switch each string to be red or green
+    //update each Attribute String with the random data, and randomly switch each string to be 
+    //  red (#ff0000) or green (#00ff00)
     statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setText("Movement Speed: " + asdf.stats.MovementSpeed);
     if(Math.floor(Math.random()*2)==0){
         statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
