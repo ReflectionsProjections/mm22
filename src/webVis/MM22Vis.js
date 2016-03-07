@@ -74,6 +74,51 @@
 //----------Constants and Global Variables------------//
 
 //Queue containing all the JSON from the server
+
+function WebSocketTest()
+         {
+            if ("WebSocket" in window)
+            {
+               alert("WebSocket is supported by your Browser!");
+               
+               // Let us open a web socket
+               var ws = new WebSocket("ws://localhost:8080/");
+                
+               ws.onopen = function()
+               {
+                  // Web Socket is connected, send data using send()
+                  ws.send("Message to send");
+                  alert("Message is sent...");
+               };
+                
+               ws.onmessage = function (evt) 
+               { 
+                // TODO: Implement updates
+                // This is the important function
+
+                  var received_msg = evt.data;
+                  alert("Message is received...");
+
+                  console.log(received_msg);
+
+                  serverJSON = received_msg; // JSON.parse
+                  // update everything
+               };
+                
+               ws.onclose = function()
+               { 
+                  // websocket is closed.
+                  alert("Connection is closed..."); 
+               };
+            }
+            
+            else
+            {
+               // The browser doesn't support WebSocket
+               alert("Game NOT supported by your Browser!");
+            }
+         }
+
 var serverJSON = [];
 
 
