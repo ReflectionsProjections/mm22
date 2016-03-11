@@ -73,7 +73,7 @@
 
 //----------Constants and Global Variables------------//
 
-//Queue containing all the JSON from the server
+
 
 function WebSocketTest()
          {
@@ -119,6 +119,7 @@ function WebSocketTest()
             }
          }
 
+//Queue containing all the JSON from the server
 var serverJSON = [];
 
 
