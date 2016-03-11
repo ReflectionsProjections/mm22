@@ -226,7 +226,6 @@ var statScreen = {
             "HealthText" : null
         }
     },
-    //TODO: Create healthbar for each character???
     "MultiPlayer" : {
         "PlayerOne" : {
             //Handle to the Text Object containing the tracked character's name
@@ -241,6 +240,8 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            //Handle to the Rect Object indicating the player's health
+            "HealthBar" : null
         },
         "PlayerTwo" : {
             //Handle to the Text Object containing the tracked character's name
@@ -255,6 +256,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         },
         "PlayerThree" : {
             //Handle to the Text Object containing the tracked character's name
@@ -269,6 +271,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         },
         "PlayerFour" : {
             //Handle to the Text Object containing the tracked character's name
@@ -283,6 +286,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         },
         "PlayerFour" : {
             //Handle to the Text Object containing the tracked character's name
@@ -297,6 +301,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         },
         "PlayerFive" : {
             //Handle to the Text Object containing the tracked character's name
@@ -311,6 +316,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         },
         "PlayerSix" : {
             //Handle to the Text Object containing the tracked character's name
@@ -325,6 +331,7 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "HealthBar" : null
         }
     }
 
@@ -898,7 +905,23 @@ function randomizeMovement(){
 
 //-----------------Code for Stats Screen---------------------//
 
+/**
+    The Stats Screen has two states:
+        1) Single Player--Shows the numerical stats of one player only
+        2) Multiplayer--Shows the net change of each players' stats by
+            means of a red or green string for each attribute and a health bar
 
+    To switch between states, the user clicks on the text saying 
+        "Single" or "Multi"
+    When clicked, each Text Object will kill the other stat screen 
+        (clicking "Single" while the Multiplayer screen is up will
+        mean that the Multiplayer screen is killed and all of its 
+        associated objects are no longer visible) and revive the 
+        stat screen associated with its stat screen.
+        The killing and reviving are done via the kill/revive functions
+        for the SinglePlayer and MultiPlayer screens.
+
+*/
 
 /**
     Draws the SinglePlayer Stat Screen and tracks the character's stats
@@ -954,9 +977,17 @@ function initMultiPlayerStatScreen(){
 
     var attrstyle = {font: "2em Arial", fill: DEF_COLOR};
     var nameStyle = {font: "3em Arial", fill: DEF_COLOR};
+    //The height of each player's health bar
+    var MULTI_HEALTHBAR_HEIGHT = 10;
 
     //defines where to start drawing text objects
     var startX = GAME_WIDTH + 20;
+
+    //clear any graphics that were on the screen
+    graphics.clear();
+    //Have it so all health bars have the same "fill" (color)
+    graphics.beginFill(HEALTH_BAR_COLOR);
+
     //init character name
     statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(startX, 5, 
         playerOne.name.toUpperCase(), nameStyle);
@@ -966,199 +997,152 @@ function initMultiPlayerStatScreen(){
     //handle to the Attribute Strings...saves on typing
     var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings;
     strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", attrstyle);
+    statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x 
         + strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", attrstyle);
+        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x 
         + strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", attrstyle);
+        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x 
         + strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", attrstyle);
+        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", attrstyle);
     strings.Armor = game.add.text(strings.AttackSpeed.x 
         + strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", attrstyle);
+        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x 
         + strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", attrstyle);
+        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", attrstyle);
+
+    //draw the healthbar
+    statScreen.MultiPlayer.PlayerOne.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
 
 
-    //calculate the new Y position, relative to the attribute strings of the previous player
-    var newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    //calculate the new Y position, relative to the attribute strings of the previous player and health bar
+    var newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
     //update strings to reference player two
     strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
-        statScreen.MultiPlayer.PlayerTwo.CharacterName = game.add.text(startX, newY, 
+    statScreen.MultiPlayer.PlayerTwo.CharacterName = game.add.text(startX, newY, 
         playerTwo.name.toUpperCase(), nameStyle);
-    strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerTwo.CharacterName.y, 
-        "DMG", attrstyle);
+    //the y coordinate of where we will place the attribute strings
+    var attrStrY = statScreen.MultiPlayer.PlayerTwo.CharacterName.y + 
+        statScreen.MultiPlayer.PlayerTwo.CharacterName.height - 5;
+    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
-        "AP", attrstyle);
+            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
-        "AR", attrstyle);
+            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerTwo.CharacterName.y, 
-        "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x +
-            strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
-        "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x +
-            strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerTwo.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerTwo.CharacterName.y,
-        "MS", attrstyle);
+            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
+        attrStrY, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
+        attrStrY, "MS", attrstyle);
+    statScreen.MultiPlayer.PlayerTwo.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+
     
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
     //update strings to reference player three
     strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
-        statScreen.MultiPlayer.PlayerThree.CharacterName = game.add.text(startX, newY, 
+    statScreen.MultiPlayer.PlayerThree.CharacterName = game.add.text(startX, newY, 
         playerThree.name.toUpperCase(), nameStyle);
-    strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerThree.CharacterName.y, 
-        "DMG", attrstyle);
+    attrStrY = statScreen.MultiPlayer.PlayerThree.CharacterName.y + 
+        statScreen.MultiPlayer.PlayerThree.CharacterName.height - 5;
+    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
-        "AP", attrstyle);
+            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerThree.CharacterName.y,
-        "AR", attrstyle);
+            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerThree.CharacterName.y, 
-        "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x +
-            strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
-        "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x +
-            strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerThree.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerThree.CharacterName.y,
-        "MS", attrstyle);
+            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
+        attrStrY, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
+        attrStrY, "MS", attrstyle);
+    statScreen.MultiPlayer.PlayerThree.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
 
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
     //update strings to reference player four
     strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
-        statScreen.MultiPlayer.PlayerFour.CharacterName = game.add.text(startX, newY, 
+    statScreen.MultiPlayer.PlayerFour.CharacterName = game.add.text(startX, newY, 
         playerFour.name.toUpperCase(), nameStyle);
-    strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFour.CharacterName.y, 
-        "DMG", attrstyle);
+    attrStrY = statScreen.MultiPlayer.PlayerFour.CharacterName.y + 
+        statScreen.MultiPlayer.PlayerFour.CharacterName.height - 5;
+    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
-        "AP", attrstyle);
+            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerFour.CharacterName.y,
-        "AR", attrstyle);
+            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerFour.CharacterName.y, 
-        "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x +
-            strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
-        "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x +
-            strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFour.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFour.CharacterName.y,
-        "MS", attrstyle);
+            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
+        attrStrY, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
+        attrStrY, "MS", attrstyle);
+    statScreen.MultiPlayer.PlayerFour.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
 
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
     //update strings to reference player five
     strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
-        statScreen.MultiPlayer.PlayerFive.CharacterName = game.add.text(startX, newY, 
+    statScreen.MultiPlayer.PlayerFive.CharacterName = game.add.text(startX, newY, 
         playerFive.name.toUpperCase(), nameStyle);
-    strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFive.CharacterName.y, 
-        "DMG", attrstyle);
+    attrStrY = statScreen.MultiPlayer.PlayerFive.CharacterName.y + 
+        statScreen.MultiPlayer.PlayerFive.CharacterName.height - 5;
+    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
-        "AP", attrstyle);
+            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerFive.CharacterName.y,
-        "AR", attrstyle);
+            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerFive.CharacterName.y, 
-        "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x +
-            strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
-        "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x +
-            strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerFive.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerFive.CharacterName.y,
-        "MS", attrstyle);
+            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
+        attrStrY, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
+        attrStrY, "MS", attrstyle);
+    statScreen.MultiPlayer.PlayerFive.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
 
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + 5;
+
+    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
     //update strings to reference player three
     strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
-        statScreen.MultiPlayer.PlayerSix.CharacterName = game.add.text(startX, newY, 
+    statScreen.MultiPlayer.PlayerSix.CharacterName = game.add.text(startX, newY, 
         playerSix.name.toUpperCase(), nameStyle);
-    strings.Damage = game.add.text(startX, 
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerSix.CharacterName.y, 
-        "DMG", attrstyle);
+    attrStrY = statScreen.MultiPlayer.PlayerSix.CharacterName.y + 
+        statScreen.MultiPlayer.PlayerSix.CharacterName.height - 5;
+    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
     strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5,
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
-        "AP", attrstyle);
+            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
     strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerSix.CharacterName.y,
-        "AR", attrstyle);
+            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
     strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-        statScreen.MultiPlayer.PlayerSix.CharacterName.y, 
-        "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x +
-            strings.AttackSpeed.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
-        "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x +
-            strings.Armor.width + 5, 
-        5 + statScreen.MultiPlayer.PlayerSix.CharacterName.height + 
-            statScreen.MultiPlayer.PlayerSix.CharacterName.y,
-        "MS", attrstyle);
+            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
+    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
+        attrStrY, "ARMOR", attrstyle);
+    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
+        attrStrY, "MS", attrstyle);
+    statScreen.MultiPlayer.PlayerSix.HealthBar = graphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+
+    graphics.endFill();
 
 }
 
@@ -1251,12 +1235,13 @@ function reviveSinglePlayerScreen(){
 
 
     //Revive all the Attribute Strings
-    statScreen.SinglePlayer.AttributeStrings.MovementSpeed.revive();
-    statScreen.SinglePlayer.AttributeStrings.Damage.revive();
-    statScreen.SinglePlayer.AttributeStrings.AbilityPower.revive();
-    statScreen.SinglePlayer.AttributeStrings.AttackRange.revive();
-    statScreen.SinglePlayer.AttributeStrings.AttackSpeed.revive();
-    statScreen.SinglePlayer.AttributeStrings.Armor.revive();
+    for (var attrStr in statScreen.SinglePlayer.AttributeStrings){
+        if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
+            statScreen.SinglePlayer.AttributeStrings[attrStr].revive();
+        }
+    }
+    
+
 
     
 }
@@ -1357,54 +1342,21 @@ function updateSinglePlayerStatScreen(character){
 
     //dequeue from the queue
     var asdf = serverJSON.shift();
- 
-
-    //update each Attribute String with the random data, and randomly switch each string to be 
+    // update each Attribute String with data from the queue, and randomly switch each string to be 
     //  red (#ff0000) or green (#00ff00)
-    statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setText("Movement Speed: " + asdf.stats.MovementSpeed);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.MovementSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
-    statScreen.SinglePlayer.AttributeStrings.Armor.setText("Armor: " + asdf.stats.Armor);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.Armor.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
-    statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setText("Attack Speed: " + asdf.stats.AttackSpeed);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.AttackSpeed.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
-    statScreen.SinglePlayer.AttributeStrings.AttackRange.setText("Attack Range: " + asdf.stats.AttackRange);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.AttackRange.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
-    statScreen.SinglePlayer.AttributeStrings.AbilityPower.setText("Ability Power: " + asdf.stats.AbilityPower);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.AbilityPower.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
-    statScreen.SinglePlayer.AttributeStrings.Damage.setText("Damage: " + asdf.stats.Damage);
-    if(Math.floor(Math.random()*2)==0){
-        statScreen.SinglePlayer.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#ff0000"});
-    }
-    else{
-        statScreen.SinglePlayer.AttributeStrings.Damage.setStyle({font: "3em Arial", fill: "#00ff00"});
-    }
+    // in the finished version the green or red will depend on a buff or debuff
     
-    
+    for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
+        if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + asdf.stats[attrStr]);
+            //make the stats green or red by random
+            if(Math.floor(Math.random()*2)==0)
+                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#ff0000"});
+            else
+                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#00ff00"});
+
+        }
+    }
 
 }
 
@@ -1414,6 +1366,8 @@ var HEALTH_BAR_COLOR = 0x33CC33;
 var HEALTH_BAR_X = GAME_WIDTH + 10;
 var HEALTH_BAR_Y = 100;
 var HEALTH_BAR_HEIGHT = 20;
+//maximum width in pixels the Health Bar will be
+var HEALTH_BAR_MAX_WIDTH = 360;
 
 /**
     Redraws the Health Bar
