@@ -160,8 +160,11 @@ var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
 //Reference to the game's timer
 var timer;
 
-//Reference to the game's graphics class
-var graphics;
+// These Graphics Objects are used to draw Health Bars (drawRect)
+// Graphics Object for Single Player Stat Screen
+var singleGraphics;
+// Graphics Object for MultiPlayer Stat Screen
+var multiGraphics;
 
 
 //width and height of a character's sprite, in pixels
@@ -223,7 +226,8 @@ var statScreen = {
         //  The health bar
         "HealthBar" : {
             "Bar" : null,
-            "HealthText" : null
+            "HealthText" : null,
+            "HEALTH_BAR_X" : GAME_WIDTH + 10,
         }
     },
     "MultiPlayer" : {
@@ -363,7 +367,11 @@ var singleButton;
 
 
 //Color Constants
+//Default Color for strings (orange-ish)
 var DEF_COLOR = "#ffa366"
+
+//Health Bar Constants
+var HEALTH_BAR_COLOR = 0x33CC33;
 
 
 
@@ -450,6 +458,8 @@ function create () {
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     graphics = game.add.graphics();
+    singleGraphics = game.add.graphics();
+    multiGraphics = game.add.graphics();
 
     //TODO: Decide if we want to start with multiplayer or single player overlay
     //draw the Single Player Stat Screen
@@ -933,6 +943,11 @@ function randomizeMovement(){
         (defaults to player one)
 */
 function initSinglePlayerStatScreen(character){
+    var HEALTH_BAR_X = GAME_WIDTH + 10;
+    var HEALTH_BAR_Y = 100;
+    var HEALTH_BAR_HEIGHT = 20;
+    //maximum width in pixels the Health Bar will be
+    var HEALTH_BAR_MAX_WIDTH = 360;
     console.log("initSinglePlayerScreen");
     statScreen.ShowAll = false;
 
@@ -940,13 +955,13 @@ function initSinglePlayerStatScreen(character){
     statScreen.SinglePlayer.CharacterNameString = character.name;
     statScreen.SinglePlayer.CharacterName = game.add.text(GAME_WIDTH + 10, 10, character.name.toUpperCase(), {font: "4em Arial", fill: "#ff944d"});
 
-    graphics.clear();
+    singleGraphics.clear();
     //redraw the healthbar and the text saying 'Health'
-    graphics.beginFill(HEALTH_BAR_COLOR);
-    statScreen.SinglePlayer.HealthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+    singleGraphics.beginFill(HEALTH_BAR_COLOR);
+    statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         HEALTH_BAR_HEIGHT);
-    graphics.endFill();
+    singleGraphics.endFill();
     statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
 
 
@@ -971,6 +986,8 @@ function initSinglePlayerStatScreen(character){
 /**
     Creates The Text Objects for the multiplayer stat screen.
     Like initSinglePlayerScreen, this method should be called only once 
+
+    TODO: Have Health Bars be From Actual JSON Rather Than Random Data
 */
 function initMultiPlayerStatScreen(){
     console.log("initMultiPlayerStatScreen");
@@ -984,9 +1001,9 @@ function initMultiPlayerStatScreen(){
     var startX = GAME_WIDTH + 20;
 
     //clear any graphics that were on the screen
-    graphics.clear();
+    multiGraphics.clear();
     //Have it so all health bars have the same "fill" (color)
-    graphics.beginFill(HEALTH_BAR_COLOR);
+    multiGraphics.beginFill(HEALTH_BAR_COLOR);
 
     //init character name
     statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(startX, 5, 
@@ -1015,7 +1032,7 @@ function initMultiPlayerStatScreen(){
         statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", attrstyle);
 
     //draw the healthbar
-    statScreen.MultiPlayer.PlayerOne.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
@@ -1041,7 +1058,7 @@ function initMultiPlayerStatScreen(){
         attrStrY, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
         attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerTwo.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
@@ -1065,7 +1082,7 @@ function initMultiPlayerStatScreen(){
         attrStrY, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
         attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerThree.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
@@ -1089,7 +1106,7 @@ function initMultiPlayerStatScreen(){
         attrStrY, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
         attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerFour.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
@@ -1113,7 +1130,7 @@ function initMultiPlayerStatScreen(){
         attrStrY, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
         attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerFive.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
@@ -1137,12 +1154,12 @@ function initMultiPlayerStatScreen(){
         attrStrY, "ARMOR", attrstyle);
     strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
         attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerSix.HealthBar = graphics.drawRect(startX, 
+    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
 
-    graphics.endFill();
+    multiGraphics.endFill();
 
 }
 
@@ -1151,6 +1168,7 @@ function initMultiPlayerStatScreen(){
         and then calling revive() on all the text objects associated with
         the multiplayer screen
     This must be called after initMultiPlayerStatScreen has been called
+    TODO: Have Health Bars be filled w/ JSON Health instead of random
 */
 function reviveMultiPlayerStatScreen(){
     console.log("reviveMultiPlayerStatScreen");
@@ -1165,6 +1183,44 @@ function reviveMultiPlayerStatScreen(){
             }
         }
     }
+    
+    //redraw all the healthBars
+    multiGraphics.beginFill(HEALTH_BAR_COLOR);
+    var startX = GAME_WIDTH + 20;
+    var MULTI_HEALTHBAR_HEIGHT = 10;
+    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings
+    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
+    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
+    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
+    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
+    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
+    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+
+    multiGraphics.endFill();
+
 }
 
 /**
@@ -1173,6 +1229,8 @@ function reviveMultiPlayerStatScreen(){
 */
 function killMultiPlayerStatScreen(){
     console.log("killMultiPlayerStatScreen");
+    //clear all the healthbars
+    multiGraphics.clear();
     for (var player in statScreen.MultiPlayer){
         if(statScreen.MultiPlayer.hasOwnProperty(player)){
             statScreen.MultiPlayer[player]["CharacterName"].kill();
@@ -1195,9 +1253,8 @@ function killSinglePlayerStatScreen(){
     console.log("killSinglePlayerStatScreen")
     //indicate we are showing all of the player's stats
     statScreen.ShowAll = true;
-    //Kill the healthbar
-    graphics.clear();
-    statScreen.SinglePlayer.HealthBar.Bar = null;
+    //Clears the healthbar
+    singleGraphics.clear();
     statScreen.SinglePlayer.HealthBar.HealthText.kill();
     //kill all the Text objects for the singlePlayer screen
     for (var k in statScreen.SinglePlayer.AttributeStrings){
@@ -1223,13 +1280,19 @@ function reviveSinglePlayerScreen(){
     statScreen.ShowAll = false;
     statScreen.SinglePlayer.CharacterName.revive();
 
-    graphics.clear();
+    var HEALTH_BAR_X = GAME_WIDTH + 10;
+    var HEALTH_BAR_Y = 100;
+    var HEALTH_BAR_HEIGHT = 20;
+    //maximum width in pixels the Health Bar will be
+    var HEALTH_BAR_MAX_WIDTH = 360;
+
+    singleGraphics.clear();
     //redraw the healthbar and the text saying 'Health'
-    graphics.beginFill(HEALTH_BAR_COLOR);
-    statScreen.SinglePlayer.HealthBar = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+    singleGraphics.beginFill(HEALTH_BAR_COLOR);
+    statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         HEALTH_BAR_HEIGHT);
-    graphics.endFill();
+    singleGraphics.endFill();
 
     statScreen.SinglePlayer.HealthBar.HealthText.revive();
 
@@ -1260,9 +1323,6 @@ function updateStatScreen(){
 }
 
 
-function updateMultiPlayerStatScreen(){
-    console.log("updateMultiPlayerStatScreen");
-}
 
 /**
     Changes which character's stats are displayed
@@ -1273,7 +1333,7 @@ function changeStatScreen(character){
     console.log(character.name);
     statScreen.SinglePlayer.CharacterNameString = character.name;
     //clear all graphics drawn from the graphics reference
-    graphics.clear();
+    singleGraphics.clear();
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
@@ -1299,6 +1359,7 @@ function changeStatScreen(character){
 */
 //TODO: Work with actual JSON rather than random data
 function updateMultiPlayerStatScreen(){
+    console.log("updateMultiPlayerStatScreen");
     //dequeue from the queue
     var asdf = serverJSON.shift();
     for (var player in statScreen.MultiPlayer){
@@ -1326,7 +1387,42 @@ function updateMultiPlayerStatScreen(){
         }
 
     }
+    multiGraphics.clear();
+    multiGraphics.beginFill(HEALTH_BAR_COLOR);
+    var startX = GAME_WIDTH + 20;
+    var MULTI_HEALTHBAR_HEIGHT = 10;
+    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings
+    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
+    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
+    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
+    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
+    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
+    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
+    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
+        strings.MovementSpeed.y + strings.MovementSpeed.height, 
+        (Math.floor(Math.random() * STAT_WIDTH)), 
+        MULTI_HEALTHBAR_HEIGHT);
 
+    multiGraphics.endFill();
 }
 
 /**
@@ -1336,7 +1432,7 @@ function updateMultiPlayerStatScreen(){
 */
 //TODO: Repalce dummyPlayer with actual JSON from server
 function updateSinglePlayerStatScreen(character){
-    graphics.clear();
+    singleGraphics.clear();
 
     updateHealthBar(character);
 
@@ -1361,14 +1457,6 @@ function updateSinglePlayerStatScreen(character){
 }
 
 
-//Reference to the health bar of the stats screen
-var HEALTH_BAR_COLOR = 0x33CC33;
-var HEALTH_BAR_X = GAME_WIDTH + 10;
-var HEALTH_BAR_Y = 100;
-var HEALTH_BAR_HEIGHT = 20;
-//maximum width in pixels the Health Bar will be
-var HEALTH_BAR_MAX_WIDTH = 360;
-
 /**
     Redraws the Health Bar
     Currently it sets to health bar to a random value,
@@ -1377,12 +1465,17 @@ var HEALTH_BAR_MAX_WIDTH = 360;
 */
 //TODO: Have this fill the bar proportional to the % of the health the player has
 function updateHealthBar(character){
+    var HEALTH_BAR_X = GAME_WIDTH + 10;
+    var HEALTH_BAR_Y = 100;
+    var HEALTH_BAR_HEIGHT = 20;
+    //maximum width in pixels the Health Bar will be
+    var HEALTH_BAR_MAX_WIDTH = 360;
     //redraw the health bar
-    graphics.beginFill(HEALTH_BAR_COLOR);
-    statScreen.SinglePlayer.HealthBar.Text = graphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
+    singleGraphics.beginFill(HEALTH_BAR_COLOR);
+    statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         HEALTH_BAR_HEIGHT);
-    graphics.endFill();
+    singleGraphics.endFill();
 }
 
 
