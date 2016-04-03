@@ -43,6 +43,8 @@
         Select a player on click
     TODO: Create queue for JSON to be parsed
     TODO: Remove any dummy data/variables/JSON
+	TODO: Have updateSinglePlayerStats and updateMultiPlayerStats
+		so that instead of random data it uses serverJSON
 
 
     -----MAP----
@@ -1314,11 +1316,15 @@ function reviveSinglePlayerScreen(){
         SinglePlayer StatScreen
 */
 function updateStatScreen(){
-    if(statScreen.ShowAll == true){
-        updateMultiPlayerStatScreen();
-    }
-    else
-        updateSinglePlayerStatScreen();
+	if(serverJSON.length > 0){
+		//dequeue
+		var nextTurn = serverJSON.shift();
+    	if(statScreen.ShowAll == true){
+    	    updateMultiPlayerStatScreen(nextTurn);
+    	}
+    	else
+    	    updateSinglePlayerStatScreen(nextTurn);
+	}
 }
 
 
@@ -1326,6 +1332,9 @@ function updateStatScreen(){
 /**
     Changes which character's stats are displayed
         in the SinglePlayer screen.
+	
+	character--the Phaser.Sprite object associated with that
+		character
 */
 function changeStatScreen(character){
     console.log("changeStatScreen called");
@@ -1353,18 +1362,21 @@ function changeStatScreen(character){
     Currently this has random data, but once the JSON is finalized
         I can add in the logic
 
+	nextTurn--the turn as given by the server(JSON)
+
     Warning: This has a hardcoded font size for the AttributeStrings rather than attrStyle
         (didn't want to make that a global variable)
 */
 //TODO: Work with actual JSON rather than random data
-function updateMultiPlayerStatScreen(){
+function updateMultiPlayerStatScreen(nextTurn){
     console.log("updateMultiPlayerStatScreen");
-    //dequeue from the queue
-    var asdf = serverJSON.shift();
+
+	//update the strings
     for (var player in statScreen.MultiPlayer){
         if(statScreen.MultiPlayer.hasOwnProperty(player)){
             for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
                 if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
+
                     switch(Math.floor(Math.random()*3)){
                         //make the string red
                         case 0:
@@ -1430,20 +1442,24 @@ function updateMultiPlayerStatScreen(){
     If the character selected has changed, call changeStatScreen() before this
 */
 //TODO: Repalce dummyPlayer with actual JSON from server
-function updateSinglePlayerStatScreen(character){
+//		
+function updateSinglePlayerStatScreen(nextTurn){
+	console.log("updateSinglePlayerStatScreen");
+	console.log(nextTurn);
     singleGraphics.clear();
 
-    updateHealthBar(character);
+    updateHealthBar();
 
-    //dequeue from the queue
-    var asdf = serverJSON.shift();
+	//TODO: Need to choose which character's stats to read
+
+
     // update each Attribute String with data from the queue, and randomly switch each string to be 
     //  red (#ff0000) or green (#00ff00)
     // in the finished version the green or red will depend on a buff or debuff
     
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
-            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + asdf.stats[attrStr]);
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + nextTurn.stats[attrStr]);
             //make the stats green or red by random
             if(Math.floor(Math.random()*2)==0)
                 statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#ff0000"});
@@ -1463,7 +1479,8 @@ function updateSinglePlayerStatScreen(character){
         player.
 */
 //TODO: Have this fill the bar proportional to the % of the health the player has
-function updateHealthBar(character){
+function updateHealthBar(){
+
     var HEALTH_BAR_X = GAME_WIDTH + 10;
     var HEALTH_BAR_Y = 100;
     var HEALTH_BAR_HEIGHT = 20;
