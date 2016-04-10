@@ -1,5 +1,5 @@
-from gamemap import *
-from team import Team
+from src.game.gamemap import *
+from src.game.team import Team
 
 # Useful for debugging
 import sys
@@ -42,7 +42,7 @@ class Game(object):
             elif len(jsonObject["classes"]) == 0:
                 error = "list of classes can not be empty"
             else:
-                for characterJson in jsonObject:
+                for characterJson in jsonObject['classes']:
                     if "characterName" not in characterJson:
                         error = "Missing 'characterName' for a character"
                     elif "classId" not in characterJson:
@@ -61,7 +61,7 @@ class Game(object):
         # Return response (as a JSON object)
         return (True, {"id": teamId, 
                         "teamName": jsonObject["teamName"],
-                        "teamInfo": self.teams[teamId].toJson()}) #TODO team-name
+                        "teamInfo": self.teams[teamId].toJson()})
 
     # Add a player's actions to the turn queue
     def queue_turn(self, turnJson, playerId):
@@ -95,7 +95,11 @@ class Game(object):
                 actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
-                    target = self.map.nodes.get(int(targetId), None)
+                    target = None
+                    for team in self.teams:
+                        target = team.get_character(id=targetId)
+                        if target:
+                            break
                     if target:
                         target.targeterId = playerId
                         target.supplierIds = supplierIds

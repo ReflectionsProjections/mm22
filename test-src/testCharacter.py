@@ -7,12 +7,12 @@ class TestCharacter(unittest.TestCase):
     def test_constructor(self):
         """ Test default constructor
         """
-        char = Character(0)
+        char = Character(0, name="AI", classId="dummy_one")
 
         self.assertEqual(char.id, 0)
         self.assertEqual(char.name, "AI")
-        self.assertEqual(char.classId, "warrior")
-        self.assertEqual(char.abilities, {1: 0.0})
+        self.assertEqual(char.classId, "dummy_one")
+        self.assertEqual(char.abilities, {0: 0.0, 5: 0.0})
 
     def test_attribute_setup(self):
         char = Character(0)
@@ -40,6 +40,23 @@ class TestCharacter(unittest.TestCase):
         # Test ability that doesn't exist or doesn't have
         self.assertEqual(char.can_use_ability(-1), False)
         self.assertEqual(char.can_use_ability(99), False)
+
+    def test_can_move(self):
+        char = Character(0)
+
+        self.assertEqual(char.can_move(), True)
+
+        char.apply_stat_change({'attribute': 'Rooted', 'change': -1})
+
+        self.assertEqual(char.can_move(), False)
+
+        char.apply_stat_change({'attribute': 'Rooted', 'change': 1})
+
+        self.assertEqual(char.can_move(), True)
+
+        char.apply_stat_change({'attribute': 'Stunned', 'change': -1})
+
+        self.assertEqual(char.can_move(), False)
 
     def test_use_ability(self):
         char1 = Character(0)

@@ -18,7 +18,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,5 ]
-	}
+	},
     "dummy_two" : {
 			"Health"        : 500,
             "Damage"        : 100,
@@ -27,7 +27,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,5 ]
-	}
+	},
 	"archer" : {
 			"Health"        : 500,
             "Damage"        : 100,
@@ -36,7 +36,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,5 ]
-	}
+	},
 	"assassin" : {
 			"Health"        : 500,
             "Damage"        : 100,
@@ -45,7 +45,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,2 ]
-	}
+	},
     "druid" : {
             "Health"        : 500,
             "Damage"        : 100,
@@ -54,7 +54,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,3,4 ]
-    }
+    },
     "enchanter" : {
             "Health"        : 500,
             "Damage"        : 100,
@@ -63,7 +63,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,6,7 ]
-    }
+    },
     "paladin" : {
             "Health"        : 500,
             "Damage"        : 100,
@@ -72,7 +72,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,3 ]
-    }
+    },
     "sorcerer" : {
             "Health"        : 500,
             "Damage"        : 100,
@@ -81,7 +81,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,8 ]
-    }
+    },
     "warrior" : {
             "Health"        : 500,
             "Damage"        : 100,
@@ -90,7 +90,7 @@ classesJson = {
             "Armor"         : 50,
             "MovementSpeed" : 5,
             "Abilities"     : [ 0,1 ]
-    }
+    },
     "wizard" : {
             "Health"        : 500,
             "Damage"        : 50,
@@ -188,7 +188,6 @@ abilitiesList = [
     },
     {   #6 ranged damage reduction curse
         "StatChanges": [{
-        {
             "Target": 1,
             "Attribute": "Damage",
             "Change": -10,
@@ -226,11 +225,10 @@ abilitiesList = [
             "Time" : 20
         }],
         "Cooldown"  : 60,
-        "Range":    : 0,
+        "Range"     : 0,
     },
     {   #9 deep freeze
         "StatChanges": [{
-        {
             "Target": 1,
             "Attribute": "Stunned",
             "Change": True,
@@ -241,7 +239,6 @@ abilitiesList = [
     },
     {   #10 frostbolt
         "StatChanges": [{
-        {
             "Target": 1,
             "Attribute": "Health",
             "Change": -200,
@@ -252,7 +249,6 @@ abilitiesList = [
     },
     {   #11 icicles
         "StatChanges": [{
-        {
             "Target": 1,
             "Attribute": "Health",
             "Change": -200,
@@ -263,7 +259,6 @@ abilitiesList = [
     },
     {   #12 dummy_health_pos
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Health",
             "Change": 100,
@@ -274,7 +269,6 @@ abilitiesList = [
     },
     {   #13 dummy_health_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Health",
             "Change": -100,
@@ -285,7 +279,6 @@ abilitiesList = [
     },
     {   #14 dummy_damage_buff
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Damage",
             "Change": 100,
@@ -296,7 +289,6 @@ abilitiesList = [
     },
     {   #15 dummy_damage_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Damage",
             "Change": -100,
@@ -307,7 +299,6 @@ abilitiesList = [
     },
     {   #16 dummy_attackrange_pos
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "AttackRange",
             "Change": 1,
@@ -318,7 +309,6 @@ abilitiesList = [
     },
     {   #17 dummy_attackrange_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "AttackRange",
             "Change": -1,
@@ -329,7 +319,6 @@ abilitiesList = [
     },
     {   #18 dummy_attackspeed_pos
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "AttackSpeed",
             "Change": 1,
@@ -340,7 +329,6 @@ abilitiesList = [
     },
     {   #19 dummy_attackspeed_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "AttackSpeed",
             "Change": 100,
@@ -351,7 +339,6 @@ abilitiesList = [
     },
     {   #20 dummy_armor_pos
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Armor",
             "Change": 100,
@@ -362,7 +349,6 @@ abilitiesList = [
     },
     {   #21 dummy_armor_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Armor",
             "Change": 100,
@@ -373,7 +359,6 @@ abilitiesList = [
     },
     {   #22 dummy_movementspeed_pos
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "MovementSpeed",
             "Change": 1,
@@ -384,7 +369,6 @@ abilitiesList = [
     },
     {   #23 dummy_movementspeed_neg
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "MovementSpeed",
             "Change": -1,
@@ -392,10 +376,9 @@ abilitiesList = [
         }],
         "Cooldown"  : 30,
         "Range"     : 1,
-    }
+    },
     {   #24 dummy_stun
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Stunned",
             "Change": True,
@@ -406,7 +389,6 @@ abilitiesList = [
     },
     {   #25 dummy_silence
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Silenced",
             "Change": True,
@@ -417,7 +399,6 @@ abilitiesList = [
     },
     {   #24 dummy_root
         "StatChanges": [{
-        {
             "Target": 3,
             "Attribute": "Rooted",
             "Change": True,
@@ -425,8 +406,7 @@ abilitiesList = [
         }],
         "Cooldown"  : 30,
         "Range"     : 1,
-    },
-    
+    }
 ]
 
 numPlayersPerRound = 2

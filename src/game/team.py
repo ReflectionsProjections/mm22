@@ -14,12 +14,21 @@ class Team:
         """
 
         self.name = name
-        self.characters = {}
+        self.characters = []
+        self.id = id
         for i in range(len(characters)):
             try:
-                self.characters[i] = Character(i, characters[i]['characterName'], characters[i]['classId'])
+                self.characters.append(Character(id + i, characters[i]['characterName'], characters[i]['classId']))
             except KeyError:
-                self.characters[i] = Character(i)
+                self.characters.append(Character(id + i))
+
+    def get_character(self, id=None, name=None):
+        if id is None and name is None:
+            return None
+
+        for character in self.characters:
+            if character.name == name or character.id == id:
+                return character
 
     def size(self):
         return len(self.characters)
@@ -30,7 +39,10 @@ class Team:
         """
 
         json = {}
+        json['teamName'] = self.name
+        json['id'] = self.id
+        json['characters'] = []
         for character in self.characters:
-            json[character.characterId] = character.toJson()
+            json['characters'].append(character.toJson())
 
         return json
