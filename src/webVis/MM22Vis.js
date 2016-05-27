@@ -102,7 +102,7 @@ function WebSocketTest()
                   alert("Message is received...");
 
                   console.log(received_msg);
-
+                  //TODO: Should this enqueue rather than assign?
                   serverJSON = received_msg; // JSON.parse
                   // update everything
                };
@@ -188,23 +188,15 @@ var characters;
 var teamA = [];
 var teamB = [];
 
-//Handles on all of the sprites of all the characters
-var playerOne;
-var playerTwo;
-var playerThree;
-var playerFour;
-var playerFive;
-var playerSix;
-
 
 
 //Group containing all the spells to be cast on one turn
 var spells;
 
+
+
 //Object to contain all of the handles to Phaser text objects 
 //  and other things relevant to the stats screen
-//TODO: Have CurrentPlayer allow for iteration to redesignate AttributeStrings' text 
-//  in changeStatScreen
 var statScreen = {
     //If true, display all the character's stats
     //If false, only display the stats of "CharacterName"
@@ -224,6 +216,14 @@ var statScreen = {
             "Armor" : null,
             "MovementSpeed" : null
         },
+        "InitialValue" : {
+            "Damage" : -1,
+            "AbilityPower" : -1,
+            "AttackRange" : -1,
+            "AttackSpeed" : -1,
+            "Armor" : -1,
+            "MovementSpeed" : -1,
+        },
         //Contains handles to the rectangle and Text object representing
         //  The health bar
         "HealthBar" : {
@@ -232,8 +232,10 @@ var statScreen = {
             "HEALTH_BAR_X" : GAME_WIDTH + 10,
         }
     },
-    "MultiPlayer" : {
-        "PlayerOne" : {
+    //Contains All the players, in order
+    "MultiPlayer" : [
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -246,10 +248,21 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            //Contains initial value for each stat
+            //Used for coloring each abbreviation correctly
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             //Handle to the Rect Object indicating the player's health
-            "HealthBar" : null
+            "HealthBar" : null,
         },
-        "PlayerTwo" : {
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -262,9 +275,18 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             "HealthBar" : null
         },
-        "PlayerThree" : {
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -277,9 +299,18 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             "HealthBar" : null
         },
-        "PlayerFour" : {
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -292,9 +323,18 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             "HealthBar" : null
         },
-        "PlayerFour" : {
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -307,9 +347,18 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             "HealthBar" : null
         },
-        "PlayerFive" : {
+        {
+            "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
             //Handles to the Phaser.Text Objects of each attribute
@@ -322,26 +371,21 @@ var statScreen = {
                 "Armor" : null,
                 "MovementSpeed" : null
             },
+            "InitialValue" : {
+                "Damage" : -1,
+                "AbilityPower" : -1,
+                "AttackRange" : -1,
+                "AttackSpeed" : -1,
+                "Armor" : -1,
+                "MovementSpeed" : -1,
+             },
             "HealthBar" : null
         },
-        "PlayerSix" : {
-            //Handle to the Text Object containing the tracked character's name
-            "CharacterName" : null,
-            //Handles to the Phaser.Text Objects of each attribute
-            //Use this object if we are tracking only one characer
-            "AttributeStrings" : {
-                "Damage" : null,
-                "AbilityPower" : null,
-                "AttackRange" : null,
-                "AttackSpeed" : null,
-                "Armor" : null,
-                "MovementSpeed" : null
-            },
-            "HealthBar" : null
-        }
-    }
+    ]
 
 };
+
+
 //constant of Y-position of where the text of attributes will be positioned
 //  relative to this coordinate
 var ATTRIBUTE_STRINGS_Y = 300;
@@ -411,7 +455,6 @@ function create () {
     // //tests queue system
     // //TODO: Delete these 2 lines
     populateQueue();
-    console.log(serverJSON);
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
@@ -424,18 +467,18 @@ function create () {
     //Add all players to the characters group at their initial locations
     //TODO: add all characters to their intitial locations according to JSON
     //TODO: Let participants choose names for their character???
-    playerOne = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
-    playerOne.name = "player One";
-    playerTwo = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
-    playerTwo.name = "player Two";
-    playerThree = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
-    playerThree.name = "player Three";
-    playerFour = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
-    playerFour.name = "player Four";
-    playerFive = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
-    playerFive.name = "player Five";
-    playerSix = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
-    playerSix.name = "player Six";
+    statScreen["MultiPlayer"][0].Sprite = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
+    statScreen["MultiPlayer"][0].Sprite.name = "player One";
+    statScreen["MultiPlayer"][1].Sprite = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
+    statScreen["MultiPlayer"][1].Sprite.name = "player Two";
+    statScreen["MultiPlayer"][2].Sprite = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
+    statScreen["MultiPlayer"][2].Sprite.name = "player Three";
+    statScreen["MultiPlayer"][3].Sprite = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
+    statScreen["MultiPlayer"][3].Sprite.name = "player Four";
+    statScreen["MultiPlayer"][4].Sprite = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
+    statScreen["MultiPlayer"][4].Sprite.name = "player Five";
+    statScreen["MultiPlayer"][5].Sprite = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
+    statScreen["MultiPlayer"][5].Sprite.name = "player Six";
 
     //TODO: Code to add each player to teamA or teamB, use the JSON
 
@@ -453,9 +496,6 @@ function create () {
 
     //Have the timer call all of the following functions every
     //  TIME_TO_NEXT_UPDATE milliseconds
-    //TODO: Have all of these functions run in one function
-    //TODO: Check to make sure that serverJSON is not empty before calling the update functions
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, moveCharactersQuadrantAbsolute, this);
     game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
@@ -464,7 +504,7 @@ function create () {
 
     //TODO: Decide if we want to start with multiplayer or single player overlay
     //draw the Single Player Stat Screen
-    initSinglePlayerStatScreen(playerOne);
+    initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
     killSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
@@ -525,7 +565,6 @@ function update () {
 var spellList = [];
 
 
-//TODO: Have spells go to "center" of sprite
 /*
     Adds a spell to the spells group.
     Call releaseSpells() to move all the spell sprites
@@ -570,10 +609,10 @@ function releaseSpells(){
     
     //cleanup
     spellList = [];
-    tween.onComplete.add(removeSpells, this);
-    function removeSpells(){
+    tween.onComplete.add(function(){
         spells.removeAll(true, false);
-    };
+    }, 
+    this);
     
 }
 
@@ -667,9 +706,12 @@ var nextQuadrantSpaceAvailable = [
         (does not check if the character will move off of the map,
         into a pillar)
 
-    TODO: Use jQuery's .each method to clean up this code
+    WARNING: This method is deprecated and needs to be refactored
+      to use statScreen["MultiPlayer"].Sprite instead of playerOne,
+      playerTwo, playerThree...
+
 */
-function moveCharactersQuadrant(){
+function moveCharactersQuadrant(nextTurn){
     //TODO: Use absolute position if JSON from server gives that
 
     //reset nextQuadrantSpaceAvailable so all spaces are available
@@ -679,7 +721,7 @@ function moveCharactersQuadrant(){
             nextQuadrantSpaceAvailable[i][j][1] = 0;
         } 
     }
-
+    randomizeMovement();
     for(var k in dummyMovement){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
@@ -687,14 +729,14 @@ function moveCharactersQuadrant(){
         switch(k){
             case "playerOne":
                 //calculate the player's new destination
-                newQuadrantCol = (playerOne.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerOne.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][0].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][0].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant at the top-left corner
-                playerOne.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerOne.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][0].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][0].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerOne.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerOne.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][0].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][0].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -704,14 +746,14 @@ function moveCharactersQuadrant(){
                 }
                 break;
             case "playerTwo":
-                newQuadrantCol = (playerTwo.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerTwo.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][1].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][1].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant
-                playerTwo.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerTwo.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][1].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][1].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerTwo.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerTwo.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][1].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][1].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -721,14 +763,14 @@ function moveCharactersQuadrant(){
                 }
                 break;
             case "playerThree":
-                newQuadrantCol = (playerThree.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerThree.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][2].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][2].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant
-                playerThree.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerThree.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][2].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][2].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerThree.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerThree.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][2].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][2].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -738,14 +780,14 @@ function moveCharactersQuadrant(){
                 }
                 break;
             case "playerFour":
-                newQuadrantCol = (playerFour.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerFour.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][3].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][3].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant
-                playerFour.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerFour.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][3].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][3].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerFour.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerFour.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][3].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][3].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -755,14 +797,14 @@ function moveCharactersQuadrant(){
                 }
                 break;
             case "playerFive":
-                newQuadrantCol = (playerFive.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerFive.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][4].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][4].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant
-                playerFive.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerFive.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][4].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][4].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerFive.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerFive.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][4].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][4].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -772,14 +814,14 @@ function moveCharactersQuadrant(){
                 }
                 break;
             case "playerSix":
-                newQuadrantCol = (playerSix.x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (playerSix.y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantCol = (statScreen["MultiPlayer"][5].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
+                newQuadrantRow = (statScreen["MultiPlayer"][5].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
                 //move them into the quadrant
-                playerSix.x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerSix.y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][5].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+                statScreen["MultiPlayer"][5].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
                 //move them again to the next column if they're isn't room in the quadrant
-                playerSix.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerSix.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][5].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+                statScreen["MultiPlayer"][5].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
                 //update the column part of the "tuple"
                 nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
                 //if the column is 3, move to the next row
@@ -812,68 +854,24 @@ function moveCharactersQuadrantAbsolute(){
             nextQuadrantSpaceAvailable[i][j][1] = 0;
         } 
     }
-    //have the sprites move to a random location (x,y) = ((0-4),(0-4))
+   
+    //TODO: Delete this line in production, used for testing for now
     randomizeMovement();
 
-
-    for(var k in dummyMovement){
+    //have the sprites move to a random location (x,y) = ((0-4),(0-4))
+    var index = 0;
+    for( k in dummyMovement ){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
         newQuadrantCol = dummyMovement[k]["x"];
         newQuadrantRow = dummyMovement[k]["y"];
-        switch(k){
-            case "playerOne":
-                //move them into the quadrant at the top-left corner
-                playerOne.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerOne.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerOne.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerOne.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            case "playerTwo":
-                //move them into the quadrant
-                playerTwo.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerTwo.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerTwo.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerTwo.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            case "playerThree":
-                //move them into the quadrant
-                playerThree.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerThree.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerThree.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerThree.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            case "playerFour":
-                //move them into the quadrant
-                playerFour.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerFour.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerFour.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerFour.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            case "playerFive":
-                //move them into the quadrant
-                playerFive.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerFive.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerFive.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerFive.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            case "playerSix":
-                //move them into the quadrant
-                playerSix.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                playerSix.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                playerSix.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                playerSix.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                break;
-            default:
-                break;
-        }
+        //move them into the quadrant at the top-left corner
+        statScreen["MultiPlayer"][index].Sprite.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
+        statScreen["MultiPlayer"][index].Sprite.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+        //move them again to the next column if they're isn't room in the quadrant
+        statScreen["MultiPlayer"][index].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+        statScreen["MultiPlayer"][index].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
         //update the column part of the "tuple"
         nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
         //if the column is 3, move to the next row
@@ -881,10 +879,14 @@ function moveCharactersQuadrantAbsolute(){
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
         }
+        index++;
     }
-    addSpell(playerThree, playerTwo, "spell1");
-    addSpell(playerTwo, playerOne, "spell1");
-    addSpell(playerOne, playerThree, "spell1");
+
+    //Add spells for testing
+    //TODO: Delete this
+    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][1].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell1");
     releaseSpells();
 }
 
@@ -1006,159 +1008,52 @@ function initMultiPlayerStatScreen(){
     //Have it so all health bars have the same "fill" (color)
     multiGraphics.beginFill(HEALTH_BAR_COLOR);
 
-    //init character name
-    statScreen.MultiPlayer.PlayerOne.CharacterName = game.add.text(startX, 5, 
-        playerOne.name.toUpperCase(), nameStyle);
+    //Start drawing at y-coordinate of 5
+    var yPos = 5;
+    //Y-coordinate of where to draw the attribute strings
+    var attrStrY = 0;
+    //Draw the player stats
+    for( player in statScreen.MultiPlayer){
 
-    //Create all the Text Objects for each player
-    //init attribute strings
-    //handle to the Attribute Strings...saves on typing
-    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings;
-    strings.Damage = game.add.text(startX, 
-    statScreen.MultiPlayer.PlayerOne.CharacterName.height, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x 
-        + strings.Damage.width + 5,
-        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x 
-        + strings.AbilityPower.width + 5, 
-        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x 
-        + strings.AttackRange.width + 5, 
-        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x 
-        + strings.AttackSpeed.width + 5, 
-        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x 
-        + strings.Armor.width + 5, 
-        statScreen.MultiPlayer.PlayerOne.CharacterName.height, "MS", attrstyle);
+      //init character name
+      statScreen.MultiPlayer[player].CharacterName = game.add.text(startX, yPos, 
+          statScreen.MultiPlayer[player].Sprite.name.toUpperCase(), nameStyle);
 
-    //draw the healthbar
-    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
+      attrStrY = statScreen.MultiPlayer[player].CharacterName.y + 
+        statScreen.MultiPlayer[player].CharacterName.height - 5;
+  
+      //Create all the Text Objects for each player
+      //init attribute strings
+      //handle to the Attribute Strings...saves on typing
+      var strings = statScreen.MultiPlayer[player].AttributeStrings;
+      strings.Damage = game.add.text(startX, 
+        attrStrY, "DMG", attrstyle);
+      strings.AbilityPower = game.add.text(strings.Damage.x 
+          + strings.Damage.width + 5,
+          attrStrY, "AP", attrstyle);
+      strings.AttackRange = game.add.text(strings.AbilityPower.x 
+          + strings.AbilityPower.width + 5, 
+          attrStrY, "AR", attrstyle);
+      strings.AttackSpeed = game.add.text(strings.AttackRange.x 
+          + strings.AttackRange.width + 5, 
+          attrStrY, "AS", attrstyle);
+      strings.Armor = game.add.text(strings.AttackSpeed.x 
+          + strings.AttackSpeed.width + 5, 
+          attrStrY, "ARMOR", attrstyle);
+      strings.MovementSpeed = game.add.text(strings.Armor.x 
+          + strings.Armor.width + 5, 
+          attrStrY, "MS", attrstyle);
+  
+      //draw the healthbar
+      statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
+          strings.MovementSpeed.y + strings.MovementSpeed.height, 
+          (Math.floor(Math.random() * STAT_WIDTH)), 
+          MULTI_HEALTHBAR_HEIGHT);
 
-
-    //calculate the new Y position, relative to the attribute strings of the previous player and health bar
-    var newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
-    //update strings to reference player two
-    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
-    statScreen.MultiPlayer.PlayerTwo.CharacterName = game.add.text(startX, newY, 
-        playerTwo.name.toUpperCase(), nameStyle);
-    //the y coordinate of where we will place the attribute strings
-    var attrStrY = statScreen.MultiPlayer.PlayerTwo.CharacterName.y + 
-        statScreen.MultiPlayer.PlayerTwo.CharacterName.height - 5;
-    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
-        attrStrY, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
-        attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-
-    
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
-    //update strings to reference player three
-    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
-    statScreen.MultiPlayer.PlayerThree.CharacterName = game.add.text(startX, newY, 
-        playerThree.name.toUpperCase(), nameStyle);
-    attrStrY = statScreen.MultiPlayer.PlayerThree.CharacterName.y + 
-        statScreen.MultiPlayer.PlayerThree.CharacterName.height - 5;
-    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
-        attrStrY, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
-        attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-
-
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
-    //update strings to reference player four
-    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFour.CharacterName = game.add.text(startX, newY, 
-        playerFour.name.toUpperCase(), nameStyle);
-    attrStrY = statScreen.MultiPlayer.PlayerFour.CharacterName.y + 
-        statScreen.MultiPlayer.PlayerFour.CharacterName.height - 5;
-    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
-        attrStrY, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
-        attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-
-
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
-    //update strings to reference player five
-    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFive.CharacterName = game.add.text(startX, newY, 
-        playerFive.name.toUpperCase(), nameStyle);
-    attrStrY = statScreen.MultiPlayer.PlayerFive.CharacterName.y + 
-        statScreen.MultiPlayer.PlayerFive.CharacterName.height - 5;
-    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
-        attrStrY, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
-        attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-
-
-    newY = strings.MovementSpeed.y + strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 20;
-    //update strings to reference player three
-    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
-    statScreen.MultiPlayer.PlayerSix.CharacterName = game.add.text(startX, newY, 
-        playerSix.name.toUpperCase(), nameStyle);
-    attrStrY = statScreen.MultiPlayer.PlayerSix.CharacterName.y + 
-        statScreen.MultiPlayer.PlayerSix.CharacterName.height - 5;
-    strings.Damage = game.add.text(startX, attrStrY, "DMG", attrstyle);
-    strings.AbilityPower = game.add.text(strings.Damage.x +
-            strings.Damage.width + 5, attrStrY, "AP", attrstyle);
-    strings.AttackRange = game.add.text(strings.AbilityPower.x +
-            strings.AbilityPower.width + 5, attrStrY, "AR", attrstyle);
-    strings.AttackSpeed = game.add.text(strings.AttackRange.x +
-            strings.AttackRange.width + 5, attrStrY, "AS", attrstyle);
-    strings.Armor = game.add.text(strings.AttackSpeed.x + strings.AttackSpeed.width + 5, 
-        attrStrY, "ARMOR", attrstyle);
-    strings.MovementSpeed = game.add.text(strings.Armor.x + strings.Armor.width + 5, 
-        attrStrY, "MS", attrstyle);
-    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
+      //update yPos
+      yPos += strings.MovementSpeed.height + MULTI_HEALTHBAR_HEIGHT + 50;
+  
+  }
 
     multiGraphics.endFill();
 
@@ -1319,6 +1214,9 @@ function updateStatScreen(){
 	if(serverJSON.length > 0){
 		//dequeue
 		var nextTurn = serverJSON.shift();
+    //move the sprites
+    moveCharactersQuadrantAbsolute(nextTurn);
+    //update the stats screen
     	if(statScreen.ShowAll == true){
     	    updateMultiPlayerStatScreen(nextTurn);
     	}
@@ -1398,40 +1296,20 @@ function updateMultiPlayerStatScreen(nextTurn){
         }
 
     }
+
+    //update healthbars
     multiGraphics.clear();
     multiGraphics.beginFill(HEALTH_BAR_COLOR);
     var startX = GAME_WIDTH + 20;
     var MULTI_HEALTHBAR_HEIGHT = 10;
-    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings
-    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
+    var strings;
+    for (player in statScreen.MultiPlayer){
+      strings = statScreen.MultiPlayer[player].AttributeStrings;
+      statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
-    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
-    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
-    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
+    }
 
     multiGraphics.endFill();
 }
