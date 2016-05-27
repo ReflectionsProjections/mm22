@@ -38,9 +38,6 @@
     TODO: Figure out how the movement system will be translated
         into the JSON, a.k.a what calculation has to be done by the
         visualizer (Jack, Eric, Asaf)
-    TODO: Stats screen layout
-        Menu to select player
-        Select a player on click
     TODO: Create queue for JSON to be parsed
     TODO: Remove any dummy data/variables/JSON
 	TODO: Have updateSinglePlayerStats and updateMultiPlayerStats
@@ -504,6 +501,7 @@ function create () {
 
     //TODO: Decide if we want to start with multiplayer or single player overlay
     //draw the Single Player Stat Screen
+    //Inits with 
     initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
     killSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
@@ -942,7 +940,7 @@ function randomizeMovement(){
     If you want to redraw the single player stats screen after killing it,
         call reviveSinglePlayerScreen()
 
-    character--The variable referring to the character we want to track initially
+    character--The variable referring to the Sprite of the character
         (defaults to player one)
 */
 function initSinglePlayerStatScreen(character){
@@ -1070,50 +1068,27 @@ function reviveMultiPlayerStatScreen(){
     console.log("reviveMultiPlayerStatScreen");
     killSinglePlayerStatScreen();
     for (var player in statScreen.MultiPlayer){
-        if(statScreen.MultiPlayer.hasOwnProperty(player)){
             statScreen.MultiPlayer[player]["CharacterName"].revive();
             for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
                 if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
                     statScreen.MultiPlayer[player]["AttributeStrings"][attrString].revive();
                 }
             }
-        }
     }
     
     //redraw all the healthBars
     multiGraphics.beginFill(HEALTH_BAR_COLOR);
     var startX = GAME_WIDTH + 20;
     var MULTI_HEALTHBAR_HEIGHT = 10;
-    var strings = statScreen.MultiPlayer.PlayerOne.AttributeStrings
-    statScreen.MultiPlayer.PlayerOne.HealthBar = multiGraphics.drawRect(startX, 
+    var strings;
+    for(player in statScreen.MultiPlayer){
+      strings = statScreen.MultiPlayer[player].AttributeStrings;
+      statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
         (Math.floor(Math.random() * STAT_WIDTH)), 
         MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerTwo.AttributeStrings;
-    statScreen.MultiPlayer.PlayerTwo.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerThree.AttributeStrings;
-    statScreen.MultiPlayer.PlayerThree.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerFour.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFour.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerFive.AttributeStrings;
-    statScreen.MultiPlayer.PlayerFive.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    strings = statScreen.MultiPlayer.PlayerSix.AttributeStrings;
-    statScreen.MultiPlayer.PlayerSix.HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
+
+    }
 
     multiGraphics.endFill();
 
@@ -1127,6 +1102,7 @@ function killMultiPlayerStatScreen(){
     console.log("killMultiPlayerStatScreen");
     //clear all the healthbars
     multiGraphics.clear();
+    //Call kill on all Phaser Text Objects of all players
     for (var player in statScreen.MultiPlayer){
         if(statScreen.MultiPlayer.hasOwnProperty(player)){
             statScreen.MultiPlayer[player]["CharacterName"].kill();
@@ -1217,11 +1193,11 @@ function updateStatScreen(){
     //move the sprites
     moveCharactersQuadrantAbsolute(nextTurn);
     //update the stats screen
-    	if(statScreen.ShowAll == true){
-    	    updateMultiPlayerStatScreen(nextTurn);
-    	}
-    	else
-    	    updateSinglePlayerStatScreen(nextTurn);
+    if(statScreen.ShowAll == true){
+  	    updateMultiPlayerStatScreen(nextTurn);
+   	}
+   	else
+   	    updateSinglePlayerStatScreen(nextTurn);
 	}
 }
 
@@ -1260,7 +1236,8 @@ function changeStatScreen(character){
     Currently this has random data, but once the JSON is finalized
         I can add in the logic
 
-	nextTurn--the turn as given by the server(JSON)
+	  Parameters:
+      nextTurn--the turn as given by the server(JSON)
 
     Warning: This has a hardcoded font size for the AttributeStrings rather than attrStyle
         (didn't want to make that a global variable)
@@ -1318,17 +1295,19 @@ function updateMultiPlayerStatScreen(nextTurn){
     Called to update all the graphics associated with the 
         Stats Screen.
     If the character selected has changed, call changeStatScreen() before this
+
+   Parameters:
+    --nextTurn The next turn that was dequeued from the serverJSON
 */
 //TODO: Repalce dummyPlayer with actual JSON from server
 //		
 function updateSinglePlayerStatScreen(nextTurn){
 	console.log("updateSinglePlayerStatScreen");
-	console.log(nextTurn);
-    singleGraphics.clear();
+  singleGraphics.clear();
 
-    updateHealthBar();
+  updateHealthBar(nextTurn);
 
-	//TODO: Need to choose which character's stats to read
+	  //TODO: Need to choose which character's stats to read
 
 
     // update each Attribute String with data from the queue, and randomly switch each string to be 
@@ -1355,9 +1334,12 @@ function updateSinglePlayerStatScreen(nextTurn){
     Currently it sets to health bar to a random value,
         but later it will set to the health of the current
         player.
+
+   Parameters:
+    --nextTurn The next turn that was dequeued from the serverJSON
 */
 //TODO: Have this fill the bar proportional to the % of the health the player has
-function updateHealthBar(){
+function updateHealthBar(nextTurn){
 
     var HEALTH_BAR_X = GAME_WIDTH + 10;
     var HEALTH_BAR_Y = 100;
