@@ -213,14 +213,6 @@ var statScreen = {
             "Armor" : null,
             "MovementSpeed" : null
         },
-        "InitialValue" : {
-            "Damage" : -1,
-            "AbilityPower" : -1,
-            "AttackRange" : -1,
-            "AttackSpeed" : -1,
-            "Armor" : -1,
-            "MovementSpeed" : -1,
-        },
         //Contains handles to the rectangle and Text object representing
         //  The health bar
         "HealthBar" : {
@@ -493,6 +485,8 @@ function create () {
 
     //Have the timer call all of the following functions every
     //  TIME_TO_NEXT_UPDATE milliseconds
+    //This function will only update the screen if serverJSON has 
+    //  data within it (we aren't waiting for the server to send JSON over)
     game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
@@ -888,19 +882,7 @@ function moveCharactersQuadrantAbsolute(){
     releaseSpells();
 }
 
-//Helper function for moveCharactersQuadrantTest()
-//Randomizes the x and y of dummyLocation to an integer [0-4]
-function randomizeMovement(){
-    for (var k in dummyMovement){
-        //ensure the property is not part of the prototype
-        if(dummyMovement.hasOwnProperty(k)){
-             for(var l in dummyMovement[k]){
-                dummyMovement[k][l] = Math.floor(Math.random()*5);
-            }
-        }
-       
-    }
-}
+
 
 
 
@@ -1182,6 +1164,7 @@ function reviveSinglePlayerScreen(){
 }
 
 /**
+    This function is run every TIME_TO_NEXT_UPDATE milliseconds
     This function decides which screen to update:
         MultiPlayer StatScreen
         SinglePlayer StatScreen
@@ -1190,14 +1173,18 @@ function updateStatScreen(){
 	if(serverJSON.length > 0){
 		//dequeue
 		var nextTurn = serverJSON.shift();
-    //move the sprites
-    moveCharactersQuadrantAbsolute(nextTurn);
-    //update the stats screen
-    if(statScreen.ShowAll == true){
-  	    updateMultiPlayerStatScreen(nextTurn);
-   	}
-   	else
-   	    updateSinglePlayerStatScreen(nextTurn);
+        //move the sprites
+        moveCharactersQuadrantAbsolute(nextTurn);
+        //TODO: write helper function to add all spells
+        //call release spells after ^^^
+
+
+        //update the stats screen
+        if(statScreen.ShowAll == true){
+      	    updateMultiPlayerStatScreen(nextTurn);
+       	}
+       	else
+       	    updateSinglePlayerStatScreen(nextTurn);
 	}
 }
 
@@ -1339,6 +1326,7 @@ function updateSinglePlayerStatScreen(nextTurn){
     --nextTurn The next turn that was dequeued from the serverJSON
 */
 //TODO: Have this fill the bar proportional to the % of the health the player has
+//TODO: Use nextTurn data
 function updateHealthBar(nextTurn){
 
     var HEALTH_BAR_X = GAME_WIDTH + 10;
@@ -1355,10 +1343,34 @@ function updateHealthBar(nextTurn){
 }
 
 
+/**
+  Redraws the Health Bar for the MultiPlayer screen
 
+  Parameters:
+    --health The Integer value of the health
+    --player An element of statScreen.MultiPlayer, which represents
+        the  player whose health is being redrawn 
+  */
+
+//TODO: Finish
+function updateHealthBarMulti(health, player){
+}
 
 //-----------------Test Functions--------------//
 
+//Helper function for moveCharactersQuadrantTest()
+//Randomizes the x and y of dummyLocation to an integer [0-4]
+function randomizeMovement(){
+    for (var k in dummyMovement){
+        //ensure the property is not part of the prototype
+        if(dummyMovement.hasOwnProperty(k)){
+             for(var l in dummyMovement[k]){
+                dummyMovement[k][l] = Math.floor(Math.random()*5);
+            }
+        }
+       
+    }
+}
 
 
 //Populates the queue with random data 
