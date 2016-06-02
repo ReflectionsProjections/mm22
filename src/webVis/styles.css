@@ -1,0 +1,13 @@
+#phaser-game{
+    width: 100%;
+}
+#phaser-game canvas{
+    border: 5px solid #4d78ff;
+    margin: auto;
+}
+#title{
+    width: 100%;  
+    text-align: center;
+    font-size : 2em;
+    color: #4d78ff;           
+}

@@ -113,6 +113,20 @@ Defines the abilities
     Cooldown - number of ticks to refresh ability
     Range - range of ability in zones
 """
+<<<<<<< HEAD
+
+# abilitiesList = [
+        
+#             "StatChanges": [
+#                 "Target": 1,
+#                 "Attribute": "MovementSpeed",
+#                 "Change": -2,
+#                 "Time": 5
+#             ],
+#             "Cooldown"  : 10,
+#             "Range"     : 5,
+#         ]
+=======
 abilitiesList = [
     {   #0 burst - break crowd control with a long cooldown
         "StatChanges": [{
@@ -428,6 +442,7 @@ abilitiesList = [
     },
     
 ]
+>>>>>>> master
 
 numPlayersPerRound = 2
 numCharacterPerTeam = 3

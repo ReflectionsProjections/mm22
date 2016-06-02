@@ -1,9 +1,10 @@
-import src.game.gameConstants as gameConstants
+import gameConstants as gameConstants
 
 
 class Character(object):
 
-    def __init__(self, charId, name="AI", classId="warrior"):
+
+    def __init__(self, classKey):
         """ Init a character class based on class key defined in game consts
 
         :param charId: (int) id of the character, based off of team
@@ -172,11 +173,12 @@ class Character(object):
 
 
         return json
-
+		
 
 class Attributes(object):
 
     def __init__(self, health, damage, attackRange, attackSpeed, armor, movementSpeed, silenced=False, stunned=False):
+>>>>>>> master
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
@@ -257,3 +259,63 @@ class Attributes(object):
         json['Silenced'] = self.get_attribute('Silenced')
         json['Stunned'] = self.get_attribute('Stunned')
         return json
+
+class BuffDebuff:
+    """ BuffDebuff objects are added to the buffs_and_debuffs
+	    list of a Character and affect a Character's attributes.
+	View the parameters of the constructor to see how to tailor
+	    a buff/debuff accordingly.
+    """
+    def __init__(self, name, duration, attribute, modification,
+	timesApplied, lasting):
+	"""
+	:param name (string) name of the buff/debuff
+	:param duration: (int) how  many ticks the buff/debuff lasts,
+		is decremented every turn until it reaches 0 (then the b/d
+		 removed)
+	:param attribute: (string) name of the attribute that is to be
+		 affected. 
+	:param modification (float) the amount that is added to the 
+	 	targeted attribute.  If you want to decrease the value
+		of an attribute, pass in a negative value 
+	:param timesApplied: (int) the amount of times the b/d 
+		is applied.  For example, a shield buff would 
+		buff health once and thus would have this param
+		set to 1.  A bleeding debuff would set this param
+		to the same as 'duration' param to have the health
+		parameter decreased multiple times.
+	:param lasting (boolean) If False, the modification is 
+		reverted once the duration of the buff runs out.
+		For example, if a speed buff was added, the
+		movementSpeed attribute will be reverted to what 
+		its value was before the buff was applied. For
+		most buffs and debuffs 'lasting' should be false.
+
+	        If True, the modification lasts even after the
+	        buff runs out out(i.e. a shield).
+	"""
+	self.name = name
+	self.duration = duration
+	self.attribute = attribute
+	self.modification = modification
+	self.timesApplied = timesApplied
+	self.lasting = lasting	
+	#used for restoring attributes when the buff is finished
+	self.restoreValue = timesApplied * modification
+  
+    def toJson():
+	""" Returns json of BuffDebuff's information
+	    This is here b/c it seemed necessary, but delete if not :P
+	"""
+
+	json = {}
+	json['Name'] = self.name
+	json['Duration'] = self.duration
+	json['Attribute'] = self.attribute
+	json['Modification'] = self.modification
+	json['TimesApplied'] = self.timesApplied
+	json['Lasting'] = self.lasting
+	json['RestoreValue'] = self.restoreValue
+	return json
+
+

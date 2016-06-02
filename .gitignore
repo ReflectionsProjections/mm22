@@ -118,4 +118,4 @@ workspace.xml
 
 test-clients/c/client
 mm20-passwords.txt
-
+src/game/test.py
