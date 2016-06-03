@@ -378,7 +378,8 @@ var statScreen = {
              },
             "HealthBar" : null
         },
-    ]
+    ],
+    "CurrentTurn" : null,
 
 };
 
@@ -952,7 +953,7 @@ function initSinglePlayerStatScreen(character){
     //redraw the healthbar and the text saying 'Health'
     singleGraphics.beginFill(HEALTH_BAR_COLOR);
     statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        HEALTH_BAR_MAX_WIDTH, 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
     statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
@@ -1037,7 +1038,7 @@ function initMultiPlayerStatScreen(){
       //draw the healthbar
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
           strings.MovementSpeed.y + strings.MovementSpeed.height, 
-          (Math.floor(Math.random() * STAT_WIDTH)), 
+          HEALTH_BAR_MAX_WIDTH, 
           MULTI_HEALTHBAR_HEIGHT);
 
       //update yPos
@@ -1054,9 +1055,10 @@ function initMultiPlayerStatScreen(){
         and then calling revive() on all the text objects associated with
         the multiplayer screen
     This must be called after initMultiPlayerStatScreen has been called
-    TODO: Have Health Bars be filled w/ JSON Health instead of random
 */
 function reviveMultiPlayerStatScreen(){
+  //only change if we're at the single player screen now
+  if(!statScreen.ShowAll){
     console.log("reviveMultiPlayerStatScreen");
     killSinglePlayerStatScreen();
     for (var player in statScreen.MultiPlayer){
@@ -1077,12 +1079,13 @@ function reviveMultiPlayerStatScreen(){
       strings = statScreen.MultiPlayer[player].AttributeStrings;
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        calcHealthBarWidth(statScreen.CurrentTurn, player), 
         MULTI_HEALTHBAR_HEIGHT);
 
     }
 
     multiGraphics.endFill();
+  }
 
 }
 
@@ -1139,6 +1142,8 @@ function killSinglePlayerStatScreen(){
         by calling Phaser's revive() method on them
 */
 function reviveSinglePlayerScreen(){
+  //only run if we're on the multiplayer screen
+  if(statScreen.ShowAll){
     console.log("reviveSinglePlayerStatScreen");
     killMultiPlayerStatScreen();
     statScreen.ShowAll = false;
@@ -1152,7 +1157,7 @@ function reviveSinglePlayerScreen(){
     //redraw the healthbar and the text saying 'Health'
     singleGraphics.beginFill(HEALTH_BAR_COLOR);
     statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        calcHealthBarWidth(statScreen.CurrentTurn, statScreen.SinglePlayer.PlayerIndex), 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
 
@@ -1166,7 +1171,7 @@ function reviveSinglePlayerScreen(){
         }
     }
     
-
+  }
 
     
 }
@@ -1181,6 +1186,7 @@ function updateStatScreen(){
   if(serverJSON.length > 0){
     //dequeue
     var currTurn = serverJSON.shift();
+    statScreen.CurrentTurn = currTurn;
     //move the sprites
     moveCharactersQuadrantAbsolute(currTurn);
     //TODO: write helper function to add all spells
@@ -1214,7 +1220,10 @@ function changeStatScreen(character){
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
-
+    //redraw health bar if on the single player screen
+    if(!statScreen.ShowAll){
+      updateSinglePlayerHealthBar(statScreen.CurrentTurn);
+    }
 }
 
 
@@ -1276,15 +1285,13 @@ function updateMultiPlayerStatScreen(currTurn){
    Parameters:
     --currTurn The next turn that was dequeued from the serverJSON
 */
-//TODO: Repalce dummyPlayer with actual JSON from server
-//    
 function updateSinglePlayerStatScreen(currTurn){
   console.log("updateSinglePlayerStatScreen");
   singleGraphics.clear();
 
   updateSinglePlayerHealthBar(currTurn);
 
-    //TODO: Need to choose which character's stats to read
+    //TODO: Need to choose which character's stats to read with server's JSON
 
 
     // update each Attribute String with data from the queue, and randomly switch each string to be 
@@ -1344,6 +1351,9 @@ function updateSinglePlayerHealthBar(currTurn){
     --playerNumber: The index of the player in the statScreen.MultiPlayer array
   */
 function calcHealthBarWidth(currTurn, playerNumber){
+  if(currTurn == null){
+    return HEALTH_BAR_MAX_WIDTH;
+  }
     //TODO: Replace currTurn.stats.Health with whatever JSON format 
     //  the server returns currTurn["foo"]["bar"]["whatever"]
     return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
