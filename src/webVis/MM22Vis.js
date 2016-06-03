@@ -1,3 +1,4 @@
+"use strict";
 /*
     Author: Michael Rechenberg
 
@@ -863,7 +864,7 @@ function moveCharactersQuadrantAbsolute(){
 
     //have the sprites move to a random location (x,y) = ((0-4),(0-4))
     var index = 0;
-    for( k in dummyMovement ){
+    for(var k in dummyMovement ){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
@@ -1002,7 +1003,7 @@ function initMultiPlayerStatScreen(){
     //Y-coordinate of where to draw the attribute strings
     var attrStrY = 0;
     //Draw the player stats
-    for( player in statScreen.MultiPlayer){
+    for(var player in statScreen.MultiPlayer){
 
       //init character name
       statScreen.MultiPlayer[player].CharacterName = game.add.text(startX, yPos, 
@@ -1180,18 +1181,18 @@ function updateStatScreen(){
   if(serverJSON.length > 0){
     //dequeue
     var currTurn = serverJSON.shift();
-        //move the sprites
-        moveCharactersQuadrantAbsolute(currTurn);
-        //TODO: write helper function to add all spells
-        //call release spells after ^^^
+    //move the sprites
+    moveCharactersQuadrantAbsolute(currTurn);
+    //TODO: write helper function to add all spells
+    //call release spells after ^^^
 
 
-        //update the stats screen
-        if(statScreen.ShowAll == true){
-            updateMultiPlayerStatScreen(currTurn);
-        }
-        else
-            updateSinglePlayerStatScreen(currTurn);
+    //update the stats screen
+    if(statScreen.ShowAll == true){
+        updateMultiPlayerStatScreen(currTurn);
+    }
+    else
+        updateSinglePlayerStatScreen(currTurn);
   }
 }
 
@@ -1237,33 +1238,17 @@ function changeStatScreen(character){
 function updateMultiPlayerStatScreen(currTurn){
     console.log("updateMultiPlayerStatScreen");
 
-  //update the strings
-    for (var player in statScreen.MultiPlayer){
-        if(statScreen.MultiPlayer.hasOwnProperty(player)){
-            for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
-                if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
-
-                    switch(Math.floor(Math.random()*3)){
-                        //make the string red
-                        case 0:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#ff0000"});
-                            break;
-                        //make the string green
-                        case 1:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#00ff00"});
-                            break;
-                        //make the string orange (neutral)
-                        default:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: DEF_COLOR});
-                            break;
-
-                    }
-                        
-                }
+    //update the color of the strings
+    statScreen.MultiPlayer.forEach(function(player, index){
+        for (var attrString in player["AttributeStrings"]){
+            if(player["AttributeStrings"].hasOwnProperty(attrString)){               
+                player["AttributeStrings"][attrString].setStyle({
+                    font: "2em Arial", 
+                    fill: chooseColor(currTurn, index, attrString) 
+                });
             }
         }
-
-    }
+    }); 
 
     //update healthbars
     multiGraphics.clear();
@@ -1271,7 +1256,7 @@ function updateMultiPlayerStatScreen(currTurn){
     var startX = GAME_WIDTH + 20;
     var MULTI_HEALTHBAR_HEIGHT = 10;
     var strings;
-    for (player in statScreen.MultiPlayer){
+    for (var player in statScreen.MultiPlayer){
       strings = statScreen.MultiPlayer[player].AttributeStrings;
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(
         startX, 
@@ -1308,13 +1293,11 @@ function updateSinglePlayerStatScreen(currTurn){
     
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
-            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
-            //make the stats green or red by random
-            if(Math.floor(Math.random()*2)==0)
-                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#ff0000"});
-            else
-                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#00ff00"});
-
+            //statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
+                font: "3em Arial", 
+                fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
+            });
         }
     }
 
@@ -1357,8 +1340,8 @@ function updateSinglePlayerHealthBar(currTurn){
     player's current health
 
   Params:
-    --currTurn: The next turn given from serverJSON
-    --playerNumber: The number of the player in the statScreen.MultiPlayer array
+    --currTurn: The current turn given from serverJSON
+    --playerNumber: The index of the player in the statScreen.MultiPlayer array
   */
 function calcHealthBarWidth(currTurn, playerNumber){
     //TODO: Replace currTurn.stats.Health with whatever JSON format 
@@ -1366,6 +1349,57 @@ function calcHealthBarWidth(currTurn, playerNumber){
     return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
         HEALTH_BAR_MAX_WIDTH);
 }
+
+/**
+  Returns which color the attribute string should be
+    based on the player's current stats.
+  Returns RED if the player's current stats are below their
+    intial value.
+  Returns GREEN if the player's current stats are above their
+    intial value.
+  Returns DEF_COLOR if the player's current stats are at their
+    intial value.
+
+  This function should not be called to handle Health.
+
+  Params:
+    --currTurn: The current turn given from serverJSON
+    --playerNumber: The index of the player in the statScreen.MultiPlayer array
+    --attribute: The attribute of the player we are looking at
+*/
+function chooseColor(currTurn, playerNumber, attribute){
+  var RED = '#ff0000';
+  var GREEN = '#00ff00';
+  //TODO: Refactor the variables to fit the format of the server's JSON
+
+  var currValue = currTurn.stats[attribute];
+  var initialValue = statScreen.MultiPlayer[playerNumber].InitialValue[attribute];
+     
+  if(currValue === initialValue){
+    return DEF_COLOR;
+  }
+  else if (currValue < initialValue){
+    return RED;
+  }
+  else if (currValue > initialValue){
+    return GREEN;
+  }
+  //returns white, should never be reached
+  else{
+    return '#ffffff';
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
 
 //---------------Functions Used for Testing/Development--------------//
 
@@ -1387,7 +1421,7 @@ function randomizeMovement(){
 //Populates the queue with random data 
 
 function populateQueue(){
-    for(i = 0 ; i < 10; i++){
+    for(var i = 0 ; i < 10; i++){
         var asdf = new Move();
         asdf.stats.Health = Math.floor(Math.random()*500);
         //for(var k in derp["stats"]){
