@@ -1348,18 +1348,6 @@ function updateSinglePlayerHealthBar(currTurn){
 }
 
 
-/**
-  Redraws the Health Bar for the MultiPlayer screen
-
-  Parameters:
-    --health The Integer value of the health
-    --player An element of statScreen.MultiPlayer, which represents
-        the  player whose health is being redrawn 
-*/
-
-//TODO: Finish
-function updateSinglePlayerHealthBarMulti(currTurn){
-}
 
 
 //----------------------HELPER FUNCTIONS----------------------//
