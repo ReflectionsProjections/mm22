@@ -510,16 +510,16 @@ function create () {
     //initializes both SinglePlayer and MultiPlayer screens, but keeps the MultiPlayer 
     //  screen active
     initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
-    killSinglePlayerStatScreen();
+    hideSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
     multiButton = game.add.text(GAME_WIDTH+250, 550, "MULTI", {font: "4em Arial", fill: "#ff944d"});
     multiButton.inputEnabled = true;
-    multiButton.events.onInputDown.add(reviveMultiPlayerStatScreen, this);
+    multiButton.events.onInputDown.add(showMultiPlayerStatScreen, this);
 
     singleButton = game.add.text(GAME_WIDTH+20, 550, "SINGLE", {font: "4em Arial", fill: "#ff944d"});
     singleButton.inputEnabled = true;
-    singleButton.events.onInputDown.add(reviveSinglePlayerScreen, this);
+    singleButton.events.onInputDown.add(showSinglePlayerStatScreen, this);
 
 
     //log success
@@ -933,7 +933,7 @@ function moveCharactersQuadrantAbsolute(){
     Draws the SinglePlayer Stat Screen and tracks the character's stats
     This should be called only once as it actually creates Text Objects.
     If you want to redraw the single player stats screen after killing it,
-        call reviveSinglePlayerScreen()
+        call showSinglePlayerStatScreen()
 
     character--The variable referring to the Sprite of the character
         (defaults to player one)
@@ -1051,16 +1051,16 @@ function initMultiPlayerStatScreen(){
 }
 
 /**
-    Revives the Multiplayer screen by calling killSinglePlayerStatScreen()
+    Revives the Multiplayer screen by calling hideSinglePlayerStatScreen()
         and then calling revive() on all the text objects associated with
         the multiplayer screen
     This must be called after initMultiPlayerStatScreen has been called
 */
-function reviveMultiPlayerStatScreen(){
+function showMultiPlayerStatScreen(){
   //only change if we're at the single player screen now
   if(!statScreen.ShowAll){
-    console.log("reviveMultiPlayerStatScreen");
-    killSinglePlayerStatScreen();
+    console.log("showMultiPlayerStatScreen");
+    hideSinglePlayerStatScreen();
     for (var player in statScreen.MultiPlayer){
             statScreen.MultiPlayer[player]["CharacterName"].revive();
             for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
@@ -1093,8 +1093,8 @@ function reviveMultiPlayerStatScreen(){
     Helper function that calls kill() on all the Text Objects associated with the
         multiplayer stat screen
 */
-function killMultiPlayerStatScreen(){
-    console.log("killMultiPlayerStatScreen");
+function hideMultiPlayerStatScreen(){
+    console.log("hideMultiPlayerStatScreen");
     //clear all the healthbars
     multiGraphics.clear();
     //Call kill on all Phaser Text Objects of all players
@@ -1114,10 +1114,10 @@ function killMultiPlayerStatScreen(){
 /*
     Kills all of the single player stat screen's objects from being seen
     This does not destroy the object, but makes it invisible.
-    To show the single player stat screen again, call reviveSinglePlayerScreen
+    To show the single player stat screen again, call showSinglePlayerStatScreen
 */
-function killSinglePlayerStatScreen(){
-    console.log("killSinglePlayerStatScreen")
+function hideSinglePlayerStatScreen(){
+    console.log("hideSinglePlayerStatScreen")
     //indicate we are showing all of the player's stats
     statScreen.ShowAll = true;
     //Clears the healthbar
@@ -1141,11 +1141,11 @@ function killSinglePlayerStatScreen(){
     This method does not create new Text Objects, but rather "revives" the Text objects
         by calling Phaser's revive() method on them
 */
-function reviveSinglePlayerScreen(){
+function showSinglePlayerStatScreen(){
   //only run if we're on the multiplayer screen
   if(statScreen.ShowAll){
     console.log("reviveSinglePlayerStatScreen");
-    killMultiPlayerStatScreen();
+    hideMultiPlayerStatScreen();
     statScreen.ShowAll = false;
     statScreen.SinglePlayer.CharacterName.revive();
 
@@ -1192,13 +1192,10 @@ function updateStatScreen(){
     //TODO: write helper function to add all spells
     //call release spells after ^^^
 
-
-    //update the stats screen
-    if(statScreen.ShowAll == true){
-        updateMultiPlayerStatScreen(currTurn);
-    }
-    else
-        updateSinglePlayerStatScreen(currTurn);
+    //update both stat screens (although only one will be showing)
+    //  at any time
+    updateMultiPlayerStatScreen(currTurn);
+    updateSinglePlayerStatScreen(currTurn);
   }
 }
 
@@ -1259,22 +1256,24 @@ function updateMultiPlayerStatScreen(currTurn){
         }
     }); 
 
-    //update healthbars
+    //update healthbars only if we're on the multiplayer stat screen
     multiGraphics.clear();
-    multiGraphics.beginFill(HEALTH_BAR_COLOR);
-    var startX = GAME_WIDTH + 20;
-    var MULTI_HEALTHBAR_HEIGHT = 10;
-    var strings;
-    for (var player in statScreen.MultiPlayer){
-      strings = statScreen.MultiPlayer[player].AttributeStrings;
-      statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(
-        startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        calcHealthBarWidth(currTurn, player),
-        MULTI_HEALTHBAR_HEIGHT);
-    }
+    if(statScreen.ShowAll){
+      multiGraphics.beginFill(HEALTH_BAR_COLOR);
+      var startX = GAME_WIDTH + 20;
+      var MULTI_HEALTHBAR_HEIGHT = 10;
+      var strings;
+      for (var player in statScreen.MultiPlayer){
+        strings = statScreen.MultiPlayer[player].AttributeStrings;
+        statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(
+          startX, 
+          strings.MovementSpeed.y + strings.MovementSpeed.height, 
+          calcHealthBarWidth(currTurn, player),
+          MULTI_HEALTHBAR_HEIGHT);
+      }
 
-    multiGraphics.endFill();
+      multiGraphics.endFill();
+    }
 }
 
 /**
@@ -1288,8 +1287,10 @@ function updateMultiPlayerStatScreen(currTurn){
 function updateSinglePlayerStatScreen(currTurn){
   console.log("updateSinglePlayerStatScreen");
   singleGraphics.clear();
-
-  updateSinglePlayerHealthBar(currTurn);
+  //only redraw the health bar if we're on the single player stat screen
+  if(!statScreen.ShowAll){
+    updateSinglePlayerHealthBar(currTurn);
+  }
 
     //TODO: Need to choose which character's stats to read with server's JSON
 
