@@ -29,6 +29,14 @@
         internal clock and having the functions be called after TIME_TO_NEXT_UPDATE 
         milliseconds have elapsed
 
+    The core game loop goes as follows (looping call to processTurn):
+      As long as there are turns in serverJSON (an array containing turns sent from the server)
+        Dequeue the turn
+        Move the character sprites on the screen
+        Add all spells using addSpell, then call releaseSpell to release them all
+        Update the statscreen (update healthbars/attribute strings, move characters)
+      
+
     The server will send a lot of JSON, but it will be added
      to a queue and the front element will be dequeued every
      time the turn is displayed onto the screen, as determined by
@@ -501,7 +509,7 @@ function create () {
     //  TIME_TO_NEXT_UPDATE milliseconds
     //This function will only update the screen if serverJSON has 
     //  data within it (we aren't waiting for the server to send JSON over)
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, processTurn, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     singleGraphics = game.add.graphics();
@@ -717,7 +725,6 @@ var nextQuadrantSpaceAvailable = [
 
 */
 function moveCharactersQuadrant(currTurn){
-    //TODO: Use absolute position if JSON from server gives that
 
     //reset nextQuadrantSpaceAvailable so all spaces are available
     for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
@@ -1182,7 +1189,7 @@ function showSinglePlayerStatScreen(){
         MultiPlayer StatScreen
         SinglePlayer StatScreen
 */
-function updateStatScreen(){
+function processTurn(){
   if(serverJSON.length > 0){
     //dequeue
     var currTurn = serverJSON.shift();
@@ -1240,7 +1247,6 @@ function changeStatScreen(character){
     Warning: This has a hardcoded font size for the AttributeStrings rather than attrStyle
         (didn't want to make that a global variable)
 */
-//TODO: Work with actual JSON rather than random data
 function updateMultiPlayerStatScreen(currTurn){
     console.log("updateMultiPlayerStatScreen");
 
@@ -1291,9 +1297,6 @@ function updateSinglePlayerStatScreen(currTurn){
   if(!statScreen.ShowAll){
     updateSinglePlayerHealthBar(currTurn);
   }
-
-    //TODO: Need to choose which character's stats to read with server's JSON
-
 
     // update each Attribute String with data from the queue, and randomly switch each string to be 
     //  red (#ff0000) or green (#00ff00)
