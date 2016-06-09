@@ -123,7 +123,7 @@ function WebSocketTest()
                alert("Game NOT supported by your Browser!");
             }
          }
-
+WebSocketTest();
 //Queue containing all the JSON from the server
 var serverJSON = [];
 
@@ -438,7 +438,7 @@ function preload () {
 
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
-    //sprites for the characters
+    //sprites for the characters and spells
     game.load.image('playerOne', 'assets/star40x40.png');
     game.load.image('playerTwo', 'assets/dude1-40x40.png');
     game.load.image('playerThree', 'assets/dude2-40x40.png');
@@ -446,6 +446,7 @@ function preload () {
     game.load.image('playerFive', 'assets/dude1-40x40.png');
     game.load.image('playerSix', 'assets/dude2-40x40.png')
     game.load.image('spell1', 'assets/spell1.png');
+    game.load.image('greenCircle', 'assets/green-circle.png');
     
     //log success
     console.log("preload() complete");
@@ -615,8 +616,11 @@ function releaseSpells(){
         //  and moving towards the first element
         var currentSpell = spells.getChildAt(index);
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
-        tween = game.add.tween(currentSpell).to({x: spellList[index].target.x + 10, 
-            y: spellList[index].target.y + 10}, TIME_FOR_SPELLS, null, true);
+        tween = game.add.tween(currentSpell).to({
+            x: spellList[index].target.x, 
+            y: spellList[index].target.y
+          }, 
+          TIME_FOR_SPELLS, null, true);
         index--;
     }
     
@@ -896,9 +900,10 @@ function moveCharactersQuadrantAbsolute(){
 
     //Add spells for testing
     //TODO: Delete this
-    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][1].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "greenCircle");
+    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "greenCircle");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "greenCircle");
+    addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
     releaseSpells();
 }
 
