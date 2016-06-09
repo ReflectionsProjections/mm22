@@ -134,7 +134,7 @@ var TIME_TO_NEXT_UPDATE = 2000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
-var TIME_FOR_SPELLS = 500;
+var TIME_FOR_SPELLS = 1000;
 
 
 
@@ -610,23 +610,31 @@ function releaseSpells(){
     //Go through all the spells in the spells group
     //  and tween them to their targets
     var index = spellList.length-1;
-    var tween;
+    var holdOnCaster;
+    var moveToTarget;
     while(index >= 0){
         //get the child, starting at the end of the group
         //  and moving towards the first element
         var currentSpell = spells.getChildAt(index);
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
-        tween = game.add.tween(currentSpell).to({
+        holdOnCaster = game.add.tween(currentSpell).to({
+            x: spellList[index].caster.x, 
+            y: spellList[index].caster.y
+          }, 
+          TIME_FOR_SPELLS/2, null);
+        moveToTarget = game.add.tween(currentSpell).to({
             x: spellList[index].target.x, 
             y: spellList[index].target.y
           }, 
-          TIME_FOR_SPELLS, null, true);
+          TIME_FOR_SPELLS/2, null);
+        holdOnCaster.chain(moveToTarget);
+        holdOnCaster.start();
         index--;
     }
     
     //cleanup
     spellList = [];
-    tween.onComplete.add(function(){
+    moveToTarget.onComplete.add(function(){
         spells.removeAll(true, false);
     }, 
     this);
