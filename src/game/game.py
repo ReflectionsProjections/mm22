@@ -22,7 +22,7 @@ class Game(object):
         
         self.queuedTurns = {}
         self.turnResults = {}
-        self.teams = {}
+        self.teams = []
 
         # Load map
         self.map = GameMap()
@@ -56,12 +56,10 @@ class Game(object):
 
         # Add player to game data
         teamId = len(self.teams)
-        self.teams[teamId] = Team(teamId, jsonObject['teamName'], jsonObject['classes'])
+        self.teams.append(Team(teamId, jsonObject['teamName'], jsonObject['classes']))
 
         # Return response (as a JSON object)
-        return (True, {"id": teamId, 
-                        "teamName": jsonObject["teamName"],
-                        "teamInfo": self.teams[teamId].toJson()})
+        return (True, self.teams[teamId].toJson())
 
     # Add a player's actions to the turn queue
     def queue_turn(self, turnJson, playerId):
@@ -84,47 +82,52 @@ class Game(object):
                 self.turnResults[playerId] = [{"status": "fail", "messages": "'Actions' parameter must be a list."}]
                 continue  # Skip invalid turn
 
-            # Sort actions by priority
-            actions = sorted(actions, key=lambda x: x.get("id", 99999), reverse=True)
-
             # Execute actions
             self.turnResults[playerId] = []
-            for actionJson in actions:
+            for charater_actionJson in actions:
                 action = actionJson.get("action", "").lower()
+                playerId = actionJson.get("characterId", -1)
                 targetId = actionJson.get("target", -1)
                 actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
+                    # Get player character object
+                    player = None
+                    for team in self.teams:
+                        player = team.get_character(id=playerId)
+                        if player:
+                            break
+                    # Get target character object
                     target = None
                     for team in self.teams:
                         target = team.get_character(id=targetId)
                         if target:
                             break
-                    if target:
-                        target.targeterId = playerId
-                        target.supplierIds = supplierIds
-
-                        powerSources = []
-                        if action == "ddos":
-                            powerSources = target.doDDoS()
-                        elif action == "control":
-                            powerSources = target.doControl(multiplier)
-                        elif action == "upgrade":
-                            powerSources = target.doUpgrade()
-                        elif action == "clean":
-                            powerSources = target.doClean()
-                        elif action == "scan":
-                            powerSources = target.doScan()
-                        elif action == "rootkit":
-                            powerSources = target.doRootkit()
-                        elif action == "portscan":
-                            powerSources = target.doPortScan()
-                        elif action == "ips":
-                            target.doIPS()
+                    # If there is no target, target is the player player
+                    if not target:
+                        target = player
+                    if player:
+                        if action == "move":
+                            if self.map.can_move_to((player.posX, player.posY), targetId, max_distance=player.attributes.get_attribute("MovementSpeed")):
+                                player.posX = targetId[0]
+                                player.posY = targetId[1]
+                            else:
+                                actionResult["message"] = "Player " + playerId + " is unable to move there!"
+                        elif action == "attack":
+                            if player == target or target == None:
+                                actionResult["message"] = "Invalid target to attack"
+                                continue
+                            distance = len(self.map.path_between((player.posX, player.posY), targetId))
+                            if distance == 1 or (distance <= player.attribute.get_attribute("AttackRange") and self.map.in_vision_of((player.posX, player.posY), targetId)):
+                                continue
+                            else:
+                                continue
+                        elif action == "cast":
+                            continue
                         else:
                             actionResult["message"] = "Invalid action type."
                     else:
-                        actionResult["message"] = "Invalid node."
+                        actionResult["message"] = "Invalid character."
                 except InsufficientPowerException as e:
                     actionResult["message"] = "Insufficient networking and/or processing."
                 except IndexError:
@@ -149,21 +152,12 @@ class Game(object):
                 # Record results
                 self.turnResults[playerId].append(actionResult)
 
-        # Commit turn results (e.g. DDoSes)
-        self.map.resetAfterTurn()
-
         # Determine winner if appropriate
         done = self.totalTurns > 0 and self.totalTurns <= self.turnsExecuted
         if done:
+            total_teams = len(self.teams)
+            for team in self.teams
 
-            # Determine total power amounts
-            totalPowerAmounts = {}
-            for playerId in self.playerInfos:
-                totalPowerAmounts[playerId] = sum([x.totalPower for x in self.map.getPlayerNodes(playerId)])
-
-            # Send results to players
-            for result in self.turnResults.values():
-                result.append({"totalPowerAmounts": totalPowerAmounts, "status": "gameOver"})
 
         # Done!
         self.queuedTurns = {}

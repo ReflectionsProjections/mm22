@@ -40,6 +40,10 @@ class Character(object):
         self.debuffs = []
         self.pending_stat_changes = []
 
+    def apply_pending_stat_changes(self):
+        for stat_change in self.pending_stat_changes:
+            self.apply_stat_change(stat_change)
+
     def update(self):
         if self.casting:
             if self.casting["currentCastTime"] == 0:
@@ -66,9 +70,6 @@ class Character(object):
                 self.debuffs.remove(debuff)
             else:
                 debuff['time'] -= 0
-
-        for stat_change in self.pending_stat_changes:
-            self.apply_stat_change(stat_change)
 
     def can_use_ability(self, ability_id):
         """ Checks if a character can use an ability (must have that ability)

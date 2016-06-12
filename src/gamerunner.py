@@ -192,6 +192,7 @@ def main():
         fileLog.vis.start()
         try:
             logJsonObject = []
+
             with open(parameters.log) as json_file:
                 for line in json_file:
                     fileLog.print_stuff(line)
