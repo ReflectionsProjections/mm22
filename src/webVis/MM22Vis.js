@@ -153,6 +153,7 @@ var STAT_WIDTH = 400;
 var OFF_SCREEN = -500;
 
 
+
 //Reference to the core game object
 //If you want to use game.debug in the render() function, you need to set
 //  Phaser.AUTO to Phaser.CANVAS (the renderer)
@@ -172,8 +173,13 @@ var singleGraphics;
 var multiGraphics;
 
 
-//width and height of a character's sprite, in pixels
+//Width and height of a character's sprite, in pixels
 var CHARACTER_DIMENSION = 40;
+
+//Used to add distance in px in the x and y direction if we set 
+//  the anchor of character sprites to 0.5
+//If we have anchor be its default (top-left corner), set this to 0
+var ANCHOR_OFFSET = CHARACTER_DIMENSION/2;
 
 //width and height of a quadrant, in pixels
 //The each quadrant is accessed by multiplying QUADRANT_DIMENSION  
@@ -492,6 +498,10 @@ function create () {
     statScreen["MultiPlayer"][5].Sprite.name = "player Six";
     statScreen["MultiPlayer"][5].Sprite.index = 5;
 
+    statScreen.MultiPlayer.forEach(function(a){
+      a.Sprite.anchor.setTo(0.5);
+    });
+
     //TODO: Code to add each player to teamA or teamB, use the JSON
 
 
@@ -593,10 +603,13 @@ var spellList = [];
         certain spell.
 */
 function addSpell(caster, target, spellName){
+    //add spell to center of sprite
+    var newSpell = game.add.sprite(caster.x, caster.y, spellName);
+    newSpell.anchor.setTo(0.5);
     //add the spell sprite to the spells group
     //  and add the corresponding spell's sprite 
     //  to the caster's current position
-    spells.create(caster.x, caster.y, spellName);
+    spells.add(newSpell);
     //add the caster and target to the spellList array
     spellList.push({"caster" : caster, "target" : target});
 }
@@ -891,8 +904,8 @@ function moveCharactersQuadrantAbsolute(){
         newQuadrantCol = dummyMovement[k]["x"];
         newQuadrantRow = dummyMovement[k]["y"];
         //move them into the quadrant at the top-left corner
-        statScreen["MultiPlayer"][index].Sprite.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-        statScreen["MultiPlayer"][index].Sprite.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+        statScreen["MultiPlayer"][index].Sprite.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION + ANCHOR_OFFSET;
+        statScreen["MultiPlayer"][index].Sprite.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION + ANCHOR_OFFSET;
         //move them again to the next column if they're isn't room in the quadrant
         statScreen["MultiPlayer"][index].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
         statScreen["MultiPlayer"][index].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
