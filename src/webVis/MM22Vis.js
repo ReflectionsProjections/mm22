@@ -65,15 +65,6 @@
     V
 
     ----/MAP----
-
-    What Will Happen For Every Bit Of JSON
-        Update Stats Screen Data
-        Move Characters
-            Have each character fit in the next "quadrant"
-        Add any spells/actions to the spells group w/ addSpell()
-        Release any of the spells with releaseSpells()
-
-
 */
 
 //----------Constants and Global Variables------------//
@@ -440,19 +431,19 @@ var HEALTH_BAR_MAX_WIDTH = 360;
 //load our assets
 function preload () {
     //background image
-    game.load.image('background', 'assets/Map.png');
+    game.load.image('background', 'assets/grid-background.jpg');
 
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
     //sprites for the characters and spells
-    game.load.image('playerOne', 'assets/star40x40.png');
-    game.load.image('playerTwo', 'assets/dude1-40x40.png');
-    game.load.image('playerThree', 'assets/dude2-40x40.png');
-    game.load.image('playerFour', 'assets/star40x40.png');
-    game.load.image('playerFive', 'assets/dude1-40x40.png');
-    game.load.image('playerSix', 'assets/dude2-40x40.png')
-    game.load.image('spell1', 'assets/spell1.png');
-    game.load.image('greenCircle', 'assets/green-circle.png');
+    game.load.image('playerOne', 'assets/mage_360.png');
+    game.load.image('playerTwo', 'assets/mage_360.png');
+    game.load.image('playerThree', 'assets/mage-2_360.png');
+    game.load.image('playerFour', 'assets/mage_360.png');
+    game.load.image('playerFive', 'assets/mage-2_360.png');
+    game.load.image('playerSix', 'assets/mage-2_360.png')
+    game.load.image('spell1', 'assets/spell-1_360.png');
+    game.load.image('spell2', 'assets/spell-2_360.png');
     
     //log success
     console.log("preload() complete");
@@ -479,22 +470,28 @@ function create () {
     //Add all players to the characters group at their initial locations
     //TODO: add all characters to their intitial locations according to JSON
     //TODO: Let participants choose names for their character???
-    statScreen["MultiPlayer"][0].Sprite = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
+    var initPos = calcXAndY(0, 0); 
+    statScreen["MultiPlayer"][0].Sprite = characters.create(initPos.x, initPos.y, 'playerOne');
     statScreen["MultiPlayer"][0].Sprite.name = "player One";
     statScreen["MultiPlayer"][0].Sprite.index = 0;
-    statScreen["MultiPlayer"][1].Sprite = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
+    initPos = calcXAndY(4, 4); 
+    statScreen["MultiPlayer"][1].Sprite = characters.create(initPos.x, initPos.y, 'playerTwo');
     statScreen["MultiPlayer"][1].Sprite.name = "player Two";
     statScreen["MultiPlayer"][1].Sprite.index = 1;
-    statScreen["MultiPlayer"][2].Sprite = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
+    initPos = calcXAndY(2, 4); 
+    statScreen["MultiPlayer"][2].Sprite = characters.create(initPos.x, initPos.y, 'playerThree');
     statScreen["MultiPlayer"][2].Sprite.name = "player Three";
     statScreen["MultiPlayer"][2].Sprite.index = 2;
-    statScreen["MultiPlayer"][3].Sprite = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
+    initPos = calcXAndY(3, 2); 
+    statScreen["MultiPlayer"][3].Sprite = characters.create(initPos.x, initPos.y, 'playerFour');
     statScreen["MultiPlayer"][3].Sprite.name = "player Four";
     statScreen["MultiPlayer"][3].Sprite.index = 3;
-    statScreen["MultiPlayer"][4].Sprite = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
+    initPos = calcXAndY(0, 1); 
+    statScreen["MultiPlayer"][4].Sprite = characters.create(initPos.x, initPos.y, 'playerFive');
     statScreen["MultiPlayer"][4].Sprite.name = "player Five";
     statScreen["MultiPlayer"][4].Sprite.index = 4;
-    statScreen["MultiPlayer"][5].Sprite = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
+    initPos = calcXAndY(1, 1); 
+    statScreen["MultiPlayer"][5].Sprite = characters.create(initPos.x, initPos.y, 'playerSix');
     statScreen["MultiPlayer"][5].Sprite.name = "player Six";
     statScreen["MultiPlayer"][5].Sprite.index = 5;
 
@@ -617,6 +614,9 @@ function addSpell(caster, target, spellName){
 /*
     Releases all the spells that were added by addSpell(),
     moving each spell sprite to their respective target.
+    The spell first remains at the sprite of the caster
+      (so people can see who is casting the spell),
+      then it travels to it's target.
     This function clears both spellList and the spells group.
 */
 function releaseSpells(){
@@ -901,11 +901,14 @@ function moveCharactersQuadrantAbsolute(){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
+
+        //TODO: Replace dummyMovement with movement data from JSON
         newQuadrantCol = dummyMovement[k]["x"];
         newQuadrantRow = dummyMovement[k]["y"];
+        var newPosition = calcXAndY(dummyMovement[k]["x"], dummyMovement[k]["y"]);
         //move them into the quadrant at the top-left corner
-        statScreen["MultiPlayer"][index].Sprite.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION + ANCHOR_OFFSET;
-        statScreen["MultiPlayer"][index].Sprite.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION + ANCHOR_OFFSET;
+        statScreen["MultiPlayer"][index].Sprite.x = newPosition.x;
+        statScreen["MultiPlayer"][index].Sprite.y = newPosition.y;
         //move them again to the next column if they're isn't room in the quadrant
         statScreen["MultiPlayer"][index].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
         statScreen["MultiPlayer"][index].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
@@ -921,9 +924,9 @@ function moveCharactersQuadrantAbsolute(){
 
     //Add spells for testing
     //TODO: Delete this
-    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "greenCircle");
-    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "greenCircle");
-    addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "greenCircle");
+    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
+    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
     addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
     releaseSpells();
 }
@@ -1330,7 +1333,8 @@ function updateSinglePlayerStatScreen(currTurn){
     
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
-            //statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
+            //TODO: Change Text using whatever JSON format server has
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
             statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
                 font: "3em Arial", 
                 fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
@@ -1430,6 +1434,22 @@ function chooseColor(currTurn, playerNumber, attribute){
   }
 }
 
+/**
+  Helper function that returns x and y positions of sprites based on which 
+    "quadrant" they are in.
+  Takes into account anchor offset
+  Returns undefined if the row or column is not [0-4]
+  */
+function calcXAndY(row, column){
+  if(row < 0 || row > 4 || column < 0 || column > 4){
+    return undefined
+  }
+  return {
+    x: row * QUADRANT_DIMENSION + ANCHOR_OFFSET,
+    y: column * QUADRANT_DIMENSION + ANCHOR_OFFSET,
+  };
+}
+
 
 
 
@@ -1464,9 +1484,9 @@ function populateQueue(){
     for(var i = 0 ; i < 10; i++){
         var asdf = new Move();
         asdf.stats.Health = Math.floor(Math.random()*500);
-        //for(var k in derp["stats"]){
-        //    if(derp["stats"].hasOwnProperty(k)){
-        //        derp["stats"][k] = Math.floor(Math.random()*300);
+        //for(var k in asdf["stats"]){
+        //    if(asdf["stats"].hasOwnProperty(k)){
+        //        asdf["stats"][k] = Math.floor(Math.random()*300);
         //    }
         //}
         serverJSON.push(asdf);
