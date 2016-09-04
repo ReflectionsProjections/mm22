@@ -438,7 +438,7 @@ var HEALTH_BAR_MAX_WIDTH = 360;
 //load our assets
 function preload () {
     //background image
-    game.load.image('background', 'assets/grid-background.jpg');
+    game.load.image('background', 'assets/Map-update.png');
 
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
@@ -1452,6 +1452,20 @@ function calcXAndY(row, column){
     x: row * QUADRANT_DIMENSION + ANCHOR_OFFSET,
     y: column * QUADRANT_DIMENSION + ANCHOR_OFFSET,
   };
+}
+
+/**
+  Helper function that takes current Turn and converts it 
+    to a flat array with only players' stats
+  */
+function convertTurnToPlayerArray(currTurn){
+  var playerArray = [];
+  currTurn.teams.forEach(function(team){
+      team.characters.forEach(function(player){
+          playerArray.push(player);
+      });
+  });
+  return playerArray;
 }
 
 
