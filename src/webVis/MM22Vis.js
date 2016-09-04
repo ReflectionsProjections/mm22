@@ -89,18 +89,23 @@ function WebSocketTest()
                 
                ws.onmessage = function (evt) 
                { 
-
+                  console.log(evt);  
                   var received_msg = evt.data;
+
+                  var reader = new FileReader();
+                  reader.addEventListener("loadend", function(){
+                      var arrayOfTurns = JSON.parse(reader.result).data;
+                      console.log("Data given by server");
+                      console.log(arrayOfTurns);
+                      arrayOfTurns.forEach(function(data){
+                        serverJSON.push(data);
+                      });
+                  });
                   
-                  //received_msg will be a big array of turns
                   alert("Message is received...");
-                  console.log("Data given by server");
-                  console.log(received_msg);
+                  reader.readAsText(received_msg);
                   //serverJSON empty check if first load is heavy 
                   //JSON.parse?
-                  received_msg.forEach(function(data){
-                      serverJSON.push(data);
-                  });
                };
                 
                ws.onclose = function()
@@ -1389,7 +1394,7 @@ function calcHealthBarWidth(currTurn, playerNumber){
   }
     //TODO: Replace currTurn.stats.Health with whatever JSON format 
     //  the server returns currTurn["foo"]["bar"]["whatever"]
-    return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
+    return Math.floor(((currTurn.characters[playerNumber].Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
         HEALTH_BAR_MAX_WIDTH);
 }
 
