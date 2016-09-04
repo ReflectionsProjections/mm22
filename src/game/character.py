@@ -3,42 +3,66 @@ import gameConstants as gameConstants
 
 class Character(object):
 
+    total_characters = 0
 
-    def __init__(self, classKey):
-        """ Init a character class based on class key defined in game consts
+    @staticmethod
+    def get_new_character_id():
+        Character.total_characters += 1
+        return Character.total_characters
 
-        :param charId: (int) id of the character, based off of team
-        :param name: (string) name of the character
-        :param classId: (int) class key
-        """
+    @staticmethod
+    def remove_all_characters():
+        Character.total_teams = 0
 
+    def __init__(self):
         #Game related attributes
         self.posX = 0
         self.posY = 0
-        self.id = charId
-        self.name = name
-        self.classId = classId
+        self.id = Character.get_new_character_id()
 
         # A json object if the character is casting an ability
         # {"abilityId": (int), "currentCastTime": (int)}
         self.casting = None
 
-        classJson = gameConstants.classesJson[classId]
-
-        self.attributes = Attributes(   classJson['Health'],
-                                        classJson['Damage'],
-                                        classJson['AttackRange'],
-                                        classJson['AttackSpeed'],
-                                        classJson['Armor'],
-                                        classJson['MovementSpeed'])
-
-        # A Json that contains abilities by id and their cooldown by id
-        self.abilities = {}
-        for ability in classJson['Abilities']:
-            self.abilities[ability] = 0.0
-
         self.buffs = []
         self.debuffs = []
+        self.pending_stat_changes = []
+
+    def init(self, json):
+        try:
+            self.name = json['characterName']
+
+            if not self.name:
+                print("Invalid character name:")
+                print(json)
+                return False
+
+            self.classId = json['classId']
+
+            self.classJson = gameConstants.classesJson[self.classId]
+
+            self.attributes = Attributes(self.classJson['Health'],
+                                         self.classJson['Damage'],
+                                         self.classJson['AttackRange'],
+                                         self.classJson['AttackSpeed'],
+                                         self.classJson['Armor'],
+                                         self.classJson['MovementSpeed'])
+
+            # A Json that contains abilities by id and their cooldown by id
+            self.abilities = {}
+            for ability in self.classJson['Abilities']:
+                self.abilities[ability] = 0.0
+
+            return True
+
+        except KeyError as err:
+            print("Failed to find key when init'ing a character:")
+            print(json)
+            return False
+
+    def apply_pending_stat_changes(self):
+        for stat_change in self.pending_stat_changes:
+            self.apply_stat_change(stat_change)
 
     def update(self):
         if self.casting:
@@ -54,7 +78,7 @@ class Character(object):
         # Update buffs
         for buff in self.buffs:
             if buff['time'] == 0:
-                self.apply_stat_change(buff['attribute'], -buff['change'])
+                self.apply_stat_change(buff, remove=True)
                 self.buffs.remove(buff)
             else:
                 buff['time'] -= 0
@@ -62,7 +86,7 @@ class Character(object):
         # Update debuffs
         for debuff in self.debuffs:
             if debuff['time'] == 0:
-                self.apply_stat_change(buff['attribute'], -buff['change'])
+                self.apply_stat_change(debuff, remove=True)
                 self.debuffs.remove(debuff)
             else:
                 debuff['time'] -= 0
@@ -133,7 +157,7 @@ class Character(object):
 
     def apply_stat_change(self, stat_change, remove=False):
         # Apply stat change
-        self.attributes.change_attribute(self, stat_change['attribute'], stat_change['change'])
+        self.attributes.change_attribute(stat_change['attribute'], stat_change['change'])
 
         # If there a time on the buff/debuff, make note and it is not the removal of a buff/debuffs
         if not remove:
@@ -148,18 +172,30 @@ class Character(object):
                     self.casting = None
                 if stat_change['change'] < 0:
                     self.debuffs.append(stat_change)
-                elif stat_change > 0:
+                elif stat_change['change'] > 0:
                     self.buffs.append(stat_change)
+
+    def can_move(self):
+        return not (self.attributes.get_attribute("Rooted") or self.attributes.get_attribute("Stunned"))
+
+    def movement(self, new_pos, gamemap):
+        # Is movement valid?
+        if (self.posX, self.posY) == new_pos:
+            return
+
+        if not gamemap.can_move_to((self.posY, self.posY), new_pos):
+            return
+
+        self.posX = new_pos[0]
+        self.posY = new_pos[1]
+        self.casting = None
 
     def toJson(self):
         """ Returns information about character as a json
         """
 
-        #TODO finish
-
         json = {}
         json['charId'] = self.id
-        json['classId'] = self.classId
         json['name'] = self.name
         json['x'] = self.posX
         json['y'] = self.posY
@@ -171,14 +207,12 @@ class Character(object):
         json['debuffs'] = self.debuffs
         json['casting'] = self.casting
 
-
         return json
 		
 
 class Attributes(object):
 
-    def __init__(self, health, damage, attackRange, attackSpeed, armor, movementSpeed, silenced=False, stunned=False):
->>>>>>> master
+    def __init__(self, health, damage, attackRange, attackSpeed, armor, movementSpeed, silenced=False, stunned=False, rooted=False):
         """ Init attributes for a character
         :param health: (float) health
         :param damage: (float) damage per tick
@@ -200,6 +234,7 @@ class Attributes(object):
         self.movementSpeed = movementSpeed
         self.stunned = stunned
         self.silenced = silenced
+        self.rooted = rooted
 
     def change_attribute(self, attribute_name, change):
         # Health is the only one that has a limit on it
@@ -219,8 +254,12 @@ class Attributes(object):
             self.stunned += change
         if attribute_name == 'Silenced':
             self.silenced += change
+        if attribute_name == 'Rooted':
+            self.rooted += change
 
     def get_attribute(self, attribute_name):
+        if attribute_name == 'MaxHealth':
+            return self.maxHealth
         if attribute_name == 'Health':
             return self.health
         if attribute_name == 'Damage':
@@ -237,12 +276,8 @@ class Attributes(object):
             return self.stunned < 0
         if attribute_name == 'Silenced':
             return self.silenced < 0
-        if attribute_name == 'Stunned':
-            return self.change_stunned(change)
         if attribute_name == 'Rooted':
-            return self.change_rooted(change)
-        if attribute_name == 'Silenced':
-            return self.change_silenced(change)
+            return self.rooted < 0
 
     def toJson(self):
         """ Return json of information containing all attribute information
