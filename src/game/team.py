@@ -3,24 +3,32 @@ from src.game.character import Character
 
 class Team:
 
-    def __init__(self, id, name, characters):
-        """ Init a team based off a team id and a list of characters
-        - characters should be a list of json objects that each contain the key
-        "characterName" and ""classId". If it doesn't it will just set it to default
+    total_teams = 0
 
-        :param id: (int) id of the team
-        :param name: (string) name of team
-        :param characters: (list) list of characters to create
-        """
+    @staticmethod
+    def get_new_team_id():
+        Team.total_teams += 1
+        return Team.total_teams
 
+    @staticmethod
+    def remove_all_teams():
+        Team.total_teams = 0
+
+    ########################
+
+    def __init__(self, name):
         self.name = name
         self.characters = []
-        self.id = id
-        for i in range(len(characters)):
-            try:
-                self.characters.append(Character(id + i, characters[i]['characterName'], characters[i]['classId']))
-            except KeyError:
-                self.characters.append(Character(id + i))
+        self.id = Team.get_new_team_id()
+
+    def add_character(self, json):
+        new_character = Character()
+
+        if new_character.init(json) is True:
+            self.characters.append(new_character)
+            return new_character
+
+        return None
 
     def get_character(self, id=None, name=None):
         if id is None and name is None:

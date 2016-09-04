@@ -1,3 +1,7 @@
+numPlayers = 2
+numCharacterPerTeam = 3
+totalTurns = 400
+
 """
 Defines the classes
 - Must contain in json
@@ -406,8 +410,6 @@ abilitiesList = [
         }],
         "Cooldown"  : 30,
         "Range"     : 1,
-    }
-]
+    },
 
-numPlayersPerRound = 2
-numCharacterPerTeam = 3
+]

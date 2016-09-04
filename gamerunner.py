@@ -3,29 +3,22 @@ import os
 import sys
 import os.path as op
 path = op.dirname(op.dirname(op.realpath(__file__)))
-print path
+print (path)
 sys.path.append(path)
-from server.server import MMServer
+
+from src.server.server import MMServer
 from subprocess import Popen
 import argparse
-from objects import game
-# import pickle
-from vis.visualizer import Visualizer
-import threading
-from load_json import load_map_from_file as loadJson
-import json
-from urllib2 import urlopen, URLError
+from src.game.game import Game
 import time
-# from functools import partial
 
-import misc_constants as miscConstants
-import game_constants as gameConstants
+import src.misc_constants as miscConstants
+import src.game.game_constants as gameConstants
 
 FNULL = open(os.devnull, 'w')
 
 parameters = None
 client_list = list()
-
 
 def launch_clients():
     if parameters.client:
@@ -67,11 +60,6 @@ def parse_args():
         action="store_const",
     )
     parser.add_argument(
-        "-m", "--map",
-        help="Specify the map file the game should use. " +
-        "Default: {0}".format(miscConstants.mapFile),
-        default=miscConstants.mapFile)
-    parser.add_argument(
         "-l", "--log",
         help="Specify where the game log will be written to. " +
         "For example, ./gamerunner.py --log LOG.out. Default: {0}".
@@ -110,23 +98,6 @@ def parse_args():
         action="store_const")
 
     parser.add_argument(
-        "-b", "--scoreboard",
-        help="Display the scoreboard in a window.",
-        const=True,
-        default=False,
-        action="store_const")
-    parser.add_argument(
-        "--scoreboard-url",
-        help="Connect to a running scoreboard server.",
-        default=None)
-
-    parser.add_argument(
-        "-s", "--show",
-        help="Display the visualizer in a window.",
-        const=True,
-        default=False,
-        action="store_const")
-    parser.add_argument(
         "-o", "--only_log",
         help="Don't run the game, just use the log file for turns",
         const=True,
@@ -157,8 +128,6 @@ class FileLogger(object):
 
     def __init__(self, fileName):
         self.file = fileName
-        self.vis = False
-        self.scoreboard = False
         self.file_lines = []
 
     # The function that logs will be sent to
@@ -170,13 +139,8 @@ class FileLogger(object):
         if self.file is not None:
             with open(self.file, 'a') as f:
                 f.write(stuff + '\n')
-        if self.vis:
-            self.vis.add_turn(json.loads(stuff))
-            if self.vis.scoreboard:
-                self.vis.scoreboard.add_turn(stuff)
 
     def write_to_file(self):
-        return #  Temporary no-op
         for line in self.file_lines:
             if self.file is not None:
                 with open(self.file, 'a') as f:
@@ -186,10 +150,7 @@ def main():
     global parameters
     parameters = parse_args()
     if parameters.only_log:
-        print "Running Visualizer only"
-        fileLog = FileLogger(None)
-        fileLog.vis = VisualizerThread(parameters.map, parameters.debug_view, parameters.scoreboard)
-        fileLog.vis.start()
+        fileLog = FileLogger(parameters.logJson)
         try:
             logJsonObject = []
 
@@ -199,7 +160,7 @@ def main():
             if(logJsonObject is None):
                 raise Exception
         except IOError:
-            print("File " + args.logJson + " does not exist")
+            print("File " + parameters.logJson + " does not exist")
             raise
             exit(1)
         except Exception:
@@ -209,15 +170,11 @@ def main():
     else:
         sys.stdout.write("Creating server with {0} players, ".format(
             parameters.teams))
-        print "and {0} as the map\n".format(parameters.map)
-        print "Running server on port {0}\n".format(parameters.port)
-        print "Writing log to {0}".format(parameters.log)
+        print ("Running server on port {0}\n".format(parameters.port))
+        print ("Writing log to {0}".format(parameters.log))
         fileLog = FileLogger(parameters.log)
-        if parameters.show:
-            fileLog.vis = VisualizerThread(parameters.map, parameters.debug_view, parameters.scoreboard)
-            fileLog.vis.start()
-        print "Starting Game"
-        my_game = game.Game(parameters.map, parameters.turnsinhour)
+        print ("Starting Game")
+        my_game = Game()
         serv = MMServer(parameters.teams,
                         my_game,
                         logger=fileLog)
@@ -225,63 +182,6 @@ def main():
         with open(parameters.log, 'w'):
             pass
         fileLog.write_to_file()
-
-    if parameters.show:
-        fileLog.vis.join()
-    if parameters.scoreboard:
-        fileLog.score.stop()
-
-
-class VisualizerThread(threading.Thread):
-
-    def __init__(self, _mapJsonFileName, _debug=False, _scoreboard=False):
-        super(VisualizerThread, self).__init__()
-        self.running = False
-        self.mapJsonFileName = _mapJsonFileName
-        self.debug = _debug
-        self.scoreboard = _scoreboard
-        self.append_turn = []
-
-        if _scoreboard:
-            self.scoreboard = Scoreboard(parameters.scoreboard_url)
-
-    def run(self):
-        try:
-            with open(self.mapJsonFileName) as json_file:
-                mapJsonObject = loadJson(json_file)
-            if(mapJsonObject is None):
-                raise Exception
-        except IOError:
-            print("File " + self.mapJsonFileName + " does not exist")
-            raise
-            exit(1)
-        except Exception:
-            print("Failed to parse map json data")
-            raise
-            exit(1)
-
-        self.visualizer = Visualizer(mapJsonObject, self.debug)
-
-        while 1:
-            while len(self.append_turn) != 0:
-                self.visualizer.add_turn(self.append_turn.pop(0))
-            turn = self.visualizer.run()
-            if turn is not None:
-                if self.scoreboard:
-                    self.scoreboard.change_turn(turn)
-
-    def add_turn(self, json):
-        self.append_turn.append(json)
-
-    def kill(self):
-        pass
-
-    def stop(self):
-        pass
-
-    def __del__(self):
-        self.kill()
-
 
 class Scoreboard(object):
 

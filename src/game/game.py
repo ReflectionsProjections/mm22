@@ -1,9 +1,7 @@
 from src.game.gamemap import *
+from src.game.character import *
 from src.game.team import Team
-
-# Useful for debugging
-import sys
-import traceback
+import src.game.game_constants as gameConst
 
 
 class InvalidPlayerException(Exception):
@@ -12,22 +10,26 @@ class InvalidPlayerException(Exception):
 
 class Game(object):
 
-    def __init__(self, totalTurns):
+    def __init__(self):
         """ Init the game object
         :param totalTurns: (int) max number of ticks in a game
         """
 
-        self.totalTurns = totalTurns
+        self.totalTurns = gameConst.totalTurns
         self.turnsExecuted = 0
         
         self.queuedTurns = {}
         self.turnResults = {}
-        self.teams = []
+        self.teams = {}
+        self.playerInfos = {}
+
+        Character.remove_all_characters()
+        Team.remove_all_teams()
 
         # Load map
         self.map = GameMap()
 
-    def add_new_player(self, jsonObject):
+    def add_new_player(self, jsonObject, playerId):
         """ Add new player to the game
         :param jsonObject: (json) json response from player
         """
@@ -39,10 +41,10 @@ class Game(object):
                 error = "Missing 'teamName' parameter"
             elif len(jsonObject["teamName"]) == 0:
                 error = "'teamName' cannot be an empty string"
-            elif len(jsonObject["classes"]) == 0:
+            elif len(jsonObject["characters"]) == 0:
                 error = "list of classes can not be empty"
             else:
-                for characterJson in jsonObject['classes']:
+                for characterJson in jsonObject['characters']:
                     if "characterName" not in characterJson:
                         error = "Missing 'characterName' for a character"
                     elif "classId" not in characterJson:
@@ -55,11 +57,18 @@ class Game(object):
             return (False, error)
 
         # Add player to game data
-        teamId = len(self.teams)
-        self.teams.append(Team(teamId, jsonObject['teamName'], jsonObject['classes']))
+        new_team = Team(jsonObject['teamName'])
+        for character in jsonObject['characters']:
+            new_team.add_character(character)
+
+        self.teams[new_team.id] = new_team
+
+        self.playerInfos[playerId] = jsonObject
+        self.playerInfos[playerId]["id"] = playerId
+        self.playerInfos[playerId]["teamId"] = new_team.id
 
         # Return response (as a JSON object)
-        return (True, self.teams[teamId].toJson())
+        return (True, new_team.toJson())
 
     # Add a player's actions to the turn queue
     def queue_turn(self, turnJson, playerId):
@@ -84,62 +93,54 @@ class Game(object):
 
             # Execute actions
             self.turnResults[playerId] = []
-            for charater_actionJson in actions:
+            for actionJson in actions:
                 action = actionJson.get("action", "").lower()
-                playerId = actionJson.get("characterId", -1)
+                teamId = self.playerInfos[playerId]["team"]
+                characterId = actionJson.get("characterId", -1)
                 targetId = actionJson.get("target", -1)
                 actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
                     # Get player character object
-                    player = None
-                    for team in self.teams:
-                        player = team.get_character(id=playerId)
-                        if player:
-                            break
+                    character = team[teamId].get_character(id=characterId)
+
                     # Get target character object
                     target = None
-                    for team in self.teams:
+                    for teamId, team in self.teams:
                         target = team.get_character(id=targetId)
                         if target:
                             break
                     # If there is no target, target is the player player
                     if not target:
                         target = player
-                    if player:
+                    if character:
                         if action == "move":
-                            if self.map.can_move_to((player.posX, player.posY), targetId, max_distance=player.attributes.get_attribute("MovementSpeed")):
-                                player.posX = targetId[0]
-                                player.posY = targetId[1]
+                            if self.map.can_move_to((character.posX, character.posY), targetId, max_distance=character.attributes.get_attribute("MovementSpeed")):
+                                character.posX = targetId[0]
+                                character.posY = targetId[1]
                             else:
-                                actionResult["message"] = "Player " + playerId + " is unable to move there!"
+                                actionResult["message"] = "Player " + characterId + " is unable to move there!"
                         elif action == "attack":
-                            if player == target or target == None:
+                            if character == target or target is None:
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
-                            distance = len(self.map.path_between((player.posX, player.posY), targetId))
-                            if distance == 1 or (distance <= player.attribute.get_attribute("AttackRange") and self.map.in_vision_of((player.posX, player.posY), targetId)):
+                            distance = len(self.map.path_between((character.posX, character.posY), targetId))
+                            if distance == 1 or (distance <= character.attribute.get_attribute("AttackRange") and self.map.in_vision_of((character.posX, character.posY), targetId)):
                                 continue
                             else:
                                 continue
                         elif action == "cast":
                             continue
+                            #TODO removed code for testing (having issues)
                         else:
                             actionResult["message"] = "Invalid action type."
                     else:
                         actionResult["message"] = "Invalid character."
-                except InsufficientPowerException as e:
-                    actionResult["message"] = "Insufficient networking and/or processing."
                 except IndexError:
                     actionResult["message"] = "Invalid playerID."
                 except ValueError:
                     actionResult["message"] = "Type mismatch in parameter(s)."
-                except (RepeatedActionException,
-                        InsufficientPowerException,
-                        ActionOwnershipException,
-                        MultiplierMustBePositiveException,
-                        NodeIsDDoSedException,
-                        IpsPreventsActionException) as e:
+                except (RepeatedActionException) as e:
                     actionResult["message"] = str(e)
                 except Exception as e:
                     raise  # Uncomment me to raise unhandled exceptions
@@ -153,16 +154,20 @@ class Game(object):
                 self.turnResults[playerId].append(actionResult)
 
         # Determine winner if appropriate
-        done = self.totalTurns > 0 and self.totalTurns <= self.turnsExecuted
-        if done:
-            total_teams = len(self.teams)
-            for team in self.teams
-
+        alive_teams = []
+        for teamId, team in self.teams.items():
+            alive_team = False
+            for character in team.characters:
+                if character.attributes.get_attribute("Health") != 0:
+                    alive_team = True
+            if alive_team:
+                alive_teams.append(team.id)
 
         # Done!
         self.queuedTurns = {}
         self.turnsExecuted += 1
-        return not done
+        # False if game is finished\
+        return len(alive_teams) >= 2 and self.turnsExecuted <= self.totalTurns
 
     # Return the results of a turn ("server response") for a particular player
     def get_info(self, playerId):
@@ -172,7 +177,7 @@ class Game(object):
         return {
             "playerInfo": self.playerInfos[playerId],
             "turnResult": self.turnResults.get(playerId, [{"status": "fail", "message": "No turn executed."}]),
-            "map":  [x.toPlayerDict(x.scanPending) for x in list(visibleNodes)]
+            "teamInfo": self.teams[self.playerInfos[playerId]['teamId']].toJson()
         }
 
     # Return the entire state of the map
@@ -180,5 +185,5 @@ class Game(object):
         return {
             "playerInfos": self.playerInfos,
             "turnResults": [self.turnResults.get(pId, [{"status": "fail", "message": "No turn executed."}]) for pId in self.playerInfos],
-            "map":  [x.toPlayerDict(True) for x in self.map.nodes.values()]
+            "teams": [team.toJson() for teamId, team in self.teams.items()]
         }

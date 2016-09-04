@@ -1,1 +1,3 @@
-{}
+{
+  "testGameMap.py::TestGameMap::test_bfs": true
+}

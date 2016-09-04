@@ -3,42 +3,62 @@ import src.game.gameConstants as gameConstants
 
 class Character(object):
 
-    def __init__(self, charId, name="AI", classId="warrior"):
-        """ Init a character class based on class key defined in game consts
+    total_characters = 0
 
-        :param charId: (int) id of the character, based off of team
-        :param name: (string) name of the character
-        :param classId: (int) class key
-        """
+    @staticmethod
+    def get_new_character_id():
+        Character.total_characters += 1
+        return Character.total_characters
 
+    @staticmethod
+    def remove_all_characters():
+        Character.total_teams = 0
+
+    def __init__(self):
         #Game related attributes
         self.posX = 0
         self.posY = 0
-        self.id = charId
-        self.name = name
-        self.classId = classId
+        self.id = Character.get_new_character_id()
 
         # A json object if the character is casting an ability
         # {"abilityId": (int), "currentCastTime": (int)}
         self.casting = None
 
-        classJson = gameConstants.classesJson[classId]
-
-        self.attributes = Attributes(classJson['Health'],
-                                     classJson['Damage'],
-                                     classJson['AttackRange'],
-                                     classJson['AttackSpeed'],
-                                     classJson['Armor'],
-                                     classJson['MovementSpeed'])
-
-        # A Json that contains abilities by id and their cooldown by id
-        self.abilities = {}
-        for ability in classJson['Abilities']:
-            self.abilities[ability] = 0.0
-
         self.buffs = []
         self.debuffs = []
         self.pending_stat_changes = []
+
+    def init(self, json):
+        try:
+            self.name = json['characterName']
+
+            if not self.name:
+                print("Invalid character name:")
+                print(json)
+                return False
+
+            self.classId = json['classId']
+
+            self.classJson = gameConstants.classesJson[self.classId]
+
+            self.attributes = Attributes(self.classJson['Health'],
+                                         self.classJson['Damage'],
+                                         self.classJson['AttackRange'],
+                                         self.classJson['AttackSpeed'],
+                                         self.classJson['Armor'],
+                                         self.classJson['MovementSpeed'])
+
+            # A Json that contains abilities by id and their cooldown by id
+            self.abilities = {}
+            for ability in self.classJson['Abilities']:
+                self.abilities[ability] = 0.0
+
+            return True
+
+        except KeyError as err:
+            print("Failed to find key when init'ing a character:")
+            print(json)
+            return False
 
     def apply_pending_stat_changes(self):
         for stat_change in self.pending_stat_changes:
