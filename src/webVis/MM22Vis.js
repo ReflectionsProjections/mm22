@@ -68,7 +68,7 @@
 */
 
 //----------Constants and Global Variables------------//
-
+var WEBSOCKET_SERVER_FQDN = "ws://localhost:8080/"
 
 
 function WebSocketTest()
@@ -78,7 +78,7 @@ function WebSocketTest()
                alert("WebSocket is supported by your Browser!");
                
                // Let us open a web socket
-               var ws = new WebSocket("ws://localhost:8080/");
+               var ws = new WebSocket(WEBSOCKET_SERVER_FQDN);
                 
                ws.onopen = function()
                {
@@ -89,16 +89,18 @@ function WebSocketTest()
                 
                ws.onmessage = function (evt) 
                { 
-                // TODO: Implement updates
-                // This is the important function
 
                   var received_msg = evt.data;
+                  
+                  //received_msg will be a big array of turns
                   alert("Message is received...");
-
+                  console.log("Data given by server");
                   console.log(received_msg);
-                  //TODO: Should this enqueue rather than assign?
-                  serverJSON = received_msg; // JSON.parse
-                  // update everything
+                  //serverJSON empty check if first load is heavy 
+                  //JSON.parse?
+                  received_msg.forEach(function(data){
+                      serverJSON.push(data);
+                  });
                };
                 
                ws.onclose = function()
@@ -455,9 +457,6 @@ function preload () {
 */
 function create () {
 
-    // //tests queue system
-    // //TODO: Delete these 2 lines
-    populateQueue();
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
@@ -758,7 +757,6 @@ function moveCharactersQuadrant(currTurn){
             nextQuadrantSpaceAvailable[i][j][1] = 0;
         } 
     }
-    randomizeMovement();
     for(var k in dummyMovement){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
@@ -1222,6 +1220,7 @@ function processTurn(){
   if(serverJSON.length > 0){
     //dequeue
     var currTurn = serverJSON.shift();
+    console.log(currTurn);
     statScreen.CurrentTurn = currTurn;
     //move the sprites
     moveCharactersQuadrantAbsolute(currTurn);
