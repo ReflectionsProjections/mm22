@@ -1394,7 +1394,7 @@ function calcHealthBarWidth(currTurn, playerNumber){
   }
     //TODO: Replace currTurn.stats.Health with whatever JSON format 
     //  the server returns currTurn["foo"]["bar"]["whatever"]
-    return Math.floor(((currTurn.characters[playerNumber].Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
+    return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
         HEALTH_BAR_MAX_WIDTH);
 }
 
