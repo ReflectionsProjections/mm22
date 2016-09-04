@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 import os
 import sys
 import os.path as op
@@ -7,6 +7,7 @@ print (path)
 sys.path.append(path)
 
 from src.server.server import MMServer
+from src.server.websocket_server import WebSocketServer
 from subprocess import Popen
 import argparse
 from src.game.game import Game
@@ -112,45 +113,57 @@ def parse_args():
     args = parser.parse_args()
     if args.teams < 2:
         sys.stdout.write(parser.format_usage())
-        print "{0}: error: Cannot run with less than two players".format(
-            parser.prog)
+        print ("{0}: error: Cannot run with less than two players".format(
+            parser.prog))
         exit(1)
     if args.client and len(args.client) > args.teams:
         sys.stdout.write(parser.format_usage())
-        print "{0}: error: More clients specified than players".format(
-            parser.prog)
+        print ("{0}: error: More clients specified than players".format(
+            parser.prog))
         exit(1)
     return args
 
 
 # A simple logger that writes things to a file and, if enabled, to the visualizer
-class FileLogger(object):
+class Logger(object):
 
     def __init__(self, fileName):
+        # Logs
         self.file = fileName
         self.file_lines = []
+
+        # WebSocket
+        self.server = WebSocketServer('', 8080, WebSocketServer)
+        self.server.init(fileName)
+        self.server.serveforever()
 
     # The function that logs will be sent to
     # @param stuff
     #   The stuff to be printed
-    def print_stuff(self, stuff):
-        self.file_lines.append(stuff)
+    def print_stuff(self, json):
+        self.file_lines.append(json)
+
         print("Turn " + str(len(self.file_lines)))
+
         if self.file is not None:
             with open(self.file, 'a') as f:
-                f.write(stuff + '\n')
+                f.write(json + '\n')
+
+        self.server.broadCastMessage(json)
 
     def write_to_file(self):
+        # write to log
         for line in self.file_lines:
             if self.file is not None:
                 with open(self.file, 'a') as f:
                     f.write(line + '\n')
 
+
 def main():
     global parameters
     parameters = parse_args()
     if parameters.only_log:
-        fileLog = FileLogger(parameters.logJson)
+        fileLog = Logger(parameters.logJson)
         try:
             logJsonObject = []
 
@@ -172,7 +185,7 @@ def main():
             parameters.teams))
         print ("Running server on port {0}\n".format(parameters.port))
         print ("Writing log to {0}".format(parameters.log))
-        fileLog = FileLogger(parameters.log)
+        fileLog = Logger(parameters.log)
         print ("Starting Game")
         my_game = Game()
         serv = MMServer(parameters.teams,
@@ -181,61 +194,7 @@ def main():
         serv.run(parameters.port, launch_clients)
         with open(parameters.log, 'w'):
             pass
-        fileLog.write_to_file()
-
-class Scoreboard(object):
-
-    def __init__(self, url=None):
-        self.lunched = False
-        self.url = url
-        if url is None:
-            self.url = "http://localhost:7000"
-            self.lunched = True
-            self.board = self.bot = Popen([sys.executable, "scoreServer.py"],
-                                          stdout=FNULL, stderr=FNULL)
-            time.sleep(1)
-        
-    def add_turn(self, turn):
-        try:
-            r = urlopen(self.url, turn)
-            if(r.getcode() != 200):
-                raise Exception("Scoreboard update failed!")
-
-        except URLError:
-            if not self.lunched:
-                self.stop()
-                raise  # Exception("Scoreboard update failed!")
-
-    def change_turn(self, _turnNum):
-        try:
-            r = urlopen(self.url, str(_turnNum))
-            if(r.getcode() != 200):
-                raise Exception("Scoreboard update failed!")
-
-        except URLError:
-            if not self.lunched:
-                self.stop()
-                raise  # Exception("Scoreboard update failed!")
-
-    def kill(self):
-        if (self.lunched and not self.board.poll()):
-            try:
-                self.board.kill()
-            except OSError:
-                pass
-
-    def stop(self):
-        """
-        """
-        if self.lunched:
-            try:
-                self.board.terminate()
-            except OSError:
-                pass
-                
-    def __del__(self):
-        self.kill()
-
+#        fileLog.write_to_file()
 
 class Client_program(object):
 
@@ -262,7 +221,7 @@ class Client_program(object):
         except OSError as e:
             msg = "the player {} failed to start with error {}".format(
                 self.client_path, e)
-            print msg
+            print (msg)
             raise ClientFailedToRun(msg)
 
     def kill(self):

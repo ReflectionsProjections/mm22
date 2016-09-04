@@ -115,11 +115,10 @@ class Game(object):
                         target = player
                     if character:
                         if action == "move":
-                            if self.map.can_move_to((character.posX, character.posY), targetId, max_distance=character.attributes.get_attribute("MovementSpeed")):
-                                character.posX = targetId[0]
-                                character.posY = targetId[1]
-                            else:
-                                actionResult["message"] = "Player " + characterId + " is unable to move there!"
+                            if targetId != -1:
+                                ret = character.move_to(targetId, self.map)
+                                if ret is not None:
+                                    actionResult["message"] = "Unable to move Character-" + characterId + ": " + ret
                         elif action == "attack":
                             if character == target or target is None:
                                 actionResult["message"] = "Invalid target to attack"
@@ -131,7 +130,9 @@ class Game(object):
                                 continue
                         elif action == "cast":
                             continue
-                            #TODO removed code for testing (having issues)
+                            if target is None:
+                                actionResult["message"] = "Invalid target to attack"
+                                continue
                         else:
                             actionResult["message"] = "Invalid action type."
                     else:

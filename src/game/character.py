@@ -1,4 +1,4 @@
-import gameConstants as gameConstants
+import src.game.game_constants as gameConstants
 
 
 class Character(object):
@@ -178,13 +178,20 @@ class Character(object):
     def can_move(self):
         return not (self.attributes.get_attribute("Rooted") or self.attributes.get_attribute("Stunned"))
 
-    def movement(self, new_pos, gamemap):
-        # Is movement valid?
-        if (self.posX, self.posY) == new_pos:
-            return
+    def movement(self, new_pos, map):
+        # Can we move?
+        if not self.can_move():
+            return "Unable to move currently"
 
-        if not gamemap.can_move_to((self.posY, self.posY), new_pos):
-            return
+        # Same position
+        if (self.posX, self.posY) == new_pos:
+            return "Same location"
+
+        # Actually find path
+        if not map.can_move_to((self.posY, self.posY),
+                               new_pos,
+                               self.attributes.get_attribute("MovementSpeed")):
+            return "Unable to find path to new location"
 
         self.posX = new_pos[0]
         self.posY = new_pos[1]
@@ -297,60 +304,57 @@ class Attributes(object):
 
 class BuffDebuff:
     """ BuffDebuff objects are added to the buffs_and_debuffs
-	    list of a Character and affect a Character's attributes.
-	View the parameters of the constructor to see how to tailor
-	    a buff/debuff accordingly.
+        list of a Character and affect a Character's attributes.
+    View the parameters of the constructor to see how to tailor
+        a buff/debuff accordingly.
     """
     def __init__(self, name, duration, attribute, modification,
-	timesApplied, lasting):
-	"""
-	:param name (string) name of the buff/debuff
-	:param duration: (int) how  many ticks the buff/debuff lasts,
-		is decremented every turn until it reaches 0 (then the b/d
-		 removed)
-	:param attribute: (string) name of the attribute that is to be
-		 affected. 
-	:param modification (float) the amount that is added to the 
-	 	targeted attribute.  If you want to decrease the value
-		of an attribute, pass in a negative value 
-	:param timesApplied: (int) the amount of times the b/d 
-		is applied.  For example, a shield buff would 
-		buff health once and thus would have this param
-		set to 1.  A bleeding debuff would set this param
-		to the same as 'duration' param to have the health
-		parameter decreased multiple times.
-	:param lasting (boolean) If False, the modification is 
-		reverted once the duration of the buff runs out.
-		For example, if a speed buff was added, the
-		movementSpeed attribute will be reverted to what 
-		its value was before the buff was applied. For
-		most buffs and debuffs 'lasting' should be false.
+    timesApplied, lasting):
+        """
+        :param name (string) name of the buff/debuff
+        :param duration: (int) how  many ticks the buff/debuff lasts,
+            is decremented every turn until it reaches 0 (then the b/d
+             removed)
+        :param attribute: (string) name of the attribute that is to be
+             affected.
+        :param modification (float) the amount that is added to the
+            targeted attribute.  If you want to decrease the value
+            of an attribute, pass in a negative value
+        :param timesApplied: (int) the amount of times the b/d
+            is applied.  For example, a shield buff would
+            buff health once and thus would have this param
+            set to 1.  A bleeding debuff would set this param
+            to the same as 'duration' param to have the health
+            parameter decreased multiple times.
+        :param lasting (boolean) If False, the modification is
+            reverted once the duration of the buff runs out.
+            For example, if a speed buff was added, the
+            movementSpeed attribute will be reverted to what
+            its value was before the buff was applied. For
+            most buffs and debuffs 'lasting' should be false.
 
-	        If True, the modification lasts even after the
-	        buff runs out out(i.e. a shield).
-	"""
-	self.name = name
-	self.duration = duration
-	self.attribute = attribute
-	self.modification = modification
-	self.timesApplied = timesApplied
-	self.lasting = lasting	
-	#used for restoring attributes when the buff is finished
-	self.restoreValue = timesApplied * modification
-  
-    def toJson():
-	""" Returns json of BuffDebuff's information
-	    This is here b/c it seemed necessary, but delete if not :P
-	"""
+                If True, the modification lasts even after the
+                buff runs out out(i.e. a shield).
+        """
+        self.name = name
+        self.duration = duration
+        self.attribute = attribute
+        self.modification = modification
+        self.timesApplied = timesApplied
+        self.lasting = lasting
+        #used for restoring attributes when the buff is finished
+        self.restoreValue = timesApplied * modification
 
-	json = {}
-	json['Name'] = self.name
-	json['Duration'] = self.duration
-	json['Attribute'] = self.attribute
-	json['Modification'] = self.modification
-	json['TimesApplied'] = self.timesApplied
-	json['Lasting'] = self.lasting
-	json['RestoreValue'] = self.restoreValue
-	return json
-
-
+    def toJson(self):
+        """ Returns json of BuffDebuff's information
+            This is here b/c it seemed necessary, but delete if not :P
+        """
+        json = {}
+        json['Name'] = self.name
+        json['Duration'] = self.duration
+        json['Attribute'] = self.attribute
+        json['Modification'] = self.modification
+        json['TimesApplied'] = self.timesApplied
+        json['Lasting'] = self.lasting
+        json['RestoreValue'] = self.restoreValue
+        return json

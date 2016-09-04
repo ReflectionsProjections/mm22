@@ -13,7 +13,7 @@ import socket
 import time
 import json
 # import game
-import server_constants
+import src.server.server_constants as server_constants
 
 
 class _logger(object):
@@ -30,7 +30,7 @@ class _logger(object):
         """
         prints stuff
         """
-        print str(stuff)
+        print (str(stuff))
 
 
 class MMServer(object):
@@ -70,7 +70,7 @@ class MMServer(object):
         recval = ["" for i in range(0, self.maxPlayers)]
         forfeit = [False for i in range(0, self.maxPlayers)]
         validTurns = 0
-        print 'connecting ...'
+        print ('connecting ...')
 
         # Gamerunner: Server is ready, start clients
         if run_when_ready:
@@ -84,7 +84,7 @@ class MMServer(object):
             (clientsocket, address) = serversocket.accept()
             playerConnections[i] = clientsocket
         lookupPlayer = dict(zip(playerConnections, [i for i in range(0, self.maxPlayers)]))
-        print 'sockets connected ...'
+        print ('sockets connected ...')
 
         # Handle initial connections
         starting = True
@@ -116,7 +116,7 @@ class MMServer(object):
                         data = recval[player].split("\n")[0]
                         try:
                             jsonObject = json.loads(data)
-                        except ValueError, TypeError:
+                        except (ValueError, TypeError) as e:
                             jsonObject = {}
                             validJson = False
                         if validJson:
@@ -182,7 +182,7 @@ class MMServer(object):
                     if turnObjects[player] is None and "\n" in recval[player]:
                         try:
                             turnObjects[player] = json.loads(recval[player])
-                        except ValueError, TypeError:
+                        except (ValueError, TypeError):
                             turnObjects[player] = {}
                             errors[player] = ["Invalid JSON"]
                         validTurns += 1
