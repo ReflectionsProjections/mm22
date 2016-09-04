@@ -8,6 +8,8 @@ sys.path.append(path)
 
 from src.server.server import MMServer
 from src.server.websocket_server import WebSocketServer
+from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+
 from subprocess import Popen
 import argparse
 from src.game.game import Game
@@ -132,10 +134,14 @@ class Logger(object):
         self.file = fileName
         self.file_lines = []
 
-        # WebSocket
-        self.server = WebSocketServer('', 8080, WebSocketServer)
-        self.server.init(fileName)
+        # WebSocket Instance
+        self.serverInstance = WebSocketServer
+
+        # WebSocket Server
+        self.server = SimpleWebSocketServer('', 8080, self.serverInstance)
         self.server.serveforever()
+
+        # self.serverInstance.init(fileName)
 
     # The function that logs will be sent to
     # @param stuff
@@ -149,7 +155,7 @@ class Logger(object):
             with open(self.file, 'a') as f:
                 f.write(json + '\n')
 
-        self.server.broadCastMessage(json)
+        self.serverInstance.broadCastMessage(json)
 
     def write_to_file(self):
         # write to log
