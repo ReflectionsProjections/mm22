@@ -7,101 +7,83 @@ Defines the classes
 - Must contain in json
     Health - health of class
     Damage - damage dealt from autoattack
+    SpellPower - added amount to spells in given direction
     AttackRange - range of attack in zones (range 0 = melee range)
-    AttackSpeed - cooldown on attack in ticks
     Armor - damage removed from each attack
     MovementSpeed - cooldown (in ticks) on ability to move to adjacent zone
     Abilties - list of abilities
 """
 classesJson = {
-    "dummy_one" : {
-			"Health"        : 500,
-            "Damage"        : 100,
-            "AttackRange"   : 0,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
-            "Abilities"     : [ 0,5 ]
-	},
-    "dummy_two" : {
-			"Health"        : 500,
-            "Damage"        : 100,
-            "AttackRange"   : 0,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
-            "Abilities"     : [ 0,5 ]
-	},
 	"archer" : {
 			"Health"        : 500,
-            "Damage"        : 100,
-            "AttackRange"   : 1,
-            "AttackSpeed"   : 5,
+            "Damage"        : 50,
+            "SpellPower"    : 0,
+            "AttackRange"   : 2,
             "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,5 ]
 	},
 	"assassin" : {
-			"Health"        : 500,
-            "Damage"        : 100,
+			"Health"        : 400,
+            "Damage"        : 60,
+            "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "Armor"         : 30,
+            "MovementSpeed" : 2,
             "Abilities"     : [ 0,2 ]
 	},
     "druid" : {
-            "Health"        : 500,
-            "Damage"        : 100,
-            "AttackRange"   : 1,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "Health"        : 600,
+            "Damage"        : 50,
+            "SpellPower"    : 0,
+            "AttackRange"   : 2,
+            "Armor"         : 60,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,3,4 ]
     },
     "enchanter" : {
-            "Health"        : 500,
-            "Damage"        : 100,
+            "Health"        : 400,
+            "Damage"        : 65,
+            "SpellPower"    : 0,
             "AttackRange"   : 2,
-            "AttackSpeed"   : 5,
             "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "MovementSpeed" : 2,
             "Abilities"     : [ 0,6,7 ]
     },
     "paladin" : {
-            "Health"        : 500,
-            "Damage"        : 100,
+            "Health"        : 700,
+            "Damage"        : 40,
+            "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "Armor"         : 70,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,3 ]
     },
     "sorcerer" : {
             "Health"        : 500,
-            "Damage"        : 100,
-            "AttackRange"   : 1,
-            "AttackSpeed"   : 5,
+            "Damage"        : 75,
+            "SpellPower"    : 0,
+            "AttackRange"   : 2,
             "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,8 ]
     },
     "warrior" : {
-            "Health"        : 500,
-            "Damage"        : 100,
+            "Health"        : 600,
+            "Damage"        : 75,
+            "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "AttackSpeed"   : 5,
-            "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "Armor"         : 70,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,1 ]
     },
     "wizard" : {
             "Health"        : 500,
             "Damage"        : 50,
+            "SpellPower"    : 0,
             "AttackRange"   : 1,
-            "AttackSpeed"   : 5,
             "Armor"         : 50,
-            "MovementSpeed" : 5,
+            "MovementSpeed" : 1,
             "Abilities"     : [ 0,9,10,11 ]
     }
 }
@@ -260,155 +242,5 @@ abilitiesList = [
         }],
         "Cooldown"  : 30,
         "Range"     : 1,
-    },
-    {   #12 dummy_health_pos
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Health",
-            "Change": 100,
-            "Time": 0
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #13 dummy_health_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Health",
-            "Change": -100,
-            "Time": 0
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #14 dummy_damage_buff
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Damage",
-            "Change": 100,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #15 dummy_damage_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Damage",
-            "Change": -100,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #16 dummy_attackrange_pos
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "AttackRange",
-            "Change": 1,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #17 dummy_attackrange_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "AttackRange",
-            "Change": -1,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #18 dummy_attackspeed_pos
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "AttackSpeed",
-            "Change": 1,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #19 dummy_attackspeed_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "AttackSpeed",
-            "Change": 100,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #20 dummy_armor_pos
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Armor",
-            "Change": 100,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #21 dummy_armor_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Armor",
-            "Change": 100,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #22 dummy_movementspeed_pos
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "MovementSpeed",
-            "Change": 1,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #23 dummy_movementspeed_neg
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "MovementSpeed",
-            "Change": -1,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #24 dummy_stun
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Stunned",
-            "Change": True,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #25 dummy_silence
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Silenced",
-            "Change": True,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
-    {   #24 dummy_root
-        "StatChanges": [{
-            "Target": 3,
-            "Attribute": "Rooted",
-            "Change": True,
-            "Time": 30
-        }],
-        "Cooldown"  : 30,
-        "Range"     : 1,
-    },
+    }
 ]

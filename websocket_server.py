@@ -1,17 +1,26 @@
 from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
+import src.misc_constants as miscConstants
+from threading import Thread
+
 import json
 
 clients = []
 class WebSocketServer(WebSocket):
 
   def init(self, jsonFile):
-    self.jsonFile = jsonFile
+    self.jsonFile = miscConstants.logFile
 
-  def broadCastMessage(self, json_string):
+  def broadCastMessage(self, jsonFileName):
+    data = []
+
+    with open(jsonFileName, "o") as file:
+      if file:
+        for line in file.readlines():
+          data.append(line)
+
     # Send message
     for client in clients:
-     client.sendMessage(json.dumps(json_string))
-     print()
+     client.sendMessage(json.dumps({"data": data}))
 
   def handleMessage(self):
     # method gets called when server is pinged
@@ -26,6 +35,18 @@ class WebSocketServer(WebSocket):
 
   def handleClose(self):
     print (self.address, 'closed')
+
+# WebSocket Server
+serverInstance = WebSocketServer
+server = SimpleWebSocketServer('', 8080, serverInstance)
+t = Thread(target=server.serveforever, arg=(server,))
+t.start()
+
+input = input("Command:")
+while len(input) != 0:
+  if input[0] == "s ":
+    jsonFileName = input[2:]
+    serverInstance.broadCastMessage(jsonFileName)
 
 # server = SimpleWebSocketServer('', 8080, SimpleEcho)
 # server.serveforever()

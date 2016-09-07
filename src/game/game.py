@@ -43,18 +43,12 @@ class Game(object):
                 error = "'teamName' cannot be an empty string"
             elif len(jsonObject["characters"]) == 0:
                 error = "list of classes can not be empty"
-            else:
-                for characterJson in jsonObject['characters']:
-                    if "characterName" not in characterJson:
-                        error = "Missing 'characterName' for a character"
-                    elif "classId" not in characterJson:
-                        error = "Missing 'classId' for a character"
         except KeyError as e:
             error = "json response doesn't have the correct format"
 
         # If there is an error, return false and error
         if error:
-            return (False, error)
+            return False, error
 
         # Add player to game data
         new_team = Team(jsonObject['teamName'])
@@ -98,6 +92,7 @@ class Game(object):
                 teamId = self.playerInfos[playerId]["team"]
                 characterId = actionJson.get("characterId", -1)
                 targetId = actionJson.get("target", -1)
+                abilityId = actionJson.get("abilityId", -1)
                 actionResult = {"teamId": playerId, "action": action, "target": targetId}
 
                 try:
@@ -119,20 +114,45 @@ class Game(object):
                                 ret = character.move_to(targetId, self.map)
                                 if ret is not None:
                                     actionResult["message"] = "Unable to move Character-" + characterId + ": " + ret
-                        elif action == "attack":
+                        elif action == "attack" or action == "attackMove":
                             if character == target or target is None:
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
-                            distance = len(self.map.path_between((character.posX, character.posY), targetId))
-                            if distance == 1 or (distance <= character.attribute.get_attribute("AttackRange") and self.map.in_vision_of((character.posX, character.posY), targetId)):
-                                continue
+
+                            if action == "attackMove":
+                                # not suppose to revert movement if attack fails after
+                                error = character.movement((target.posX, target.posY))
+                                if error:
+                                    actionResult["message"] = error
+                                    continue
+
+                            if self.map.in_vision_of((character.posX, character.posY),
+                                                     targetId,
+                                                     character.attributes.get_attribute("AttackRange")):
+                                target.add_stat_change({
+                                    "Target": 1,
+                                    "Attribute": "Health",
+                                    "Change": character.attributes.get_attribute("Damage"),
+                                    "Time": 0
+                                })
                             else:
-                                continue
+                                actionResult["message"] = "Target is out of range or not in vision"
                         elif action == "cast":
-                            continue
                             if target is None:
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
+
+                            if abilityId == -1:
+                                actionResult["message"] = "Could not find ability id"
+                                continue
+
+                            if self.map.in_vision_of((character.posX, character.posY),
+                                                     targetId,
+                                                     character.attributes.get_attribute("AttackRange")):
+                                if not character.use_ability(abilityId, target):
+                                    actionResult["message"] = "Character does not have that ability!"
+                            else:
+                                actionResult["message"] = "Target is out of range or not in vision"
                         else:
                             actionResult["message"] = "Invalid action type."
                     else:
@@ -153,6 +173,11 @@ class Game(object):
 
                 # Record results
                 self.turnResults[playerId].append(actionResult)
+
+        # Update everyone
+        for teamId, team in self.teams:
+            for character in team.characters:
+                character.update()
 
         # Determine winner if appropriate
         alive_teams = []

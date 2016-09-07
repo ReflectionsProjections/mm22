@@ -30,7 +30,7 @@ def launch_clients():
             launch_client(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'test-clients/', client))
     else:
         numberOfClients = 0
-    for x in xrange(numberOfClients, parameters.teams):
+    for x in range(numberOfClients, parameters.teams + 1):
         launch_client(os.path.join(os.getcwd(), parameters.defaultClient))
 
 
@@ -134,15 +134,6 @@ class Logger(object):
         self.file = fileName
         self.file_lines = []
 
-        # WebSocket Instance
-        self.serverInstance = WebSocketServer
-
-        # WebSocket Server
-        self.server = SimpleWebSocketServer('', 8080, self.serverInstance)
-        self.server.serveforever()
-
-        # self.serverInstance.init(fileName)
-
     # The function that logs will be sent to
     # @param stuff
     #   The stuff to be printed
@@ -154,8 +145,6 @@ class Logger(object):
         if self.file is not None:
             with open(self.file, 'a') as f:
                 f.write(json + '\n')
-
-        self.serverInstance.broadCastMessage(json)
 
     def write_to_file(self):
         # write to log

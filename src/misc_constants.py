@@ -6,7 +6,7 @@ Holds constants used by the server and visualizer
 port = 1337
 
 # Default logfile path
-logFile = "src/gamerunner/log.json"
+logFile = "gamerunner/log.json"
 
 # Default client path
 defaultClient = "test-clients/python/"

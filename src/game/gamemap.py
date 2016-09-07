@@ -47,7 +47,11 @@ class GameMap:
 
         path = self.bfs(pos1, pos2)
 
-        return not (path is None or len(path) >= max_distance + 1)
+        if path is None
+            print ("FAILED TO FIND PATH, SHOULD NEVER HAPPEN! ALERT!")
+            exit(1)
+
+        return not (len(path) >= max_distance + 1)
 
     @staticmethod
     def get_adjacent_pos(pos):

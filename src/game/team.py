@@ -24,11 +24,13 @@ class Team:
     def add_character(self, json):
         new_character = Character()
 
-        if new_character.init(json) is True:
+        error = new_character.init(json)
+
+        if not error:
             self.characters.append(new_character)
             return new_character
 
-        return None
+        return error
 
     def get_character(self, id=None, name=None):
         if id is None and name is None:
