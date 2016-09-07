@@ -175,7 +175,7 @@ class Game(object):
                 self.turnResults[playerId].append(actionResult)
 
         # Update everyone
-        for teamId, team in self.teams:
+        for teamId, team in self.teams.items():
             for character in team.characters:
                 character.update()
 

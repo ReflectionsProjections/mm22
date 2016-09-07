@@ -34,17 +34,17 @@ class Character(object):
 
         if 'classId' not in json:
             error += "Could not find classId key in json. defaulting to Warrior."
-            self.classId = "Warrior"
+            self.classId = "warrior"
         elif json['classId'] not in gameConstants.classesJson:
             error += "Invalid classId, defaulting to Warrior."
-            self.classId = "Warrior"
+            self.classId = "warrior"
         else:
             self.classId = json['classId']
 
         if 'characterName' not in json:
             error += "Could not find characterName key in json, defaulting to classId."
             self.name = self.classId
-        elif not json['characterName'] or len(self.name) >= 12:
+        elif not json['characterName'] or len(json['characterName']) >= 12:
             error += "Invalid characterName (empty or longer than 12 characters), defaulting to classId."
             self.name = self.classId
         else:
@@ -56,7 +56,6 @@ class Character(object):
                                      self.classJson['Damage'],
                                      self.classJson['SpellPower'],
                                      self.classJson['AttackRange'],
-                                     self.classJson['AttackSpeed'],
                                      self.classJson['Armor'],
                                      self.classJson['MovementSpeed'])
 
@@ -183,7 +182,7 @@ class Character(object):
             stat_change['Attribute'],
             stat_change['Change'])
 
-        if stat_change['Time'] == 0
+        if stat_change['Time'] == 0:
             return
 
         # If there a time on the buff/debuff, make note and it is not the removal of a buff/debuffs

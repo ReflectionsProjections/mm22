@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 import os
 import sys
 import os.path as op
@@ -6,14 +6,12 @@ path = op.dirname(op.dirname(op.realpath(__file__)))
 print (path)
 sys.path.append(path)
 
-from src.server.server import MMServer
-from src.server.websocket_server import WebSocketServer
-from SimpleWebSocketServer import SimpleWebSocketServer, WebSocket
-
 from subprocess import Popen
 import argparse
 from src.game.game import Game
 import time
+
+from src.server.server import MMServer
 
 import src.misc_constants as miscConstants
 import src.game.game_constants as gameConstants

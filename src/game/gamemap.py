@@ -47,7 +47,7 @@ class GameMap:
 
         path = self.bfs(pos1, pos2)
 
-        if path is None
+        if path is None:
             print ("FAILED TO FIND PATH, SHOULD NEVER HAPPEN! ALERT!")
             exit(1)
 
