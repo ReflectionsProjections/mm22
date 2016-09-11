@@ -9,7 +9,7 @@ data = []
 with open(miscConstants.logFile, "r") as file:
   if file:
     for line in file.readlines():
-      data.append(line)
+      data.append(json.loads(line))
 
 clients = []
 
@@ -27,10 +27,9 @@ class WebSocketServer(WebSocket):
   def handleConnected(self):
     # Read json for data and send it
     print (self.address, 'connected')
-
     clients.append(self)
-
-    client.sendMessage(json.dumps({"data": data}))
+    self.sendMessage(json.dumps({"data": data}))
+#client.sendMessage('{"data": ' + data + '}')
 
   def handleClose(self):
     print (self.address, 'closed')
