@@ -21,7 +21,7 @@ classesJson = {
             "AttackRange"   : 2,
             "Armor"         : 50,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,5 ]
+            "Abilities"     : [ 0,2,12 ] #sprint, armordebuff
 	},
 	"assassin" : {
 			"Health"        : 400,
@@ -29,44 +29,44 @@ classesJson = {
             "SpellPower"    : 0,
             "AttackRange"   : 0,
             "Armor"         : 30,
-            "MovementSpeed" : 2,
-            "Abilities"     : [ 0,2 ]
+            "MovementSpeed" : 1,
+            "Abilities"     : [ 0,12,11 ] #sprint,backstab
 	},
     "druid" : {
             "Health"        : 600,
-            "Damage"        : 50,
+            "Damage"        : 40,
             "SpellPower"    : 0,
-            "AttackRange"   : 2,
+            "AttackRange"   : 1,
             "Armor"         : 60,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,3,4 ]
+            "Abilities"     : [ 0,3,4,13 ] #heal, ranged armor buff, root
     },
     "enchanter" : {
             "Health"        : 400,
-            "Damage"        : 65,
+            "Damage"        : 40,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
             "Armor"         : 50,
-            "MovementSpeed" : 2,
-            "Abilities"     : [ 0,6,7 ]
+            "MovementSpeed" : 1,
+            "Abilities"     : [ 0,6,7,5 ] #armor reduction, armor+dmg buff, silence
     },
     "paladin" : {
             "Health"        : 700,
-            "Damage"        : 40,
+            "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
             "Armor"         : 70,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,3 ]
+            "Abilities"     : [ 0,3,14 ] #heal, med cd stun
     },
     "sorcerer" : {
             "Health"        : 500,
-            "Damage"        : 75,
+            "Damage"        : 80,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
             "Armor"         : 50,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,8 ]
+            "Abilities"     : [ 0,8,16 ] #self damage buff, dot spell
     },
     "warrior" : {
             "Health"        : 600,
@@ -75,7 +75,7 @@ classesJson = {
             "AttackRange"   : 0,
             "Armor"         : 70,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,1 ]
+            "Abilities"     : [ 0,1,15 ] #short cd stun, self armor buff
     },
     "wizard" : {
             "Health"        : 500,
@@ -84,7 +84,7 @@ classesJson = {
             "AttackRange"   : 1,
             "Armor"         : 50,
             "MovementSpeed" : 1,
-            "Abilities"     : [ 0,9,10,11 ]
+            "Abilities"     : [ 0,9,10 ] #damage spell, long cd stun
     }
 }
 
@@ -119,17 +119,17 @@ abilitiesList = [
             "Change": False,
             "Time": 0
         }],
-        "Cooldown"  : 120,
+        "Cooldown"  : 10,
         "Range"     : 0,
     },
-    {   #1 melee stun (PROBABLY BROKEN)
+    {   #1 melee stun 
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Stunned",
             "Change": True,
-            "Time": 10
+            "Time": 1
         }],
-        "Cooldown"  : 60,
+        "Cooldown"  : 6,
         "Range"     : 0,
     },
     {   #2 armor debuff
@@ -137,10 +137,10 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Armor",
             "Change": -10,
-            "Time": 40
+            "Time": 4
         }],
-        "Cooldown"	: 100,
-        "Range"		: 0,
+        "Cooldown"	: 10,
+        "Range"		: 2,
     },
     {   #3 ranged heal
         "StatChanges": [{
@@ -149,7 +149,7 @@ abilitiesList = [
             "Change": 200,
             "Time": 0
         }],
-        "Cooldown"  : 50,
+        "Cooldown"  : 5,
         "Range"     : 1,
     },
     {   #4 ranged armor buff
@@ -157,45 +157,45 @@ abilitiesList = [
             "Target": 2,
             "Attribute": "Armor",
             "Change": 20,
-            "Time": 30
+            "Time": 3
         }],
-        "Cooldown"  : 120,
+        "Cooldown"  : 8,
         "Range"     : 1,
     },
-    {   #5 attack speed buff (self)
+    {   #5 Silence
         "StatChanges": [{
-            "Target": 0,
-            "Attribute": "AttackSpeed",
-            "Change": -3,
-            "Time": 20
+            "Target": 1,
+            "Attribute": "Silenced",
+            "Change": True,
+            "Time": 2
         }],
-        "Cooldown"  : 120,
+        "Cooldown"  : 8,
         "Range"     : 0,
     },
     {   #6 ranged damage reduction curse
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Damage",
-            "Change": -10,
-            "Time": 20
+            "Change": -20,
+            "Time": 3
         }],
-        "Cooldown"  : 60,
+        "Cooldown"  : 8,
         "Range"     : 2,
     },
     {   #7 ranged armor and damage buff
         "StatChanges": [{
             "Target": 2,
             "Attribute": "Armor",
-            "Change": 20,
-            "Time": 20
+            "Change": 10,
+            "Time": 3
         },
         {
             "Target": 2,
             "Attribute": "Damage",
             "Change": 20,
-            "Time": 20
+            "Time": 3
         }],
-        "Cooldown"  : 60,
+        "Cooldown"  : 10,
         "Range"     : 2,
     },
     {   #8 sacrifice health for damage (self)
@@ -208,9 +208,9 @@ abilitiesList = [
         {   "Target": 0,
             "Attribute": "Damage",
             "Change": 50,
-            "Time" : 20
+            "Time" : 3
         }],
-        "Cooldown"  : 60,
+        "Cooldown"  : 6,
         "Range"     : 0,
     },
     {   #9 deep freeze
@@ -218,9 +218,9 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Stunned",
             "Change": True,
-            "Time": 10
+            "Time": 1
         }],
-        "Cooldown"  : 120,
+        "Cooldown"  : 12,
         "Range"     : 1,
     },
     {   #10 frostbolt
@@ -230,17 +230,67 @@ abilitiesList = [
             "Change": -200,
             "Time": 0
         }],
-        "Cooldown"  : 25,
+        "Cooldown"  : 3,
         "Range"     : 1,
     },
-    {   #11 icicles
+    {   #11 Backstab
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -200,
+            "Change": -250,
             "Time": 0
         }],
-        "Cooldown"  : 30,
+        "Cooldown"  : 10,
+        "Range"     : 0,
+    },
+    {   #12 Sprint
+        "StatChanges": [{
+            "Target": 0,
+            "Attribute": "MovementSpeed",
+            "Change": 1,
+            "Time": 2
+        }],
+        "Cooldown"  : 8,
         "Range"     : 1,
-    }
+    },
+    {   #13 Root
+        "StatChanges": [{
+            "Target": 1,
+            "Attribute": "Rooted",
+            "Change": True,
+            "Time": 2
+        }],
+        "Cooldown"  : 8,
+        "Range"     : 1,
+    },
+    {   #14 Smite
+        "StatChanges": [{
+            "Target": 1,
+            "Attribute": "Stunned",
+            "Change": True,
+            "Time": 1
+        }],
+        "Cooldown"  : 10,
+        "Range"     : 1,
+    },
+    {   #15 self armor buff
+        "StatChanges": [{
+            "Target": 0,
+            "Attribute": "Armor",
+            "Change": 15,
+            "Time": 3
+        }],
+        "Cooldown"  : 10,
+        "Range"     : 0,
+    },
+    {   #16 corruption
+        "StatChanges": [{
+            "Target": 1,
+            "Attribute": "Health",
+            "Change": -100,
+            "Time": 3
+        }],
+        "Cooldown"  : 10,
+        "Range"     : 2,
+    },
 ]
