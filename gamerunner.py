@@ -45,7 +45,7 @@ def launch_client_test_game(client, port):
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Launch the server with p clients which "
+        description="Launch the server with 2 clients which "
         + "connect to it.")
     parser.add_argument(
         "-u", "--port",
@@ -66,12 +66,6 @@ def parse_args():
         "For example, ./gamerunner.py --log LOG.out. Default: {0}".
         format(miscConstants.logFile),
         default=miscConstants.logFile)
-    parser.add_argument(
-        "-t", "--teams",
-        help="Specifies the number of teams. Default: {0}."
-        .format(gameConstants.numPlayers),
-        default=gameConstants.numPlayers,
-        type=int)
     parser.add_argument(
         "-c", "--client",
         help="Specifies one or more clients to run. " +
@@ -111,7 +105,10 @@ def parse_args():
         type=int)
 
     args = parser.parse_args()
-    if args.teams < 2:
+
+    args.teams = gameConstants.numPlayers
+
+    if args.teams != 2:
         sys.stdout.write(parser.format_usage())
         print ("{0}: error: Cannot run with less than two players".format(
             parser.prog))

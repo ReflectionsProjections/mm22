@@ -1,3 +1,4 @@
+"use strict";
 /*
     Author: Michael Rechenberg
 
@@ -28,6 +29,14 @@
         internal clock and having the functions be called after TIME_TO_NEXT_UPDATE 
         milliseconds have elapsed
 
+    The core game loop goes as follows (looping call to processTurn):
+      As long as there are turns in serverJSON (an array containing turns sent from the server)
+        Dequeue the turn
+        Move the character sprites on the screen
+        Add all spells using addSpell, then call releaseSpell to release them all
+        Update the statscreen (update healthbars/attribute strings, move characters)
+      
+
     The server will send a lot of JSON, but it will be added
      to a queue and the front element will be dequeued every
      time the turn is displayed onto the screen, as determined by
@@ -40,8 +49,6 @@
         visualizer (Jack, Eric, Asaf)
     TODO: Create queue for JSON to be parsed
     TODO: Remove any dummy data/variables/JSON
-	TODO: Have updateSinglePlayerStats and updateMultiPlayerStats
-		so that instead of random data it uses serverJSON
 
 
     -----MAP----
@@ -58,20 +65,10 @@
     V
 
     ----/MAP----
-
-    What Will Happen For Every Bit Of JSON
-        Update Stats Screen Data
-        Move Characters
-            Have each character fit in the next "quadrant"
-                Can characters move w/in a quadrant???
-        Add any spells/actions to the spells group w/ addSpell()
-        Release any of the spells with releaseSpells()
-
-
 */
 
 //----------Constants and Global Variables------------//
-
+var WEBSOCKET_SERVER_FQDN = "ws://localhost:8080/"
 
 
 function WebSocketTest()
@@ -81,7 +78,7 @@ function WebSocketTest()
                alert("WebSocket is supported by your Browser!");
                
                // Let us open a web socket
-               var ws = new WebSocket("ws://localhost:8080/");
+               var ws = new WebSocket(WEBSOCKET_SERVER_FQDN);
                 
                ws.onopen = function()
                {
@@ -92,16 +89,23 @@ function WebSocketTest()
                 
                ws.onmessage = function (evt) 
                { 
-                // TODO: Implement updates
-                // This is the important function
-
+                  console.log(evt);  
                   var received_msg = evt.data;
-                  alert("Message is received...");
 
-                  console.log(received_msg);
-                  //TODO: Should this enqueue rather than assign?
-                  serverJSON = received_msg; // JSON.parse
-                  // update everything
+                  var reader = new FileReader();
+                  reader.addEventListener("loadend", function(){
+                      var arrayOfTurns = JSON.parse(reader.result).data;
+                      console.log("Data given by server");
+                      console.log(arrayOfTurns);
+                      arrayOfTurns.forEach(function(data){
+                        serverJSON.push(data);
+                      });
+                  });
+                  
+                  alert("Message is received...");
+                  reader.readAsText(received_msg);
+                  //serverJSON empty check if first load is heavy 
+                  //JSON.parse?
                };
                 
                ws.onclose = function()
@@ -117,7 +121,7 @@ function WebSocketTest()
                alert("Game NOT supported by your Browser!");
             }
          }
-
+WebSocketTest();
 //Queue containing all the JSON from the server
 var serverJSON = [];
 
@@ -128,7 +132,7 @@ var TIME_TO_NEXT_UPDATE = 2000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
-var TIME_FOR_SPELLS = 500;
+var TIME_FOR_SPELLS = 1000;
 
 
 
@@ -145,6 +149,7 @@ var STAT_WIDTH = 400;
 //Constant to define the x and y coords of any sprite we load
 //  but don't want to be visible
 var OFF_SCREEN = -500;
+
 
 
 //Reference to the core game object
@@ -166,8 +171,13 @@ var singleGraphics;
 var multiGraphics;
 
 
-//width and height of a character's sprite, in pixels
+//Width and height of a character's sprite, in pixels
 var CHARACTER_DIMENSION = 40;
+
+//Used to add distance in px in the x and y direction if we set 
+//  the anchor of character sprites to 0.5
+//If we have anchor be its default (top-left corner), set this to 0
+var ANCHOR_OFFSET = CHARACTER_DIMENSION/2;
 
 //width and height of a quadrant, in pixels
 //The each quadrant is accessed by multiplying QUADRANT_DIMENSION  
@@ -192,7 +202,7 @@ var spells;
 
 
 
-//Object to contain all of the handles to Phaser text objects 
+//Core Game Object to contain all of the handles to Phaser text objects 
 //  and other things relevant to the stats screen
 var statScreen = {
     //If true, display all the character's stats
@@ -219,7 +229,11 @@ var statScreen = {
             "Bar" : null,
             "HealthText" : null,
             "HEALTH_BAR_X" : GAME_WIDTH + 10,
-        }
+        },
+        //Contains the index of the currently tracked player's position
+        //  within the statScreen.MultiPlayer array
+        //Defaults to 0 (Player One)
+        "PlayerIndex" : 0,
     },
     //Contains All the players, in order
     "MultiPlayer" : [
@@ -246,6 +260,7 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             //Handle to the Rect Object indicating the player's health
             "HealthBar" : null,
@@ -271,6 +286,7 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             "HealthBar" : null
         },
@@ -295,6 +311,7 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             "HealthBar" : null
         },
@@ -319,6 +336,7 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             "HealthBar" : null
         },
@@ -343,6 +361,7 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             "HealthBar" : null
         },
@@ -367,10 +386,12 @@ var statScreen = {
                 "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
+                "Health" : 500,
              },
             "HealthBar" : null
         },
-    ]
+    ],
+    "CurrentTurn" : null,
 
 };
 
@@ -407,7 +428,8 @@ var DEF_COLOR = "#ffa366"
 
 //Health Bar Constants
 var HEALTH_BAR_COLOR = 0x33CC33;
-
+//maximum width in pixels the Health Bar will be
+var HEALTH_BAR_MAX_WIDTH = 360;
 
 
 
@@ -416,18 +438,19 @@ var HEALTH_BAR_COLOR = 0x33CC33;
 //load our assets
 function preload () {
     //background image
-    game.load.image('background', 'assets/grid-background.jpg');
+    game.load.image('background', 'assets/Map-update.png');
 
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
-    //sprites for the characters
-    game.load.image('playerOne', 'assets/star40x40.png');
-    game.load.image('playerTwo', 'assets/dude1-40x40.png');
-    game.load.image('playerThree', 'assets/dude2-40x40.png');
-    game.load.image('playerFour', 'assets/star40x40.png');
-    game.load.image('playerFive', 'assets/dude1-40x40.png');
-    game.load.image('playerSix', 'assets/dude2-40x40.png')
-    game.load.image('spell1', 'assets/spell1.png');
+    //sprites for the characters and spells
+    game.load.image('playerOne', 'assets/mage_360.png');
+    game.load.image('playerTwo', 'assets/mage_360.png');
+    game.load.image('playerThree', 'assets/mage-2_360.png');
+    game.load.image('playerFour', 'assets/mage_360.png');
+    game.load.image('playerFive', 'assets/mage-2_360.png');
+    game.load.image('playerSix', 'assets/mage-2_360.png')
+    game.load.image('spell1', 'assets/spell-1_360.png');
+    game.load.image('spell2', 'assets/spell-2_360.png');
     
     //log success
     console.log("preload() complete");
@@ -438,12 +461,7 @@ function preload () {
     Initate any functions to be called on a looping schedule
 */
 function create () {
-    //enable physics, so far not necessary
-    //game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    // //tests queue system
-    // //TODO: Delete these 2 lines
-    populateQueue();
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
@@ -456,23 +474,39 @@ function create () {
     //Add all players to the characters group at their initial locations
     //TODO: add all characters to their intitial locations according to JSON
     //TODO: Let participants choose names for their character???
-    statScreen["MultiPlayer"][0].Sprite = characters.create(2 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerOne');
+    var initPos = calcXAndY(0, 0); 
+    statScreen["MultiPlayer"][0].Sprite = characters.create(initPos.x, initPos.y, 'playerOne');
     statScreen["MultiPlayer"][0].Sprite.name = "player One";
-    statScreen["MultiPlayer"][1].Sprite = characters.create(3 * QUADRANT_DIMENSION, 1 * QUADRANT_DIMENSION, 'playerTwo');
+    statScreen["MultiPlayer"][0].Sprite.index = 0;
+    initPos = calcXAndY(4, 4); 
+    statScreen["MultiPlayer"][1].Sprite = characters.create(initPos.x, initPos.y, 'playerTwo');
     statScreen["MultiPlayer"][1].Sprite.name = "player Two";
-    statScreen["MultiPlayer"][2].Sprite = characters.create(2* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerThree');
+    statScreen["MultiPlayer"][1].Sprite.index = 1;
+    initPos = calcXAndY(2, 4); 
+    statScreen["MultiPlayer"][2].Sprite = characters.create(initPos.x, initPos.y, 'playerThree');
     statScreen["MultiPlayer"][2].Sprite.name = "player Three";
-    statScreen["MultiPlayer"][3].Sprite = characters.create(3* QUADRANT_DIMENSION, 3*QUADRANT_DIMENSION, 'playerFour');
+    statScreen["MultiPlayer"][2].Sprite.index = 2;
+    initPos = calcXAndY(3, 2); 
+    statScreen["MultiPlayer"][3].Sprite = characters.create(initPos.x, initPos.y, 'playerFour');
     statScreen["MultiPlayer"][3].Sprite.name = "player Four";
-    statScreen["MultiPlayer"][4].Sprite = characters.create(4* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerFive');
+    statScreen["MultiPlayer"][3].Sprite.index = 3;
+    initPos = calcXAndY(0, 1); 
+    statScreen["MultiPlayer"][4].Sprite = characters.create(initPos.x, initPos.y, 'playerFive');
     statScreen["MultiPlayer"][4].Sprite.name = "player Five";
-    statScreen["MultiPlayer"][5].Sprite = characters.create(3* QUADRANT_DIMENSION, 2*QUADRANT_DIMENSION, 'playerSix');
+    statScreen["MultiPlayer"][4].Sprite.index = 4;
+    initPos = calcXAndY(1, 1); 
+    statScreen["MultiPlayer"][5].Sprite = characters.create(initPos.x, initPos.y, 'playerSix');
     statScreen["MultiPlayer"][5].Sprite.name = "player Six";
+    statScreen["MultiPlayer"][5].Sprite.index = 5;
+
+    statScreen.MultiPlayer.forEach(function(a){
+      a.Sprite.anchor.setTo(0.5);
+    });
 
     //TODO: Code to add each player to teamA or teamB, use the JSON
 
 
-
+    //TODO: Initialize the initial values of their attributes (MultiPlayer[index].InitialValue[attribute])
 
     //enable input for all character sprites
     characters.setAll('inputEnabled', true);
@@ -487,26 +521,25 @@ function create () {
     //  TIME_TO_NEXT_UPDATE milliseconds
     //This function will only update the screen if serverJSON has 
     //  data within it (we aren't waiting for the server to send JSON over)
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, updateStatScreen, this);
+    game.time.events.loop(TIME_TO_NEXT_UPDATE, processTurn, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     singleGraphics = game.add.graphics();
     multiGraphics = game.add.graphics();
 
-    //TODO: Decide if we want to start with multiplayer or single player overlay
-    //draw the Single Player Stat Screen
-    //Inits with 
+    //initializes both SinglePlayer and MultiPlayer screens, but keeps the MultiPlayer 
+    //  screen active
     initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
-    killSinglePlayerStatScreen();
+    hideSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
     multiButton = game.add.text(GAME_WIDTH+250, 550, "MULTI", {font: "4em Arial", fill: "#ff944d"});
     multiButton.inputEnabled = true;
-    multiButton.events.onInputDown.add(reviveMultiPlayerStatScreen, this);
+    multiButton.events.onInputDown.add(showMultiPlayerStatScreen, this);
 
     singleButton = game.add.text(GAME_WIDTH+20, 550, "SINGLE", {font: "4em Arial", fill: "#ff944d"});
     singleButton.inputEnabled = true;
-    singleButton.events.onInputDown.add(reviveSinglePlayerScreen, this);
+    singleButton.events.onInputDown.add(showSinglePlayerStatScreen, this);
 
 
     //log success
@@ -571,10 +604,13 @@ var spellList = [];
         certain spell.
 */
 function addSpell(caster, target, spellName){
+    //add spell to center of sprite
+    var newSpell = game.add.sprite(caster.x, caster.y, spellName);
+    newSpell.anchor.setTo(0.5);
     //add the spell sprite to the spells group
     //  and add the corresponding spell's sprite 
     //  to the caster's current position
-    spells.create(caster.x, caster.y, spellName);
+    spells.add(newSpell);
     //add the caster and target to the spellList array
     spellList.push({"caster" : caster, "target" : target});
 }
@@ -582,26 +618,40 @@ function addSpell(caster, target, spellName){
 /*
     Releases all the spells that were added by addSpell(),
     moving each spell sprite to their respective target.
+    The spell first remains at the sprite of the caster
+      (so people can see who is casting the spell),
+      then it travels to it's target.
     This function clears both spellList and the spells group.
 */
 function releaseSpells(){
     //Go through all the spells in the spells group
     //  and tween them to their targets
     var index = spellList.length-1;
-    var tween;
+    var holdOnCaster;
+    var moveToTarget;
     while(index >= 0){
         //get the child, starting at the end of the group
         //  and moving towards the first element
         var currentSpell = spells.getChildAt(index);
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
-        tween = game.add.tween(currentSpell).to({x: spellList[index].target.x + 10, 
-            y: spellList[index].target.y + 10}, TIME_FOR_SPELLS, null, true);
+        holdOnCaster = game.add.tween(currentSpell).to({
+            x: spellList[index].caster.x, 
+            y: spellList[index].caster.y
+          }, 
+          TIME_FOR_SPELLS/2, null);
+        moveToTarget = game.add.tween(currentSpell).to({
+            x: spellList[index].target.x, 
+            y: spellList[index].target.y
+          }, 
+          TIME_FOR_SPELLS/2, null);
+        holdOnCaster.chain(moveToTarget);
+        holdOnCaster.start();
         index--;
     }
     
     //cleanup
     spellList = [];
-    tween.onComplete.add(function(){
+    moveToTarget.onComplete.add(function(){
         spells.removeAll(true, false);
     }, 
     this);
@@ -703,8 +753,7 @@ var nextQuadrantSpaceAvailable = [
       playerTwo, playerThree...
 
 */
-function moveCharactersQuadrant(nextTurn){
-    //TODO: Use absolute position if JSON from server gives that
+function moveCharactersQuadrant(currTurn){
 
     //reset nextQuadrantSpaceAvailable so all spaces are available
     for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
@@ -713,7 +762,6 @@ function moveCharactersQuadrant(nextTurn){
             nextQuadrantSpaceAvailable[i][j][1] = 0;
         } 
     }
-    randomizeMovement();
     for(var k in dummyMovement){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
@@ -852,15 +900,18 @@ function moveCharactersQuadrantAbsolute(){
 
     //have the sprites move to a random location (x,y) = ((0-4),(0-4))
     var index = 0;
-    for( k in dummyMovement ){
+    for(var k in dummyMovement ){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
+
+        //TODO: Replace dummyMovement with movement data from JSON
         newQuadrantCol = dummyMovement[k]["x"];
         newQuadrantRow = dummyMovement[k]["y"];
+        var newPosition = calcXAndY(dummyMovement[k]["x"], dummyMovement[k]["y"]);
         //move them into the quadrant at the top-left corner
-        statScreen["MultiPlayer"][index].Sprite.x = dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-        statScreen["MultiPlayer"][index].Sprite.y = dummyMovement[k]["y"] * QUADRANT_DIMENSION;
+        statScreen["MultiPlayer"][index].Sprite.x = newPosition.x;
+        statScreen["MultiPlayer"][index].Sprite.y = newPosition.y;
         //move them again to the next column if they're isn't room in the quadrant
         statScreen["MultiPlayer"][index].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
         statScreen["MultiPlayer"][index].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
@@ -876,9 +927,10 @@ function moveCharactersQuadrantAbsolute(){
 
     //Add spells for testing
     //TODO: Delete this
-    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][1].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
+    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
+    addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
     releaseSpells();
 }
 
@@ -920,7 +972,7 @@ function moveCharactersQuadrantAbsolute(){
     Draws the SinglePlayer Stat Screen and tracks the character's stats
     This should be called only once as it actually creates Text Objects.
     If you want to redraw the single player stats screen after killing it,
-        call reviveSinglePlayerScreen()
+        call showSinglePlayerStatScreen()
 
     character--The variable referring to the Sprite of the character
         (defaults to player one)
@@ -929,8 +981,6 @@ function initSinglePlayerStatScreen(character){
     var HEALTH_BAR_X = GAME_WIDTH + 10;
     var HEALTH_BAR_Y = 100;
     var HEALTH_BAR_HEIGHT = 20;
-    //maximum width in pixels the Health Bar will be
-    var HEALTH_BAR_MAX_WIDTH = 360;
     console.log("initSinglePlayerScreen");
     statScreen.ShowAll = false;
 
@@ -942,7 +992,7 @@ function initSinglePlayerStatScreen(character){
     //redraw the healthbar and the text saying 'Health'
     singleGraphics.beginFill(HEALTH_BAR_COLOR);
     statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        HEALTH_BAR_MAX_WIDTH, 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
     statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
@@ -993,7 +1043,7 @@ function initMultiPlayerStatScreen(){
     //Y-coordinate of where to draw the attribute strings
     var attrStrY = 0;
     //Draw the player stats
-    for( player in statScreen.MultiPlayer){
+    for(var player in statScreen.MultiPlayer){
 
       //init character name
       statScreen.MultiPlayer[player].CharacterName = game.add.text(startX, yPos, 
@@ -1027,7 +1077,7 @@ function initMultiPlayerStatScreen(){
       //draw the healthbar
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
           strings.MovementSpeed.y + strings.MovementSpeed.height, 
-          (Math.floor(Math.random() * STAT_WIDTH)), 
+          HEALTH_BAR_MAX_WIDTH, 
           MULTI_HEALTHBAR_HEIGHT);
 
       //update yPos
@@ -1040,15 +1090,16 @@ function initMultiPlayerStatScreen(){
 }
 
 /**
-    Revives the Multiplayer screen by calling killSinglePlayerStatScreen()
+    Revives the Multiplayer screen by calling hideSinglePlayerStatScreen()
         and then calling revive() on all the text objects associated with
         the multiplayer screen
     This must be called after initMultiPlayerStatScreen has been called
-    TODO: Have Health Bars be filled w/ JSON Health instead of random
 */
-function reviveMultiPlayerStatScreen(){
-    console.log("reviveMultiPlayerStatScreen");
-    killSinglePlayerStatScreen();
+function showMultiPlayerStatScreen(){
+  //only change if we're at the single player screen now
+  if(!statScreen.ShowAll){
+    console.log("showMultiPlayerStatScreen");
+    hideSinglePlayerStatScreen();
     for (var player in statScreen.MultiPlayer){
             statScreen.MultiPlayer[player]["CharacterName"].revive();
             for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
@@ -1067,12 +1118,13 @@ function reviveMultiPlayerStatScreen(){
       strings = statScreen.MultiPlayer[player].AttributeStrings;
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
         strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        calcHealthBarWidth(statScreen.CurrentTurn, player), 
         MULTI_HEALTHBAR_HEIGHT);
 
     }
 
     multiGraphics.endFill();
+  }
 
 }
 
@@ -1080,8 +1132,8 @@ function reviveMultiPlayerStatScreen(){
     Helper function that calls kill() on all the Text Objects associated with the
         multiplayer stat screen
 */
-function killMultiPlayerStatScreen(){
-    console.log("killMultiPlayerStatScreen");
+function hideMultiPlayerStatScreen(){
+    console.log("hideMultiPlayerStatScreen");
     //clear all the healthbars
     multiGraphics.clear();
     //Call kill on all Phaser Text Objects of all players
@@ -1101,10 +1153,10 @@ function killMultiPlayerStatScreen(){
 /*
     Kills all of the single player stat screen's objects from being seen
     This does not destroy the object, but makes it invisible.
-    To show the single player stat screen again, call reviveSinglePlayerScreen
+    To show the single player stat screen again, call showSinglePlayerStatScreen
 */
-function killSinglePlayerStatScreen(){
-    console.log("killSinglePlayerStatScreen")
+function hideSinglePlayerStatScreen(){
+    console.log("hideSinglePlayerStatScreen")
     //indicate we are showing all of the player's stats
     statScreen.ShowAll = true;
     //Clears the healthbar
@@ -1128,23 +1180,23 @@ function killSinglePlayerStatScreen(){
     This method does not create new Text Objects, but rather "revives" the Text objects
         by calling Phaser's revive() method on them
 */
-function reviveSinglePlayerScreen(){
+function showSinglePlayerStatScreen(){
+  //only run if we're on the multiplayer screen
+  if(statScreen.ShowAll){
     console.log("reviveSinglePlayerStatScreen");
-    killMultiPlayerStatScreen();
+    hideMultiPlayerStatScreen();
     statScreen.ShowAll = false;
     statScreen.SinglePlayer.CharacterName.revive();
 
     var HEALTH_BAR_X = GAME_WIDTH + 10;
     var HEALTH_BAR_Y = 100;
     var HEALTH_BAR_HEIGHT = 20;
-    //maximum width in pixels the Health Bar will be
-    var HEALTH_BAR_MAX_WIDTH = 360;
 
     singleGraphics.clear();
     //redraw the healthbar and the text saying 'Health'
     singleGraphics.beginFill(HEALTH_BAR_COLOR);
     statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+        calcHealthBarWidth(statScreen.CurrentTurn, statScreen.SinglePlayer.PlayerIndex), 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
 
@@ -1158,7 +1210,7 @@ function reviveSinglePlayerScreen(){
         }
     }
     
-
+  }
 
     
 }
@@ -1169,23 +1221,22 @@ function reviveSinglePlayerScreen(){
         MultiPlayer StatScreen
         SinglePlayer StatScreen
 */
-function updateStatScreen(){
-	if(serverJSON.length > 0){
-		//dequeue
-		var nextTurn = serverJSON.shift();
-        //move the sprites
-        moveCharactersQuadrantAbsolute(nextTurn);
-        //TODO: write helper function to add all spells
-        //call release spells after ^^^
+function processTurn(){
+  if(serverJSON.length > 0){
+    //dequeue
+    var currTurn = serverJSON.shift();
+    console.log(currTurn);
+    statScreen.CurrentTurn = currTurn;
+    //move the sprites
+    moveCharactersQuadrantAbsolute(currTurn);
+    //TODO: write helper function to add all spells
+    //call release spells after ^^^
 
-
-        //update the stats screen
-        if(statScreen.ShowAll == true){
-      	    updateMultiPlayerStatScreen(nextTurn);
-       	}
-       	else
-       	    updateSinglePlayerStatScreen(nextTurn);
-	}
+    //update both stat screens (although only one will be showing)
+    //  at any time
+    updateMultiPlayerStatScreen(currTurn);
+    updateSinglePlayerStatScreen(currTurn);
+  }
 }
 
 
@@ -1193,23 +1244,23 @@ function updateStatScreen(){
 /**
     Changes which character's stats are displayed
         in the SinglePlayer screen.
-	
-	character--the Phaser.Sprite object associated with that
-		character
+  
+  character--the Phaser.Sprite object associated with that
+    character
 */
 function changeStatScreen(character){
-    console.log("changeStatScreen called");
-    console.log(character.name);
+    //update PlayerIndex of statScreen 
+    statScreen.SinglePlayer.PlayerIndex = character.index;
     statScreen.SinglePlayer.CharacterNameString = character.name;
     //clear all graphics drawn from the graphics reference
     singleGraphics.clear();
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
-    if(statScreen.ShowAll == false)
-        updateHealthBar(character);
-
-
+    //redraw health bar if on the single player screen
+    if(!statScreen.ShowAll){
+      updateSinglePlayerHealthBar(statScreen.CurrentTurn);
+    }
 }
 
 
@@ -1223,59 +1274,45 @@ function changeStatScreen(character){
     Currently this has random data, but once the JSON is finalized
         I can add in the logic
 
-	  Parameters:
-      nextTurn--the turn as given by the server(JSON)
+    Parameters:
+      currTurn--the turn as given by the server(JSON)
 
     Warning: This has a hardcoded font size for the AttributeStrings rather than attrStyle
         (didn't want to make that a global variable)
 */
-//TODO: Work with actual JSON rather than random data
-function updateMultiPlayerStatScreen(nextTurn){
+function updateMultiPlayerStatScreen(currTurn){
     console.log("updateMultiPlayerStatScreen");
 
-	//update the strings
-    for (var player in statScreen.MultiPlayer){
-        if(statScreen.MultiPlayer.hasOwnProperty(player)){
-            for (var attrString in statScreen.MultiPlayer[player]["AttributeStrings"]){
-                if(statScreen.MultiPlayer[player]["AttributeStrings"].hasOwnProperty(attrString)){
-
-                    switch(Math.floor(Math.random()*3)){
-                        //make the string red
-                        case 0:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#ff0000"});
-                            break;
-                        //make the string green
-                        case 1:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: "#00ff00"});
-                            break;
-                        //make the string orange (neutral)
-                        default:
-                            statScreen.MultiPlayer[player]["AttributeStrings"][attrString].setStyle({font: "2em Arial", fill: DEF_COLOR});
-                            break;
-
-                    }
-                        
-                }
+    //update the color of the strings
+    statScreen.MultiPlayer.forEach(function(player, index){
+        for (var attrString in player["AttributeStrings"]){
+            if(player["AttributeStrings"].hasOwnProperty(attrString)){               
+                player["AttributeStrings"][attrString].setStyle({
+                    font: "2em Arial", 
+                    fill: chooseColor(currTurn, index, attrString) 
+                });
             }
         }
+    }); 
 
-    }
-
-    //update healthbars
+    //update healthbars only if we're on the multiplayer stat screen
     multiGraphics.clear();
-    multiGraphics.beginFill(HEALTH_BAR_COLOR);
-    var startX = GAME_WIDTH + 20;
-    var MULTI_HEALTHBAR_HEIGHT = 10;
-    var strings;
-    for (player in statScreen.MultiPlayer){
-      strings = statScreen.MultiPlayer[player].AttributeStrings;
-      statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
-        strings.MovementSpeed.y + strings.MovementSpeed.height, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
-        MULTI_HEALTHBAR_HEIGHT);
-    }
+    if(statScreen.ShowAll){
+      multiGraphics.beginFill(HEALTH_BAR_COLOR);
+      var startX = GAME_WIDTH + 20;
+      var MULTI_HEALTHBAR_HEIGHT = 10;
+      var strings;
+      for (var player in statScreen.MultiPlayer){
+        strings = statScreen.MultiPlayer[player].AttributeStrings;
+        statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(
+          startX, 
+          strings.MovementSpeed.y + strings.MovementSpeed.height, 
+          calcHealthBarWidth(currTurn, player),
+          MULTI_HEALTHBAR_HEIGHT);
+      }
 
-    multiGraphics.endFill();
+      multiGraphics.endFill();
+    }
 }
 
 /**
@@ -1284,18 +1321,15 @@ function updateMultiPlayerStatScreen(nextTurn){
     If the character selected has changed, call changeStatScreen() before this
 
    Parameters:
-    --nextTurn The next turn that was dequeued from the serverJSON
+    --currTurn The next turn that was dequeued from the serverJSON
 */
-//TODO: Repalce dummyPlayer with actual JSON from server
-//		
-function updateSinglePlayerStatScreen(nextTurn){
-	console.log("updateSinglePlayerStatScreen");
+function updateSinglePlayerStatScreen(currTurn){
+  console.log("updateSinglePlayerStatScreen");
   singleGraphics.clear();
-
-  updateHealthBar(nextTurn);
-
-	  //TODO: Need to choose which character's stats to read
-
+  //only redraw the health bar if we're on the single player stat screen
+  if(!statScreen.ShowAll){
+    updateSinglePlayerHealthBar(currTurn);
+  }
 
     // update each Attribute String with data from the queue, and randomly switch each string to be 
     //  red (#ff0000) or green (#00ff00)
@@ -1303,13 +1337,12 @@ function updateSinglePlayerStatScreen(nextTurn){
     
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
-            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + nextTurn.stats[attrStr]);
-            //make the stats green or red by random
-            if(Math.floor(Math.random()*2)==0)
-                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#ff0000"});
-            else
-                statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({font: "3em Arial", fill: "#00ff00"});
-
+            //TODO: Change Text using whatever JSON format server has
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
+            statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
+                font: "3em Arial", 
+                fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
+            });
         }
     }
 
@@ -1317,46 +1350,136 @@ function updateSinglePlayerStatScreen(nextTurn){
 
 
 /**
-    Redraws the Health Bar
+    Redraws the Health Bar for the Single Player StatScreen
     Currently it sets to health bar to a random value,
         but later it will set to the health of the current
         player.
 
    Parameters:
-    --nextTurn The next turn that was dequeued from the serverJSON
+    --currTurn The next turn that was dequeued from the serverJSON
 */
-//TODO: Have this fill the bar proportional to the % of the health the player has
-//TODO: Use nextTurn data
-function updateHealthBar(nextTurn){
+function updateSinglePlayerHealthBar(currTurn){
 
     var HEALTH_BAR_X = GAME_WIDTH + 10;
     var HEALTH_BAR_Y = 100;
     var HEALTH_BAR_HEIGHT = 20;
-    //maximum width in pixels the Health Bar will be
-    var HEALTH_BAR_MAX_WIDTH = 360;
+    //Calculate the width of the bar as a percentage of the player's current health
+    var healthBarWidth = calcHealthBarWidth(currTurn, statScreen.SinglePlayer.PlayerIndex);
     //redraw the health bar
     singleGraphics.beginFill(HEALTH_BAR_COLOR);
-    statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(HEALTH_BAR_X, HEALTH_BAR_Y, 
-        (Math.floor(Math.random() * STAT_WIDTH)), 
+    statScreen.SinglePlayer.HealthBar.Bar = singleGraphics.drawRect(
+        HEALTH_BAR_X, 
+        HEALTH_BAR_Y, 
+        healthBarWidth, 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
 }
 
 
+
+
+//----------------------HELPER FUNCTIONS----------------------//
+
 /**
-  Redraws the Health Bar for the MultiPlayer screen
+  Returns the width of the Health Bar, adjusted for the 
+    player's current health
 
-  Parameters:
-    --health The Integer value of the health
-    --player An element of statScreen.MultiPlayer, which represents
-        the  player whose health is being redrawn 
+  Params:
+    --currTurn: The current turn given from serverJSON
+    --playerNumber: The index of the player in the statScreen.MultiPlayer array
   */
-
-//TODO: Finish
-function updateHealthBarMulti(health, player){
+function calcHealthBarWidth(currTurn, playerNumber){
+  if(currTurn == null){
+    return HEALTH_BAR_MAX_WIDTH;
+  }
+    //TODO: Replace currTurn.stats.Health with whatever JSON format 
+    //  the server returns currTurn["foo"]["bar"]["whatever"]
+    return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
+        HEALTH_BAR_MAX_WIDTH);
 }
 
-//-----------------Test Functions--------------//
+/**
+  Returns which color the attribute string should be
+    based on the player's current stats.
+  Returns RED if the player's current stats are below their
+    intial value.
+  Returns GREEN if the player's current stats are above their
+    intial value.
+  Returns DEF_COLOR if the player's current stats are at their
+    intial value.
+
+  This function should not be called to handle Health.
+
+  Params:
+    --currTurn: The current turn given from serverJSON
+    --playerNumber: The index of the player in the statScreen.MultiPlayer array
+    --attribute: The attribute of the player we are looking at
+*/
+function chooseColor(currTurn, playerNumber, attribute){
+  var RED = '#ff0000';
+  var GREEN = '#00ff00';
+  //TODO: Refactor the variables to fit the format of the server's JSON
+
+  var currValue = currTurn.stats[attribute];
+  var initialValue = statScreen.MultiPlayer[playerNumber].InitialValue[attribute];
+     
+  if(currValue === initialValue){
+    return DEF_COLOR;
+  }
+  else if (currValue < initialValue){
+    return RED;
+  }
+  else if (currValue > initialValue){
+    return GREEN;
+  }
+  //returns white, should never be reached
+  else{
+    return '#ffffff';
+  }
+}
+
+/**
+  Helper function that returns x and y positions of sprites based on which 
+    "quadrant" they are in.
+  Takes into account anchor offset
+  Returns undefined if the row or column is not [0-4]
+  */
+function calcXAndY(row, column){
+  if(row < 0 || row > 4 || column < 0 || column > 4){
+    return undefined
+  }
+  return {
+    x: row * QUADRANT_DIMENSION + ANCHOR_OFFSET,
+    y: column * QUADRANT_DIMENSION + ANCHOR_OFFSET,
+  };
+}
+
+/**
+  Helper function that takes current Turn and converts it 
+    to a flat array with only players' stats
+  */
+function convertTurnToPlayerArray(currTurn){
+  var playerArray = [];
+  currTurn.teams.forEach(function(team){
+      team.characters.forEach(function(player){
+          playerArray.push(player);
+      });
+  });
+  return playerArray;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//---------------Functions Used for Testing/Development--------------//
 
 //Helper function for moveCharactersQuadrantTest()
 //Randomizes the x and y of dummyLocation to an integer [0-4]
@@ -1376,31 +1499,28 @@ function randomizeMovement(){
 //Populates the queue with random data 
 
 function populateQueue(){
-    for(i = 0; i < 1500; i++){
-        var derp = {
-            "name" : null,
-            "stats" : {
-                "Health"        : 0,
-                "Damage"        : 0,
-                "AbilityPower" : 0,
-                "AttackRange"   : 0,
-                "AttackSpeed"   : 0,
-                "Armor"         : 0,
-                "MovementSpeed" : 0,
-                "Abilities"     : [ 1 ]
-            }, 
-            "actions" : {
-                "1" : "My Action"
-            }
-        };
-        derp["name"] = "Johnson";
-        for(var k in derp["stats"]){
-            if(derp["stats"].hasOwnProperty(k)){
-                derp["stats"][k] = Math.floor(Math.random()*300);
-            }
-        }
-        serverJSON.push(derp);
+    for(var i = 0 ; i < 10; i++){
+        var asdf = new Move();
+        asdf.stats.Health = Math.floor(Math.random()*500);
+        //for(var k in asdf["stats"]){
+        //    if(asdf["stats"].hasOwnProperty(k)){
+        //        asdf["stats"][k] = Math.floor(Math.random()*300);
+        //    }
+        //}
+        serverJSON.push(asdf);
     }
+}
+
+function Move(){
+  this.stats = {
+    "Health": 0,
+    "Damage" : 20,
+    "AbilityPower" : 5,
+    "AttackRange" : 7,
+    "AttackSpeed" : 10,
+    "Armor" : 20,
+    "MovementSpeed" : 8,
+  };
 }
 
 
