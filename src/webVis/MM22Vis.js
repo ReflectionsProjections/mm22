@@ -426,12 +426,8 @@ function preload () {
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
     //sprites for the characters and spells
-    game.load.image('playerOne', 'assets/mage_360.png');
-    game.load.image('playerTwo', 'assets/mage_360.png');
-    game.load.image('playerThree', 'assets/mage-2_360.png');
-    game.load.image('playerFour', 'assets/mage_360.png');
-    game.load.image('playerFive', 'assets/mage-2_360.png');
-    game.load.image('playerSix', 'assets/mage-2_360.png')
+    game.load.image('mage1', 'assets/mage_360.png');
+    game.load.image('mage2', 'assets/mage-2_360.png');
     game.load.image('spell1', 'assets/spell-1_360.png');
     game.load.image('spell2', 'assets/spell-2_360.png');
     
@@ -447,6 +443,8 @@ function create () {
 
     //Remove the first turn from the array (init information)
     var initInformation = serverJSON[0];
+    console.log("INIT INFO");
+    console.log(initInformation);
     serverJSON.shift();
 
     //set background image
@@ -471,7 +469,19 @@ function create () {
     //TODO: Have characters not be stacked on each other initially
     for(var index = 0; index < statScreen.MultiPlayer.length; index++){
       var initPos = calcXAndY(characterArray[index].x, characterArray[index].y);
-      statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, 'playerOne');
+     
+      //refers to the key of the preloaded sprite for character sprites 
+      var spriteName = '';
+      //this is just to have each team have one of the 2 mage sprites
+      //  for the MM22 demo on Sep 12
+      //spriteName = characterArray[index].name + teamNum
+      if(index < 3){
+        spriteName = 'mage1';
+      }
+      else{
+        spriteName = 'mage2';
+      }
+      statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, spriteName);
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
       statScreen.MultiPlayer[index].Sprite.index = 0;
@@ -867,7 +877,7 @@ function moveCharactersQuadrant(currTurn){
     Uses assignment from the JSON rather than a +=, so use this if
     the JSON gives ABSOLUTE position rather than relative displacement
 */
-function moveCharactersQuadrantAbsolute(){
+function moveCharactersQuadrantAbsolute(currTurn){
 
    //reset nextQuadrantSpaceAvailable so all spaces are available
     for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
@@ -879,6 +889,9 @@ function moveCharactersQuadrantAbsolute(){
    
     //TODO: Delete this line in production, used for testing for now
     randomizeMovement();
+
+    //TODO: get the positions of each player from currTurn
+    //  and use that instead of randomizeMovement & dummyMovement
 
     //have the sprites move to a random location (x,y) = ((0-4),(0-4))
     var index = 0;
@@ -1371,10 +1384,11 @@ function calcHealthBarWidth(currTurn, playerNumber){
     return HEALTH_BAR_MAX_WIDTH;
   }
   var characterArray = convertTurnToPlayerArray(currTurn);
-    //TODO: Replace currTurn.stats.Health with whatever JSON format 
-    //  the server returns currTurn["foo"]["bar"]["whatever"]
-    return Math.floor(((characterArray[playerNumber].Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
-        HEALTH_BAR_MAX_WIDTH);
+  var currHealth = characterArray[playerNumber].attributes.Health;
+  var maxHealth = statScreen.MultiPlayer[playerNumber].InitialValue.Health;
+  var width = Math.floor((currHealth*HEALTH_BAR_MAX_WIDTH)/maxHealth);
+  console.log(width);
+  return width;
 }
 
 /**
