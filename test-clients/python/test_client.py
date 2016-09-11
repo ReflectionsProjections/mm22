@@ -24,7 +24,15 @@ def log(x,c=printColors.BLUE):
 # Set initial connection data
 def initialResponse():
     # @competitors YOUR CODE HERE
-    return {'teamName':'test', 'characters': [{"characterName": "dummy_1", "classId": "dummy_one"}]}
+    return {'teamName':'test',
+            'characters': [
+                {"characterName": "warrior_one",
+                 "classId": "warrior"},
+                {"characterName": "warrior_two",
+                 "classId": "warrior"},
+                {"characterName": "warrior_three",
+                 "classId": "warrior"},
+            ]}
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):

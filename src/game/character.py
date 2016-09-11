@@ -29,8 +29,11 @@ class Character(object):
         self.debuffs = []
         self.pending_stat_changes = []
 
-    def init(self, json):
+    def init(self, json, x, y):
         error = ""
+
+        self.posX = x
+        self.posY = y
 
         if 'classId' not in json:
             error += "Could not find classId key in json. defaulting to Warrior."

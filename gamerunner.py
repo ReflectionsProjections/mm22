@@ -8,9 +8,9 @@ sys.path.append(path)
 
 from subprocess import Popen
 import argparse
-from src.game.game import Game
-import time
+import json
 
+from src.game.game import Game
 from src.server.server import MMServer
 
 import src.misc_constants as miscConstants
@@ -124,33 +124,24 @@ def parse_args():
     return args
 
 
-# A simple logger that writes things to a file and, if enabled, to the visualizer
+# A simple logger that writes things to a file
 class Logger(object):
 
-    def __init__(self, fileName):
+    def __init__(self, filename):
         # Logs
-        self.file = fileName
-        self.file_lines = []
+        self.filename = filename
+        self.turns = []
 
-    # The function that logs will be sent to
-    # @param stuff
-    #   The stuff to be printed
-    def print_stuff(self, json):
-        self.file_lines.append(json)
+        open(filename, 'w').close()
 
-        print("Turn " + str(len(self.file_lines)))
-
-        if self.file is not None:
-            with open(self.file, 'a') as f:
-                f.write(json + '\n')
+    def print_stuff(self, data):
+        self.turns.append(data)
+        print("Turn finished: " + str(len(self.turns)))
 
     def write_to_file(self):
-        # write to log
-        for line in self.file_lines:
-            if self.file is not None:
-                with open(self.file, 'a') as f:
-                    f.write(line + '\n')
-
+        with open(self.filename, 'a') as outfile:
+            for turn in self.turns:
+                outfile.write(turn + "\n")
 
 def main():
     global parameters
@@ -185,9 +176,7 @@ def main():
                         my_game,
                         logger=fileLog)
         serv.run(parameters.port, launch_clients)
-        with open(parameters.log, 'w'):
-            pass
-#        fileLog.write_to_file()
+        fileLog.write_to_file()
 
 class Client_program(object):
 

@@ -20,11 +20,12 @@ class Team:
         self.name = name
         self.characters = []
         self.id = Team.get_new_team_id()
+        self.start_pos = (0,0) if self.id == 1 else (4,4)
 
     def add_character(self, json):
         new_character = Character()
 
-        error = new_character.init(json)
+        error = new_character.init(json, self.start_pos[0], self.start_pos[1])
 
         if not error:
             self.characters.append(new_character)

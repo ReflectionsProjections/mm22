@@ -108,6 +108,12 @@ class Game(object):
                     # If there is no target, target is the player player
                     if not target:
                         target = player
+
+                    if character.dead:
+                        actionResult["message"] = "Invalid character: Character is dead"
+                    elif target.dead:
+                        actionResult["message"] = "Invalid target: target is dead"
+
                     if character:
                         if action == "move":
                             if targetId != -1:
@@ -168,8 +174,6 @@ class Game(object):
                     actionResult["message"] = "Unknown exception: " + str(e)
 
                 actionResult["status"] = "fail" if "message" in actionResult else "ok"
-                if "message" not in actionResult:
-                    actionResult["powerSources"] = powerSources
 
                 # Record results
                 self.turnResults[playerId].append(actionResult)
@@ -184,7 +188,7 @@ class Game(object):
         for teamId, team in self.teams.items():
             alive_team = False
             for character in team.characters:
-                if character.attributes.get_attribute("Health") != 0:
+                if not character.dead:
                     alive_team = True
             if alive_team:
                 alive_teams.append(team.id)
@@ -203,7 +207,7 @@ class Game(object):
         return {
             "playerInfo": self.playerInfos[playerId],
             "turnResult": self.turnResults.get(playerId, [{"status": "fail", "message": "No turn executed."}]),
-            "teamInfo": self.teams[self.playerInfos[playerId]['teamId']].toJson()
+            "teams": [team.toJson() for teamId, team in self.teams.items()]
         }
 
     # Return the entire state of the map
