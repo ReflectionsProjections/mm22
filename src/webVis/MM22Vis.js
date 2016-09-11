@@ -494,6 +494,8 @@ function create () {
       }
       
     }
+    //move the characters so they fit into the regions correctly
+    moveCharactersQuadrantAbsolute(serverJSON[0]);
 
 
     //enable input for all character sprites
@@ -887,23 +889,25 @@ function moveCharactersQuadrantAbsolute(currTurn){
         } 
     }
    
-    //TODO: Delete this line in production, used for testing for now
-    randomizeMovement();
+    //contains the positions(x,y) of players in an array as an object
+    var playerPositionArray = [];
+    var characterArray = convertTurnToPlayerArray(currTurn);
+    characterArray.forEach(function(playerObject, index){
+        playerPositionArray[index] = {
+          x: playerObject.x,
+          y: playerObject.y
+        };
+    });
+    
 
-    //TODO: get the positions of each player from currTurn
-    //  and use that instead of randomizeMovement & dummyMovement
-
-    //have the sprites move to a random location (x,y) = ((0-4),(0-4))
-    var index = 0;
-    for(var k in dummyMovement ){
+    for(var index = 0; index < characterArray.length; index++){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
 
-        //TODO: Replace dummyMovement with movement data from JSON
-        newQuadrantCol = dummyMovement[k]["x"];
-        newQuadrantRow = dummyMovement[k]["y"];
-        var newPosition = calcXAndY(dummyMovement[k]["x"], dummyMovement[k]["y"]);
+        newQuadrantCol = playerPositionArray[index].x;
+        newQuadrantRow = playerPositionArray[index].y;
+        var newPosition = calcXAndY(newQuadrantCol, newQuadrantRow);
         //move them into the quadrant at the top-left corner
         statScreen["MultiPlayer"][index].Sprite.x = newPosition.x;
         statScreen["MultiPlayer"][index].Sprite.y = newPosition.y;
@@ -917,7 +921,6 @@ function moveCharactersQuadrantAbsolute(currTurn){
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
         }
-        index++;
     }
 
     //Add spells for testing
@@ -1001,7 +1004,7 @@ function initSinglePlayerStatScreen(character){
     statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
         "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Ability Power: " + dummyPlayer.stats.SpellPower, {font: "3em Arial", fill: DEF_COLOR});
+        "Spell Power: " + dummyPlayer.stats.SpellPower, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
         "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
@@ -1053,7 +1056,7 @@ function initMultiPlayerStatScreen(){
         attrStrY, "DMG", attrstyle);
       strings.SpellPower = game.add.text(strings.Damage.x 
           + strings.Damage.width + 5,
-          attrStrY, "AP", attrstyle);
+          attrStrY, "SP", attrstyle);
       strings.AttackRange = game.add.text(strings.SpellPower.x 
           + strings.SpellPower.width + 5, 
           attrStrY, "AR", attrstyle);
@@ -1387,7 +1390,6 @@ function calcHealthBarWidth(currTurn, playerNumber){
   var currHealth = characterArray[playerNumber].attributes.Health;
   var maxHealth = statScreen.MultiPlayer[playerNumber].InitialValue.Health;
   var width = Math.floor((currHealth*HEALTH_BAR_MAX_WIDTH)/maxHealth);
-  console.log(width);
   return width;
 }
 
