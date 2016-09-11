@@ -114,7 +114,6 @@ hs_err_pid*
 
 # Pycharm
 .idea
-workspace.xml
 
 test-clients/c/client
 mm20-passwords.txt

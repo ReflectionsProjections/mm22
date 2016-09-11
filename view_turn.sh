@@ -11,4 +11,4 @@ if [ "$1" == "-h" ]; then
   exit 0
 fi
 let turn=$1+1
-head -n $turn src/gamerunner/log.json | tail -n 1 | python -m json.tool | less
+head -n $turn gamerunner/log.json | tail -n 1 | python -m json.tool | less
