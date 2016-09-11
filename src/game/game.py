@@ -72,6 +72,8 @@ class Game(object):
     # @returns True if the game is still running, False otherwise
     def execute_turn(self):
 
+        prioity_order = []
+
         # Execute turns
         self.turnResults = {}
         for playerId in self.queuedTurns:
@@ -120,17 +122,10 @@ class Game(object):
                                 ret = character.move_to(targetId, self.map)
                                 if ret is not None:
                                     actionResult["message"] = "Unable to move Character-" + characterId + ": " + ret
-                        elif action == "attack" or action == "attackMove":
+                        elif action == "attack":
                             if character == target or target is None:
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
-
-                            if action == "attackMove":
-                                # not suppose to revert movement if attack fails after
-                                error = character.movement((target.posX, target.posY))
-                                if error:
-                                    actionResult["message"] = error
-                                    continue
 
                             if self.map.in_vision_of((character.posX, character.posY),
                                                      targetId,

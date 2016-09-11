@@ -26,12 +26,12 @@ def initialResponse():
     # @competitors YOUR CODE HERE
     return {'teamName':'test',
             'characters': [
-                {"characterName": "warrior_one",
+                {"characterName": "Bob",
                  "classId": "warrior"},
-                {"characterName": "warrior_two",
-                 "classId": "warrior"},
-                {"characterName": "warrior_three",
-                 "classId": "warrior"},
+                {"characterName": "Bill",
+                 "classId": "wizard"},
+                {"characterName": "L'fonda",
+                 "classId": "enchanter"},
             ]}
 
 # Determine actions to take on a given turn, given the server response
@@ -41,6 +41,7 @@ def processTurn(serverResponse):
     # Helpful variables
     actions = []
     myId = serverResponse["playerInfo"]["id"]
+    print(serverResponse)
 
     # Send actions to the server
     return {
