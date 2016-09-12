@@ -100,14 +100,14 @@ function WebSocketTest()
                       arrayOfTurns.forEach(function(data){
                         serverJSON.push(data);
                       });
+                      //Instatiate the game
+                      //If you want to use game.debug in the render() function, you need to set
+                      //  Phaser.AUTO to Phaser.CANVAS (the renderer)
+                      //The width is 1000 pixels (GAME_WIDTH + STATWIDTH) and the height is 
+                      //  600 pixels (GAME_HEIGHT)
+                      game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
+                       'phaser-game', { preload: preload, create: create, update: update});
                   });
-                  //Instatiate the game
-                  //If you want to use game.debug in the render() function, you need to set
-                  //  Phaser.AUTO to Phaser.CANVAS (the renderer)
-                  //The width is 1000 pixels (GAME_WIDTH + STATWIDTH) and the height is 
-                  //  600 pixels (GAME_HEIGHT)
-                  game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
-                   'phaser-game', { preload: preload, create: create, update: update});
                   
                   alert("Message is received...");
                   reader.readAsText(received_msg);
