@@ -36,12 +36,31 @@ def initialResponse():
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
-    # @competitors YOUR CODE HERE
-
+    # print(serverResponse)
     # Helpful variables
     actions = []
     myId = serverResponse["playerInfo"]["id"]
-    print(serverResponse)
+    myteam = None
+    enemyteam = None
+    for team in serverResponse["teams"]:
+        if team["id"] == serverResponse["playerInfo"]["teamId"]:
+            myteam = team
+        else:
+            enemyteam = team
+
+    for character in myteam["characters"]:
+        if character["x"] == enemyteam["characters"][0]["x"] and character["y"] == enemyteam["characters"][0]["y"]:
+            actions.append({
+                "action": "attack",
+                "characterId": character["id"],
+                "targetId": enemyteam["characters"][0]["id"],
+            })
+        else:
+            actions.append({
+                "action": "move",
+                "characterId": character["id"],
+                "targetId": enemyteam["characters"][0]["id"],
+            })
 
     # Send actions to the server
     return {

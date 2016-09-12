@@ -138,7 +138,7 @@ class Character(object):
         else:
             self.cast_ability(ability_id, character)
 
-    def cast_ability(self, ability_id, character=None):
+    def cast_ability(self, ability_id, target=None):
         """
         Casts a given ability by id, assumes that if it has a cast time it has waited that amount of time
         :param ability_id:
@@ -166,8 +166,8 @@ class Character(object):
                     stat_change['Change'] = stat_change['Change'] - self.attributes.get_attribute("SpellPower")
             if stat_change['Target'] == 0:
                 self.add_stat_change(stat_change)
-            elif stat_change['Target'] in [1,2,3] and character is not None:
-                character.add_stat_change(stat_change)
+            elif stat_change['Target'] in [1, 2, 3] and target is not None:
+                target.add_stat_change(stat_change)
 
     def add_stat_change(self, stat_change):
         self.pending_stat_changes.append(stat_change)
@@ -206,14 +206,37 @@ class Character(object):
     def can_move(self):
         return not (self.attributes.get_attribute("Rooted") or self.attributes.get_attribute("Stunned"))
 
-    def movement(self, new_pos, map):
+    def move_towards(self, target, map):
+        # Same position
+        if (self.posX, self.posY) == (target.posX, target.posY):
+            return
+
         # Can we move?
         if not self.can_move():
             return "Unable to move currently"
 
+        path = map.bfs((self.posX, self.posY), (target.posX, target.posY))
+
+        movement_speed = self.attributes.get_attribute("MovementSpeed")
+
+        new_loc = None
+        if movement_speed >= len(path) - 1:
+            new_loc = path[-1]
+        else:
+            new_loc = path[movement_speed + 1]
+        self.posX = new_loc[0]
+        self.posY = new_loc[1]
+        self.casting = None
+
+
+    def move_to(self, new_pos, map):
         # Same position
         if (self.posX, self.posY) == new_pos:
             return
+
+        # Can we move?
+        if not self.can_move():
+            return "Unable to move currently"
 
         # Actually find path
         if not map.can_move_to((self.posY, self.posY),
@@ -230,7 +253,7 @@ class Character(object):
         """
 
         json = {}
-        json['charId'] = self.id
+        json['id'] = self.id
         json['name'] = self.name
         json['x'] = self.posX
         json['y'] = self.posY

@@ -72,68 +72,92 @@ class Game(object):
     # @returns True if the game is still running, False otherwise
     def execute_turn(self):
 
-        prioity_order = []
+        action_priority_order = ["attack", "cast", "move"]
 
         # Execute turns
-        self.turnResults = {}
-        for playerId in self.queuedTurns:
-            turn = self.queuedTurns[playerId]
+        for action_type in action_priority_order:
+            self.turnResults = {}
+            for playerId in self.queuedTurns:
+                turn = self.queuedTurns[playerId]
 
-            # Get actions
-            actions = []
-            try:
-                actions = list(turn.get("actions", []))
-            except:
-                self.turnResults[playerId] = [{"status": "fail", "messages": "'Actions' parameter must be a list."}]
-                continue  # Skip invalid turn
-
-            # Execute actions
-            self.turnResults[playerId] = []
-            for actionJson in actions:
-                action = actionJson.get("action", "").lower()
-                teamId = self.playerInfos[playerId]["team"]
-                characterId = actionJson.get("characterId", -1)
-                targetId = actionJson.get("target", -1)
-                abilityId = actionJson.get("abilityId", -1)
-                actionResult = {"teamId": playerId, "action": action, "target": targetId}
-
+                # Get actions
+                actions = []
                 try:
-                    # Get player character object
-                    character = team[teamId].get_character(id=characterId)
+                    actions = list(turn.get("actions", []))
+                except:
+                    self.turnResults[playerId] = [{"status": "fail", "messages": "'Actions' parameter must be a list."}]
+                    continue  # Skip invalid turn
 
-                    # Get target character object
-                    target = None
-                    for teamId, team in self.teams:
-                        target = team.get_character(id=targetId)
-                        if target:
-                            break
-                    # If there is no target, target is the player player
-                    if not target:
-                        target = player
+                # Execute actions
+                self.turnResults[playerId] = []
+                for actionJson in actions:
+                    action = actionJson.get("action", "").lower()
 
-                    if character.dead:
-                        actionResult["message"] = "Invalid character: Character is dead"
-                    elif target.dead:
-                        actionResult["message"] = "Invalid target: target is dead"
+                    if action != action_type:
+                        continue
 
-                    if character:
+                    teamId = self.playerInfos[playerId]["teamId"]
+                    characterId = actionJson.get("characterId", None)
+                    targetId = actionJson.get("targetId", None)
+                    location = actionJson.get("location", None)
+                    abilityId = actionJson.get("abilityId", None)
+
+                    actionResult = {"teamId": playerId, "action": action, "target": targetId}
+
+                    try:
+                        # Get player character object
+                        if characterId:
+                            character = self.teams[teamId].get_character(id=characterId)
+                        else:
+                            actionResult["message"] = "Invalid characterId: could not find characterId in json"
+                            continue
+
+                        # Did we find the character?
+                        if not character:
+                            actionResult["message"] = "Invalid characterId: could not find character on your team"
+                            continue
+
+                        # Is character dead?
+                        if character.dead:
+                            actionResult["message"] = "Invalid character: Character is dead"
+
+                        # Get target character object
+                        target = None
+                        if targetId:
+                            for teamId, team in self.teams.items():
+                                target = team.get_character(id=targetId)
+                                if target:
+                                    break
+                            if not target:
+                                actionResult["message"] = "Unable to find target"
+                                continue
+                            if target.dead:
+                                actionResult["message"] = "Invalid target: target is dead"
+                                continue
+
                         if action == "move":
-                            if targetId != -1:
-                                ret = character.move_to(targetId, self.map)
+                            if target:
+                                ret = character.move_towards(target, self.map)
                                 if ret is not None:
-                                    actionResult["message"] = "Unable to move Character-" + characterId + ": " + ret
+                                    actionResult["message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                            elif location:
+                                ret = character.move_to(location, self.map)
+                                if ret is not None:
+                                    actionResult["message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                            else:
+                                actionResult["message"] = "Invalid target and couldn't find location"
                         elif action == "attack":
                             if character == target or target is None:
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
 
                             if self.map.in_vision_of((character.posX, character.posY),
-                                                     targetId,
+                                                     (target.posX, target.posY),
                                                      character.attributes.get_attribute("AttackRange")):
                                 target.add_stat_change({
                                     "Target": 1,
                                     "Attribute": "Health",
-                                    "Change": character.attributes.get_attribute("Damage"),
+                                    "Change": -1 * character.attributes.get_attribute("Damage"),
                                     "Time": 0
                                 })
                             else:
@@ -156,22 +180,14 @@ class Game(object):
                                 actionResult["message"] = "Target is out of range or not in vision"
                         else:
                             actionResult["message"] = "Invalid action type."
-                    else:
-                        actionResult["message"] = "Invalid character."
-                except IndexError:
-                    actionResult["message"] = "Invalid playerID."
-                except ValueError:
-                    actionResult["message"] = "Type mismatch in parameter(s)."
-                except (RepeatedActionException) as e:
-                    actionResult["message"] = str(e)
-                except Exception as e:
-                    raise  # Uncomment me to raise unhandled exceptions
-                    actionResult["message"] = "Unknown exception: " + str(e)
+                    except Exception as e:
+                        raise  # Uncomment me to raise unhandled exceptions
+                        actionResult["message"] = "Unknown exception: " + str(e)
 
-                actionResult["status"] = "fail" if "message" in actionResult else "ok"
+                    actionResult["status"] = "fail" if "message" in actionResult else "ok"
 
-                # Record results
-                self.turnResults[playerId].append(actionResult)
+                    # Record results
+                    self.turnResults[playerId].append(actionResult)
 
         # Update everyone
         for teamId, team in self.teams.items():

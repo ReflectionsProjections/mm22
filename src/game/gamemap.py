@@ -20,7 +20,10 @@ class GameMap:
         return [i for i in range(min(value1, value2), max(value1, value2) + 1)]
 
     def in_vision_of(self, pos1, pos2, max_length = None):
-        # Same Position
+        if not pos1 or not pos2:
+            return False
+
+        # Same position
         if pos1[0] == pos2[0] and pos1[1] == pos2[1]:
             return True
 
@@ -78,7 +81,7 @@ class GameMap:
 
             for new_node in GameMap.get_adjacent_pos(new_path[-1]):
                 if self.is_inbounds(new_node) and not new_node in searched_nodes:
-                    temp = new_path.copy()
+                    temp = list(new_path)
                     temp.append(new_node)
                     search_pathes.append(temp)
                     searched_nodes.append(new_node)

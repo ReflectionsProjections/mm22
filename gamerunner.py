@@ -133,7 +133,7 @@ class Logger(object):
 
     def print_stuff(self, data):
         self.turns.append(data)
-        print("Turn finished: " + str(len(self.turns)))
+        print("Turn finished: " + str(len(self.turns) - 1))
 
     def write_to_file(self):
         with open(self.filename, 'a') as outfile:
