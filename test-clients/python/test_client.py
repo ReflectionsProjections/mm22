@@ -26,12 +26,12 @@ def initialResponse():
     # @competitors YOUR CODE HERE
     return {'teamName':'test',
             'characters': [
-                {"characterName": "Bob",
-                 "classId": "warrior"},
-                {"characterName": "Bill",
+                {"characterName": "Druid",
+                 "classId": "druid"},
+                {"characterName": "Archer",
+                 "classId": "archer"},
+                {"characterName": "Wizard",
                  "classId": "wizard"},
-                {"characterName": "L'fonda",
-                 "classId": "enchanter"},
             ]}
 
 # Determine actions to take on a given turn, given the server response
