@@ -519,7 +519,9 @@ function create () {
 
     //initializes both SinglePlayer and MultiPlayer screens, but keeps the MultiPlayer 
     //  screen active
+    //default to player one
     initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
+    statScreen.SinglePlayer.PlayerIndex = 0;
     hideSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
@@ -993,22 +995,33 @@ function initSinglePlayerStatScreen(character){
         HEALTH_BAR_MAX_WIDTH, 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
-    statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
+    statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, 
+        HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
 
 
     //Constant used to specify how many pixels to space out each attribute in the y-direction
     var attrStrSpacing = 35;
     //add the Attribute Strings to the StatScreen
-    statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
-        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
-        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Spell Power: " + dummyPlayer.stats.SpellPower, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y, 
+        "Movement Speed: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.MovementSpeed, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
+        "Damage: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Damage, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
+        "Spell Power: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.SpellPower, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
+        "Attack Range: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.AttackRange, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        "Armor: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Armor, 
+        {font: "3em Arial", fill: DEF_COLOR});
 
 }
 
