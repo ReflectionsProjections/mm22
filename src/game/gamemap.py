@@ -56,6 +56,13 @@ class GameMap:
 
         return not (len(path) >= max_distance + 1)
 
+    def get_valid_adjacent_pos(self, pos):
+        valid_pos = []
+        for pos in GameMap.get_adjacent_pos(pos):
+            if self.is_inbounds(pos):
+                valid_pos.append(pos)
+        return valid_pos
+
     @staticmethod
     def get_adjacent_pos(pos):
         adjacent_pos = []
@@ -64,7 +71,6 @@ class GameMap:
             adjacent_pos.append((pos[0], pos[1] + i))
 
         return adjacent_pos
-
 
     def bfs(self, pos1, pos2):
         if not self.is_inbounds(pos1) or not self.is_inbounds(pos2):
@@ -85,6 +91,6 @@ class GameMap:
                     temp.append(new_node)
                     search_pathes.append(temp)
                     searched_nodes.append(new_node)
-            new_path = search_pathes.pop()
+            new_path = search_pathes.pop(0)
 
         return None

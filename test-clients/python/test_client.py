@@ -49,17 +49,24 @@ def processTurn(serverResponse):
             enemyteam = team
 
     for character in myteam["characters"]:
-        if character["x"] == enemyteam["characters"][0]["x"] and character["y"] == enemyteam["characters"][0]["y"]:
-            actions.append({
-                "action": "attack",
-                "characterId": character["id"],
-                "targetId": enemyteam["characters"][0]["id"],
-            })
+        if random.randint(0,1) == 1:
+            if character["x"] == enemyteam["characters"][0]["x"] and character["y"] == enemyteam["characters"][0]["y"]:
+                actions.append({
+                    "action": "attack",
+                    "characterId": character["id"],
+                    "targetId": enemyteam["characters"][0]["id"],
+                })
+            else:
+                actions.append({
+                    "action": "move",
+                    "characterId": character["id"],
+                    "targetId": enemyteam["characters"][0]["id"],
+                })
         else:
             actions.append({
                 "action": "move",
                 "characterId": character["id"],
-                "targetId": enemyteam["characters"][0]["id"],
+                "position": (0,0),
             })
 
     # Send actions to the server
