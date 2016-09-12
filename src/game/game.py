@@ -74,6 +74,10 @@ class Game(object):
 
         action_priority_order = ["attack", "cast", "move"]
 
+        # Clear Turn results
+        for playerId in self.queuedTurns:
+            self.turnResults[playerId] = []
+
         # Execute turns
         for action_type in action_priority_order:
             self.turnResults = {}
@@ -89,7 +93,6 @@ class Game(object):
                     continue  # Skip invalid turn
 
                 # Execute actions
-                self.turnResults[playerId] = []
                 for actionJson in actions:
                     action = actionJson.get("action", "").lower()
 

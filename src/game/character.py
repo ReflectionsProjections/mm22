@@ -72,6 +72,7 @@ class Character(object):
     def apply_pending_stat_changes(self):
         for stat_change in self.pending_stat_changes:
             self.apply_stat_change(stat_change)
+        self.pending_stat_changes = []
 
     def update(self):
         if self.casting:
