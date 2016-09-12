@@ -69,6 +69,8 @@
 
 //----------Constants and Global Variables------------//
 var WEBSOCKET_SERVER_FQDN = "ws://localhost:8080/"
+//Reference to the Phaser game
+var game;
 
 
 function WebSocketTest()
@@ -95,17 +97,20 @@ function WebSocketTest()
                   var reader = new FileReader();
                   reader.addEventListener("loadend", function(){
                       var arrayOfTurns = JSON.parse(reader.result).data;
-                      console.log("Data given by server");
-                      console.log(arrayOfTurns);
                       arrayOfTurns.forEach(function(data){
                         serverJSON.push(data);
                       });
                   });
+                  //Instatiate the game
+                  //If you want to use game.debug in the render() function, you need to set
+                  //  Phaser.AUTO to Phaser.CANVAS (the renderer)
+                  //The width is 1000 pixels (GAME_WIDTH + STATWIDTH) and the height is 
+                  //  600 pixels (GAME_HEIGHT)
+                  game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
+                   'phaser-game', { preload: preload, create: create, update: update});
                   
                   alert("Message is received...");
                   reader.readAsText(received_msg);
-                  //serverJSON empty check if first load is heavy 
-                  //JSON.parse?
                };
                 
                ws.onclose = function()
@@ -151,14 +156,6 @@ var STAT_WIDTH = 400;
 var OFF_SCREEN = -500;
 
 
-
-//Reference to the core game object
-//If you want to use game.debug in the render() function, you need to set
-//  Phaser.AUTO to Phaser.CANVAS (the renderer)
-//The width is 1000 pixels (GAME_WIDTH + STATWIDTH) and the height is 
-//  600 pixels (GAME_HEIGHT)
-var game = new Phaser.Game(GAME_WIDTH + STAT_WIDTH, GAME_HEIGHT, Phaser.AUTO,
- 'phaser-game', { preload: preload, create: create, update: update});
 
 
 //Reference to the game's timer
@@ -217,9 +214,8 @@ var statScreen = {
         //Use this object if we are tracking only one characer
         "AttributeStrings" : {
             "Damage" : null,
-            "AbilityPower" : null,
+            "SpellPower" : null,
             "AttackRange" : null,
-            "AttackSpeed" : null,
             "Armor" : null,
             "MovementSpeed" : null
         },
@@ -245,9 +241,8 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
@@ -255,9 +250,8 @@ var statScreen = {
             //Used for coloring each abbreviation correctly
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -273,17 +267,15 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -298,17 +290,15 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -323,17 +313,15 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -348,17 +336,15 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -373,17 +359,15 @@ var statScreen = {
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
                 "Damage" : null,
-                "AbilityPower" : null,
+                "SpellPower" : null,
                 "AttackRange" : null,
-                "AttackSpeed" : null,
                 "Armor" : null,
                 "MovementSpeed" : null
             },
             "InitialValue" : {
                 "Damage" : -1,
-                "AbilityPower" : -1,
+                "SpellPower" : -1,
                 "AttackRange" : -1,
-                "AttackSpeed" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
@@ -405,9 +389,8 @@ var dummyPlayer = {
     "stats" : {
             "Health"        : 500,
             "Damage"        : 50,
-            "AbilityPower" : 50,
+            "SpellPower" : 50,
             "AttackRange"   : 5,
-            "AttackSpeed"   : 2,
             "Armor"         : 10,
             "MovementSpeed" : 5,
             "Abilities"     : [ 1 ]
@@ -443,12 +426,8 @@ function preload () {
     //TODO: add code so each player has the sprite corresponding to 
     //  their class
     //sprites for the characters and spells
-    game.load.image('playerOne', 'assets/mage_360.png');
-    game.load.image('playerTwo', 'assets/mage_360.png');
-    game.load.image('playerThree', 'assets/mage-2_360.png');
-    game.load.image('playerFour', 'assets/mage_360.png');
-    game.load.image('playerFive', 'assets/mage-2_360.png');
-    game.load.image('playerSix', 'assets/mage-2_360.png')
+    game.load.image('mage1', 'assets/mage_360.png');
+    game.load.image('mage2', 'assets/mage-2_360.png');
     game.load.image('spell1', 'assets/spell-1_360.png');
     game.load.image('spell2', 'assets/spell-2_360.png');
     
@@ -462,6 +441,11 @@ function preload () {
 */
 function create () {
 
+    //Remove the first turn from the array (init information)
+    var initInformation = serverJSON[0];
+    console.log("INIT INFO");
+    console.log(initInformation);
+    serverJSON.shift();
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
@@ -471,42 +455,48 @@ function create () {
 
     //create group for characters
     characters = game.add.group();
-    //Add all players to the characters group at their initial locations
-    //TODO: add all characters to their intitial locations according to JSON
-    //TODO: Let participants choose names for their character???
-    var initPos = calcXAndY(0, 0); 
-    statScreen["MultiPlayer"][0].Sprite = characters.create(initPos.x, initPos.y, 'playerOne');
-    statScreen["MultiPlayer"][0].Sprite.name = "player One";
-    statScreen["MultiPlayer"][0].Sprite.index = 0;
-    initPos = calcXAndY(4, 4); 
-    statScreen["MultiPlayer"][1].Sprite = characters.create(initPos.x, initPos.y, 'playerTwo');
-    statScreen["MultiPlayer"][1].Sprite.name = "player Two";
-    statScreen["MultiPlayer"][1].Sprite.index = 1;
-    initPos = calcXAndY(2, 4); 
-    statScreen["MultiPlayer"][2].Sprite = characters.create(initPos.x, initPos.y, 'playerThree');
-    statScreen["MultiPlayer"][2].Sprite.name = "player Three";
-    statScreen["MultiPlayer"][2].Sprite.index = 2;
-    initPos = calcXAndY(3, 2); 
-    statScreen["MultiPlayer"][3].Sprite = characters.create(initPos.x, initPos.y, 'playerFour');
-    statScreen["MultiPlayer"][3].Sprite.name = "player Four";
-    statScreen["MultiPlayer"][3].Sprite.index = 3;
-    initPos = calcXAndY(0, 1); 
-    statScreen["MultiPlayer"][4].Sprite = characters.create(initPos.x, initPos.y, 'playerFive');
-    statScreen["MultiPlayer"][4].Sprite.name = "player Five";
-    statScreen["MultiPlayer"][4].Sprite.index = 4;
-    initPos = calcXAndY(1, 1); 
-    statScreen["MultiPlayer"][5].Sprite = characters.create(initPos.x, initPos.y, 'playerSix');
-    statScreen["MultiPlayer"][5].Sprite.name = "player Six";
-    statScreen["MultiPlayer"][5].Sprite.index = 5;
 
-    statScreen.MultiPlayer.forEach(function(a){
-      a.Sprite.anchor.setTo(0.5);
+    //contains all the character objects in the initialInformation
+    // as one array to make iteration easier
+    var characterArray = [];
+    initInformation.forEach(function(teamObject){
+        teamObject.characters.forEach(function(characterInfo){
+            characterArray.push(characterInfo);
+        });
     });
 
-    //TODO: Code to add each player to teamA or teamB, use the JSON
+    //Add all players to the characters group at their initial locations
+    //TODO: Have characters not be stacked on each other initially
+    for(var index = 0; index < statScreen.MultiPlayer.length; index++){
+      var initPos = calcXAndY(characterArray[index].x, characterArray[index].y);
+     
+      //refers to the key of the preloaded sprite for character sprites 
+      var spriteName = '';
+      //this is just to have each team have one of the 2 mage sprites
+      //  for the MM22 demo on Sep 12
+      //spriteName = characterArray[index].name + teamNum
+      if(index < 3){
+        spriteName = 'mage1';
+      }
+      else{
+        spriteName = 'mage2';
+      }
+      statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, spriteName);
+      //set the anchor of each character sprite to the middle of the sprite
+      statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
+      statScreen.MultiPlayer[index].Sprite.index = 0;
+      statScreen.MultiPlayer[index].Sprite.name = characterArray[index].name;
 
+      //Set initial values of attributes
+      for(var attr in statScreen.MultiPlayer[index].InitialValue){
+        statScreen.MultiPlayer[index].InitialValue[attr] = 
+          characterArray[index].attributes[attr];
+      }
+      
+    }
+    //move the characters so they fit into the regions correctly
+    moveCharactersQuadrantAbsolute(serverJSON[0]);
 
-    //TODO: Initialize the initial values of their attributes (MultiPlayer[index].InitialValue[attribute])
 
     //enable input for all character sprites
     characters.setAll('inputEnabled', true);
@@ -541,6 +531,8 @@ function create () {
     singleButton.inputEnabled = true;
     singleButton.events.onInputDown.add(showSinglePlayerStatScreen, this);
 
+
+    console.log(serverJSON);
 
     //log success
     console.log("create() complete");
@@ -651,10 +643,12 @@ function releaseSpells(){
     
     //cleanup
     spellList = [];
-    moveToTarget.onComplete.add(function(){
-        spells.removeAll(true, false);
-    }, 
-    this);
+    if(moveToTarget != undefined || moveToTarget!=null){
+      moveToTarget.onComplete.add(function(){
+         spells.removeAll(true, false);
+      }, 
+      this);
+    }
     
 }
 
@@ -885,7 +879,7 @@ function moveCharactersQuadrant(currTurn){
     Uses assignment from the JSON rather than a +=, so use this if
     the JSON gives ABSOLUTE position rather than relative displacement
 */
-function moveCharactersQuadrantAbsolute(){
+function moveCharactersQuadrantAbsolute(currTurn){
 
    //reset nextQuadrantSpaceAvailable so all spaces are available
     for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
@@ -895,20 +889,25 @@ function moveCharactersQuadrantAbsolute(){
         } 
     }
    
-    //TODO: Delete this line in production, used for testing for now
-    randomizeMovement();
+    //contains the positions(x,y) of players in an array as an object
+    var playerPositionArray = [];
+    var characterArray = convertTurnToPlayerArray(currTurn);
+    characterArray.forEach(function(playerObject, index){
+        playerPositionArray[index] = {
+          x: playerObject.x,
+          y: playerObject.y
+        };
+    });
+    
 
-    //have the sprites move to a random location (x,y) = ((0-4),(0-4))
-    var index = 0;
-    for(var k in dummyMovement ){
+    for(var index = 0; index < characterArray.length; index++){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
 
-        //TODO: Replace dummyMovement with movement data from JSON
-        newQuadrantCol = dummyMovement[k]["x"];
-        newQuadrantRow = dummyMovement[k]["y"];
-        var newPosition = calcXAndY(dummyMovement[k]["x"], dummyMovement[k]["y"]);
+        newQuadrantCol = playerPositionArray[index].x;
+        newQuadrantRow = playerPositionArray[index].y;
+        var newPosition = calcXAndY(newQuadrantCol, newQuadrantRow);
         //move them into the quadrant at the top-left corner
         statScreen["MultiPlayer"][index].Sprite.x = newPosition.x;
         statScreen["MultiPlayer"][index].Sprite.y = newPosition.y;
@@ -922,15 +921,14 @@ function moveCharactersQuadrantAbsolute(){
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
             nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
         }
-        index++;
     }
 
     //Add spells for testing
     //TODO: Delete this
-    addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
-    addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
-    addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
-    addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
+    //addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
+    //addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
+    //addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
+    //addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
     releaseSpells();
 }
 
@@ -1005,13 +1003,11 @@ function initSinglePlayerStatScreen(character){
         "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
         "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.AbilityPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Ability Power: " + dummyPlayer.stats.AbilityPower, {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
+        "Spell Power: " + dummyPlayer.stats.SpellPower, {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
         "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.AttackSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Attack Speed: " + dummyPlayer.stats.AttackSpeed, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
+    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
         "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: DEF_COLOR});
 
 }
@@ -1058,17 +1054,14 @@ function initMultiPlayerStatScreen(){
       var strings = statScreen.MultiPlayer[player].AttributeStrings;
       strings.Damage = game.add.text(startX, 
         attrStrY, "DMG", attrstyle);
-      strings.AbilityPower = game.add.text(strings.Damage.x 
+      strings.SpellPower = game.add.text(strings.Damage.x 
           + strings.Damage.width + 5,
-          attrStrY, "AP", attrstyle);
-      strings.AttackRange = game.add.text(strings.AbilityPower.x 
-          + strings.AbilityPower.width + 5, 
+          attrStrY, "SP", attrstyle);
+      strings.AttackRange = game.add.text(strings.SpellPower.x 
+          + strings.SpellPower.width + 5, 
           attrStrY, "AR", attrstyle);
-      strings.AttackSpeed = game.add.text(strings.AttackRange.x 
+      strings.Armor = game.add.text(strings.AttackRange.x 
           + strings.AttackRange.width + 5, 
-          attrStrY, "AS", attrstyle);
-      strings.Armor = game.add.text(strings.AttackSpeed.x 
-          + strings.AttackSpeed.width + 5, 
           attrStrY, "ARMOR", attrstyle);
       strings.MovementSpeed = game.add.text(strings.Armor.x 
           + strings.Armor.width + 5, 
@@ -1334,11 +1327,12 @@ function updateSinglePlayerStatScreen(currTurn){
     // update each Attribute String with data from the queue, and randomly switch each string to be 
     //  red (#ff0000) or green (#00ff00)
     // in the finished version the green or red will depend on a buff or debuff
-    
+   var characterArray = convertTurnToPlayerArray(currTurn); 
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
             //TODO: Change Text using whatever JSON format server has
-            statScreen.SinglePlayer.AttributeStrings[attrStr].setText(attrStr + ": " + currTurn.stats[attrStr]);
+            statScreen.SinglePlayer.AttributeStrings[attrStr]
+              .setText(attrStr + ": " + characterArray[statScreen.SinglePlayer.PlayerIndex].attributes[attrStr]);
             statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
                 font: "3em Arial", 
                 fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
@@ -1392,10 +1386,11 @@ function calcHealthBarWidth(currTurn, playerNumber){
   if(currTurn == null){
     return HEALTH_BAR_MAX_WIDTH;
   }
-    //TODO: Replace currTurn.stats.Health with whatever JSON format 
-    //  the server returns currTurn["foo"]["bar"]["whatever"]
-    return Math.floor(((currTurn.stats.Health)/(statScreen.MultiPlayer[playerNumber].InitialValue["Health"]))*
-        HEALTH_BAR_MAX_WIDTH);
+  var characterArray = convertTurnToPlayerArray(currTurn);
+  var currHealth = characterArray[playerNumber].attributes.Health;
+  var maxHealth = statScreen.MultiPlayer[playerNumber].InitialValue.Health;
+  var width = Math.floor((currHealth*HEALTH_BAR_MAX_WIDTH)/maxHealth);
+  return width;
 }
 
 /**
@@ -1418,9 +1413,12 @@ function calcHealthBarWidth(currTurn, playerNumber){
 function chooseColor(currTurn, playerNumber, attribute){
   var RED = '#ff0000';
   var GREEN = '#00ff00';
-  //TODO: Refactor the variables to fit the format of the server's JSON
 
-  var currValue = currTurn.stats[attribute];
+  //contains all the character objects in the initialInformation
+  // as one array to make iteration easier
+  var characterArray = convertTurnToPlayerArray(currTurn);
+   
+  var currValue = characterArray[playerNumber].attributes[attribute];
   var initialValue = statScreen.MultiPlayer[playerNumber].InitialValue[attribute];
      
   if(currValue === initialValue){
@@ -1515,9 +1513,8 @@ function Move(){
   this.stats = {
     "Health": 0,
     "Damage" : 20,
-    "AbilityPower" : 5,
+    "SpellPower" : 5,
     "AttackRange" : 7,
-    "AttackSpeed" : 10,
     "Armor" : 20,
     "MovementSpeed" : 8,
   };
