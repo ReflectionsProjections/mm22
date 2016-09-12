@@ -423,11 +423,13 @@ function preload () {
     //background image
     game.load.image('background', 'assets/Map-update.png');
 
-    //TODO: add code so each player has the sprite corresponding to 
-    //  their class
     //sprites for the characters and spells
-    game.load.image('mage1', 'assets/mage_360.png');
-    game.load.image('mage2', 'assets/mage-2_360.png');
+    game.load.image('wizard1', 'assets/wizard1.png');
+    game.load.image('wizard2', 'assets/wizard2.png');
+    game.load.image('archer1', 'assets/archer1.png');
+    game.load.image('archer2', 'assets/archer2.png');
+    game.load.image('druid1', 'assets/druid1.png');
+    game.load.image('druid2', 'assets/druid2.png');
     game.load.image('spell1', 'assets/spell-1_360.png');
     game.load.image('spell2', 'assets/spell-2_360.png');
     
@@ -466,21 +468,19 @@ function create () {
     });
 
     //Add all players to the characters group at their initial locations
-    //TODO: Have characters not be stacked on each other initially
     for(var index = 0; index < statScreen.MultiPlayer.length; index++){
       var initPos = calcXAndY(characterArray[index].x, characterArray[index].y);
      
-      //refers to the key of the preloaded sprite for character sprites 
-      var spriteName = '';
-      //this is just to have each team have one of the 2 mage sprites
-      //  for the MM22 demo on Sep 12
-      //spriteName = characterArray[index].name + teamNum
+      //generate the string of the key for the character sprite 
+      var teamNumber;
       if(index < 3){
-        spriteName = 'mage1';
+        teamNumber = 1;
       }
       else{
-        spriteName = 'mage2';
+        teamNumber = 2
       }
+      //wizard1.png, druid2.png etc.
+      var spriteName = characterArray[index]["class"] + teamNumber;
       statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, spriteName);
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
@@ -519,7 +519,9 @@ function create () {
 
     //initializes both SinglePlayer and MultiPlayer screens, but keeps the MultiPlayer 
     //  screen active
+    //default to player one
     initSinglePlayerStatScreen(statScreen["MultiPlayer"][0].Sprite);
+    statScreen.SinglePlayer.PlayerIndex = 0;
     hideSinglePlayerStatScreen();
     initMultiPlayerStatScreen();
 
@@ -993,22 +995,33 @@ function initSinglePlayerStatScreen(character){
         HEALTH_BAR_MAX_WIDTH, 
         HEALTH_BAR_HEIGHT);
     singleGraphics.endFill();
-    statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
+    statScreen.SinglePlayer.HealthBar.HealthText = game.add.text(GAME_WIDTH + (STAT_WIDTH/2) -30, 
+        HEALTH_BAR_Y + HEALTH_BAR_HEIGHT + 10, "Health", {fill: "#33cc33", font: "2em Arial"});
 
 
     //Constant used to specify how many pixels to space out each attribute in the y-direction
     var attrStrSpacing = 35;
     //add the Attribute Strings to the StatScreen
-    statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y, 
-        "Movement Speed: " + dummyPlayer.stats.MovementSpeed, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
-        "Damage: " + dummyPlayer.stats.Damage, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
-        "Spell Power: " + dummyPlayer.stats.SpellPower, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range: " + dummyPlayer.stats.AttackRange, {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
-        "Armor: " + dummyPlayer.stats.Armor, {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.MovementSpeed = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y, 
+        "Movement Speed: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.MovementSpeed, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Damage = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + attrStrSpacing, 
+        "Damage: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Damage, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.SpellPower = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
+        "Spell Power: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.SpellPower, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
+        "Attack Range: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.AttackRange, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        "Armor: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Armor, 
+        {font: "3em Arial", fill: DEF_COLOR});
 
 }
 
