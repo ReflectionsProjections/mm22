@@ -75,12 +75,12 @@ class Game(object):
         action_priority_order = ["attack", "cast", "move"]
 
         # Clear Turn results
+        self.turnResults = {}
         for playerId in self.queuedTurns:
             self.turnResults[playerId] = []
 
         # Execute turns
         for action_type in action_priority_order:
-            self.turnResults = {}
             for playerId in self.queuedTurns:
                 turn = self.queuedTurns[playerId]
 
