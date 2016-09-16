@@ -105,7 +105,7 @@ class Game(object):
                     location = actionJson.get("location", None)
                     abilityId = actionJson.get("abilityId", None)
 
-                    actionResult = {"teamId": playerId, "action": action, "target": targetId}
+                    actionResult = actionJson
 
                     try:
                         # Get player character object
