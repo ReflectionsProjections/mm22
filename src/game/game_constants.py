@@ -16,10 +16,10 @@ Defines the classes
 classesJson = {
 	"archer" : {
 			"Health"        : 500,
-            "Damage"        : 50,
+            "Damage"        : 100,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
-            "Armor"         : 50,
+            "Armor"         : 25,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,2,12 ] #sprint, armordebuff
 	},
@@ -37,7 +37,7 @@ classesJson = {
             "Damage"        : 40,
             "SpellPower"    : 0,
             "AttackRange"   : 1,
-            "Armor"         : 60,
+            "Armor"         : 30,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,3,4,13 ] #heal, ranged armor buff, root
     },
@@ -46,7 +46,7 @@ classesJson = {
             "Damage"        : 40,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
-            "Armor"         : 50,
+            "Armor"         : 25,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,6,7,5 ] #armor reduction, armor+dmg buff, silence
     },
@@ -55,7 +55,7 @@ classesJson = {
             "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "Armor"         : 70,
+            "Armor"         : 45,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,3,14 ] #heal, med cd stun
     },
@@ -64,7 +64,7 @@ classesJson = {
             "Damage"        : 80,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
-            "Armor"         : 50,
+            "Armor"         : 20,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,8,16 ] #self damage buff, dot spell
     },
@@ -73,7 +73,7 @@ classesJson = {
             "Damage"        : 75,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "Armor"         : 70,
+            "Armor"         : 45,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,1,15 ] #short cd stun, self armor buff
     },
