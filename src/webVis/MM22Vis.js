@@ -241,7 +241,9 @@ var statScreen = {
     },
     //Contains All the players, in order
     "MultiPlayer" : [
-        {
+        { 
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -270,6 +272,8 @@ var statScreen = {
             "HealthBar" : null,
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -295,6 +299,8 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -320,6 +326,8 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -345,6 +353,8 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -370,6 +380,8 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
@@ -453,6 +465,8 @@ function preload () {
     game.load.image('druid2', 'assets/druid2.png');
     game.load.image('spell1', 'assets/spell-1_360.png');
     game.load.image('spell2', 'assets/spell-2_360.png');
+    game.load.image('frostbolt', 'assets/Frostbolt.png');
+    game.load.image('armorbuff', 'assets/ArmorBuff.png');
     
     //log success
     console.log("preload() complete");
@@ -507,7 +521,17 @@ function create () {
       }
       //wizard1.png, druid2.png etc.
       var spriteName = characterArray[index]["class"] + teamNumber;
-      statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, spriteName);
+
+      //Add the character's sprite to its own Phaser Group
+      //Used for rendering order of sprites
+      var characterGroup = game.add.group(); 
+      statScreen.MultiPlayer[index].Sprite = characterGroup.create(initPos.x, initPos.y, spriteName);
+      statScreen.MultiPlayer[index].PhaserGroup = characterGroup;
+
+      //add the sprite to the characters group (global group)
+      characters.add(statScreen.MultiPlayer[index].Sprite);
+
+
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
       statScreen.MultiPlayer[index].Sprite.index = 0;
@@ -619,20 +643,27 @@ var spellList = [];
         same value.
 
     caster--the sprite of the character casting the spell
+    casterIndex -- index of the caster within statScreen.MultiPlayer 
     target--the sprite of the charcter targetted by the spell
     spellName--string of the key denoting the sprite of a 
         certain spell.
 */
-function addSpell(caster, target, spellName){
+function addSpell(caster, casterIndex, target, spellName){
     //add spell to center of sprite
     var newSpell = game.add.sprite(caster.x, caster.y, spellName);
     newSpell.anchor.setTo(0.5);
-    //add the spell sprite to the spells group
-    //  and add the corresponding spell's sprite 
-    //  to the caster's current position
-    spells.add(newSpell);
+
     //add the caster and target to the spellList array
-    spellList.push({"caster" : caster, "target" : target});
+    spellList.push(
+      {
+        "caster" : caster, 
+        "casterIndex": casterIndex,
+        "target" : target, 
+        "spell" : newSpell
+       }
+     );
+    statScreen.MultiPlayer[casterIndex].PhaserGroup.add(newSpell);
+    statScreen.MultiPlayer[casterIndex].PhaserGroup.bringToTop(newSpell);
 }
 
 /*
@@ -644,15 +675,15 @@ function addSpell(caster, target, spellName){
     This function clears both spellList and the spells group.
 */
 function releaseSpells(){
+  if(spellList.length > 0){
     //Go through all the spells in the spells group
     //  and tween them to their targets
-    var index = spellList.length-1;
     var holdOnCaster;
     var moveToTarget;
-    while(index >= 0){
+    for(var index = 0; index < spellList.length; index++){
         //get the child, starting at the end of the group
         //  and moving towards the first element
-        var currentSpell = spells.getChildAt(index);
+        var currentSpell = spellList[index].spell;
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
         holdOnCaster = game.add.tween(currentSpell).to({
             x: spellList[index].caster.x, 
@@ -666,17 +697,26 @@ function releaseSpells(){
           TIME_FOR_SPELLS/2, null);
         holdOnCaster.chain(moveToTarget);
         holdOnCaster.start();
-        index--;
-    }
+
+        
+   }
     
-    //cleanup
-    spellList = [];
-    if(moveToTarget != undefined || moveToTarget!=null){
-      moveToTarget.onComplete.add(function(){
-         spells.removeAll(true, false);
-      }, 
-      this);
-    }
+    //remove spell sprites from caster's group
+    //  after the last spell has finished tweening
+    moveToTarget.onComplete.add(function(){
+
+      spellList.forEach(function(val){
+          var groupIndex = val.casterIndex;
+          statScreen.MultiPlayer[groupIndex].PhaserGroup
+           .removeChild(val.spell);
+      }); 
+
+      //cleanup
+      spellList = [];
+
+    }, this);
+
+  }
     
 }
 
@@ -951,13 +991,6 @@ function moveCharactersQuadrantAbsolute(currTurn){
         }
     }
 
-    //Add spells for testing
-    //TODO: Delete this
-    //addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
-    releaseSpells();
 }
 
 
@@ -1263,10 +1296,15 @@ function processTurn(){
     statScreen.CurrentTurn = currTurn;
     //move the sprites
     moveCharactersQuadrantAbsolute(currTurn);
-    //TODO: write helper function to add all spells
-    //call release spells after ^^^
+
     //resolves everything in turnResults (attacks/spells)
+    //TODO: handle spells
     resolveActions(currTurn);
+
+
+    //TODO: This is for testing, remove this line in production
+    //Uncomment this below to see some spells in action
+    //testIfSpellsWork();
 
     //update both stat screens (although only one will be showing)
     //  at any time
@@ -1310,7 +1348,6 @@ function resolveActions(currTurn){
               0,
               true
           );
-          console.log(attackTween);
           if(i == 0){
             teamATweens.push(attackTween);
           }
@@ -1361,6 +1398,7 @@ function resolveActions(currTurn){
     character
 */
 function changeStatScreen(character){
+    console.log("TRIGGERED");
     //update PlayerIndex of statScreen 
     statScreen.SinglePlayer.PlayerIndex = character.index;
     statScreen.SinglePlayer.CharacterNameString = character.name;
@@ -1639,6 +1677,16 @@ function Move(){
   };
 }
 
+//Tests addSpells and releaseSpells
+function testIfSpellsWork(){
+    for(var i = 0; i < 6; i++){
+      addSpell(statScreen["MultiPlayer"][i].Sprite, i, statScreen["MultiPlayer"][i].Sprite, "armorbuff");
+    }
+    addSpell(statScreen["MultiPlayer"][0].Sprite, 0, statScreen["MultiPlayer"][5].Sprite, "frostbolt");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, 4, statScreen["MultiPlayer"][1].Sprite, "frostbolt");
+    addSpell(statScreen["MultiPlayer"][3].Sprite, 3, statScreen["MultiPlayer"][0].Sprite, "frostbolt");
+    releaseSpells();
+}
 
 
 
