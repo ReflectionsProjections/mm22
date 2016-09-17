@@ -534,7 +534,7 @@ function create () {
 
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
-      statScreen.MultiPlayer[index].Sprite.index = 0;
+      statScreen.MultiPlayer[index].Sprite.index = index;
       statScreen.MultiPlayer[index].Sprite.name = characterArray[index].name;
 
       //Set initial values of attributes
@@ -1398,7 +1398,7 @@ function resolveActions(currTurn){
     character
 */
 function changeStatScreen(character){
-    console.log("TRIGGERED");
+    console.log(character);
     //update PlayerIndex of statScreen 
     statScreen.SinglePlayer.PlayerIndex = character.index;
     statScreen.SinglePlayer.CharacterNameString = character.name;
@@ -1407,9 +1407,10 @@ function changeStatScreen(character){
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
-    //redraw health bar if on the single player screen
+    //redraw health bar and update stats if on the single player screen
     if(!statScreen.ShowAll){
       updateSinglePlayerHealthBar(statScreen.CurrentTurn);
+      updateSinglePlayerStatScreen(statScreen.CurrentTurn);
     }
 }
 
