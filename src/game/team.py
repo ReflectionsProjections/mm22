@@ -54,6 +54,6 @@ class Team:
         json['id'] = self.id
         json['characters'] = []
         for character in self.characters:
-            json['characters'].append(character.toJson())
+            json['characters'].append(character.deserialize())
 
         return json

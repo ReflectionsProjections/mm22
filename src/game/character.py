@@ -2,7 +2,6 @@ import src.game.game_constants as gameConstants
 
 
 class Character(object):
-
     total_characters = 0
 
     @staticmethod
@@ -15,7 +14,7 @@ class Character(object):
         Character.total_teams = 0
 
     def __init__(self):
-        #Game related attributes
+        # Game related attributes
         self.posX = 0
         self.posY = 0
         self.id = Character.get_new_character_id()
@@ -116,11 +115,11 @@ class Character(object):
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
             return False
-        
+
         # Is the character stunned?
         if self.stunned:
             return False
-        
+
         # Is the character silenced?
         if self.silenced:
             return False
@@ -176,7 +175,7 @@ class Character(object):
     def apply_stat_change(self, stat_change, remove=False):
         change = stat_change['Change']
         if stat_change['Attribute'] == 'Health':
-            if change < 0: # damage
+            if change < 0:  # damage
                 change = min(0, change + self.attributes.get_attribute("Armor"))
 
         stat_change['Change'] = change * (-1 if remove else 1)
@@ -197,7 +196,8 @@ class Character(object):
                 self.buffs.remove(stat_change)
         else:
             # Interrupt casting if silenced/stunned
-            if (stat_change['Attribute'] is 'Silenced' or stat_change['Attribute'] is 'Stunned') and stat_change['Change'] < 0:
+            if (stat_change['Attribute'] is 'Silenced' or stat_change['Attribute'] is 'Stunned') and stat_change[
+                'Change'] < 0:
                 self.casting = None
             if stat_change['Change'] < 0:
                 self.debuffs.append(stat_change)
@@ -229,7 +229,6 @@ class Character(object):
         self.posY = new_loc[1]
         self.casting = None
 
-
     def move_to(self, new_pos, map):
         # Same position
         if (self.posX, self.posY) == new_pos:
@@ -249,28 +248,40 @@ class Character(object):
         self.posY = new_pos[1]
         self.casting = None
 
-    def toJson(self):
+    def deserialize(self):
         """ Returns information about character as a json
         """
+        return {'id': self.id,
+                'name': self.name,
+                'x': self.posX,
+                'y': self.posY,
+                'class': self.classId,
+                'attributes': self.attributes.deserialize(),
+                'abilities': self.abilities,
+                'buffs': self.buffs,
+                'debuffs': self.debuffs,
+                'casting': self.casting}
 
-        json = {}
-        json['id'] = self.id
-        json['name'] = self.name
-        json['x'] = self.posX
-        json['y'] = self.posY
-        json['name'] = self.name
-        json['class'] = self.classId
-        json['attributes'] = self.attributes.toJson()
-        json['abilities'] = self.abilities
-        json['buffs'] = self.buffs
-        json['debuffs'] = self.debuffs
-        json['casting'] = self.casting
+    def serialize(self, json):
+        try:
+            self.id = json['id']
+            self.name = json['name']
+            self.posX = json['x']
+            self.posY = json['y']
+            self.classId = json['class']
+            self.abilities = json['abilities']
+            self.buffs = json['buffs']
+            self.debuffs = json['debuffs']
+            self.casting = json['casting']
+            if not self.attributes.serialize(json['attributes']):
+                return False
+        except KeyError as ex:
+            print("Failed to serialize: " + str(ex))
+            return False
+        return True
 
-        return json
-		
 
 class Attributes(object):
-
     def __init__(self,
                  health,
                  damage,
@@ -357,19 +368,34 @@ class Attributes(object):
         if attribute_name == 'Rooted':
             return self.rooted < 0
 
-    def toJson(self):
+    def deserialize(self):
         """ Return json of information containing all attribute information
         """
 
-        json = {}
-        json['MaxHealth'] = self.maxHealth
-        json['Health'] = self.health
-        json['Damage'] = self.damage
-        json['SpellPower'] = self.spellPower
-        json['AttackRange'] = self.attackRange
-        json['Armor'] = self.armor
-        json['MovementSpeed'] = self.movementSpeed
-        json['Silenced'] = self.silenced
-        json['Stunned'] = self.stunned
-        json['Rooted'] = self.rooted
-        return json
+        return {'MaxHealth': self.maxHealth,
+                'Health': self.health,
+                'Damage': self.damage,
+                'SpellPower': self.spellPower,
+                'AttackRange': self.attackRange,
+                'Armor': self.armor,
+                'MovementSpeed': self.movementSpeed,
+                'Silenced': self.silenced,
+                'Stunned': self.stunned,
+                'Rooted': self.rooted}
+
+    def serialize(self, json):
+        try:
+            self.maxHealth = json['MaxHealth']
+            self.health = json['Health']
+            self.damage = json['Damage']
+            self.spellPower = json['SpellPower']
+            self.attackRange = json['AttackRange']
+            self.armor = json['Armor']
+            self.movementSpeed = json['MovementSpeed']
+            self.silenced = json['Silenced']
+            self.stunned = json['Stunned']
+            self.rooted = json['Rooted']
+        except KeyError as ex:
+            print("Failed to serialize: " + str(ex))
+            return False
+        return True
