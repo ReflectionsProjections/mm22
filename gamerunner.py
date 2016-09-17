@@ -2,7 +2,7 @@
 import os
 import sys
 import os.path as op
-path = op.dirname(op.dirname(op.realpath(__file__)))
+path = op.dirname(op.dirname(op.realpath('__file__')))
 print (path)
 sys.path.append(path)
 
@@ -25,11 +25,17 @@ def launch_clients():
     if parameters.client:
         numberOfClients = len(parameters.client)
         for client in parameters.client:
-            launch_client(os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'test-clients/', client))
+            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'test-clients/', client)
+            if os.name == "nt":
+                path = path.replace("\\","/")
+            launch_client()
     else:
         numberOfClients = 0
     for x in range(numberOfClients, parameters.teams + 1):
-        launch_client(os.path.join(os.getcwd(), parameters.defaultClient))
+        path = os.path.join(os.getcwd(), parameters.defaultClient)
+        if os.name == "nt":
+            path = path.replace("\\","/")
+        launch_client(path)
 
 
 def launch_client(client, port=None):
@@ -194,8 +200,16 @@ class Client_program(object):
         """
         """
         try:
-            self.bot = Popen(["sh", os.path.join(self.client_path, "run.sh"),
-                              "localhost", str(self.port or parameters.port)],
+            commands = []
+            if os.name == "nt":
+                path = os.path.join(self.client_path, "test_client.py").replace("\\","/")
+                commands += ["python", path]
+                print(commands)
+            else:
+                path = os.path.join(self.client_path, "run.sh")
+                commands += ["sh", path]
+            commands += ["localhost", str(self.port or parameters.port)]
+            self.bot = Popen(commands,
                              stdout=self.chose_output(), cwd=self.client_path)
         except OSError as e:
             msg = "the player {} failed to start with error {}".format(
