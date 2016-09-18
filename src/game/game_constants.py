@@ -25,10 +25,10 @@ classesJson = {
 	},
 	"assassin" : {
 			"Health"        : 400,
-            "Damage"        : 60,
+            "Damage"        : 100,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "Armor"         : 30,
+            "Armor"         : 25,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,12,11 ] #sprint,backstab
 	},
@@ -82,7 +82,7 @@ classesJson = {
             "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 1,
-            "Armor"         : 50,
+            "Armor"         : 20,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,9,10 ] #damage spell, long cd stun
     }
@@ -141,7 +141,7 @@ abilitiesList = [
             "Change": -10,
             "Time": 4
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 1,
         "Cooldown"	: 10,
         "Range"		: 2,
     },
@@ -152,7 +152,7 @@ abilitiesList = [
             "Change": 200,
             "Time": 0
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 1,
         "Cooldown"  : 5,
         "Range"     : 1,
     },
@@ -174,9 +174,9 @@ abilitiesList = [
             "Change": True,
             "Time": 2
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 2,
         "Cooldown"  : 8,
-        "Range"     : 0,
+        "Range"     : 2,
     },
     {   #6 ranged damage reduction curse
         "StatChanges": [{
@@ -229,7 +229,7 @@ abilitiesList = [
             "Change": True,
             "Time": 1
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 2,
         "Cooldown"  : 12,
         "Range"     : 1,
     },
@@ -237,18 +237,18 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -200,
+            "Change": -150,
             "Time": 0
         }],
-        "CastTime"  : 0,
-        "Cooldown"  : 3,
+        "CastTime"  : 1,
+        "Cooldown"  : 4,
         "Range"     : 1,
     },
     {   #11 Backstab
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -250,
+            "Change": -200,
             "Time": 0
         }],
         "CastTime"  : 0,
@@ -273,7 +273,7 @@ abilitiesList = [
             "Change": True,
             "Time": 2
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 1,
         "Cooldown"  : 8,
         "Range"     : 1,
     },
@@ -284,7 +284,7 @@ abilitiesList = [
             "Change": True,
             "Time": 1
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 1,
         "Cooldown"  : 10,
         "Range"     : 1,
     },
@@ -306,7 +306,7 @@ abilitiesList = [
             "Change": -100,
             "Time": 3
         }],
-        "CastTime"  : 0,
+        "CastTime"  : 1,
         "Cooldown"  : 10,
         "Range"     : 2,
     },
