@@ -22,6 +22,7 @@ def log(x,c=printColors.BLUE):
     sys.stderr.write(c + str(x) + printColors.RESET + "\n")
 
 # Set initial connection data
+
 def initialResponse():
     # @competitors YOUR CODE HERE
     return {'teamName':'test',
@@ -36,7 +37,6 @@ def initialResponse():
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
-    # print(serverResponse)
     # Helpful variables
     actions = []
     myId = serverResponse["playerInfo"]["id"]
@@ -50,10 +50,16 @@ def processTurn(serverResponse):
 
     for character in myteam["characters"]:
         if character["x"] == enemyteam["characters"][0]["x"] and character["y"] == enemyteam["characters"][0]["y"]:
-            actions.append({
+            """actions.append({
                 "action": "attack",
                 "characterId": character["id"],
                 "targetId": enemyteam["characters"][0]["id"],
+            })"""
+            actions.append({
+                "action": "cast",
+                "characterId": character["id"],
+                "targetId": enemyteam["characters"][0]["id"],
+                "abilityId": 9
             })
         else:
             actions.append({

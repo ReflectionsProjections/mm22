@@ -10,6 +10,8 @@ class InvalidPlayerException(Exception):
 
 class Game(object):
 
+    action_priority_order = ["attack", "cast", "move"]
+
     def __init__(self):
         """ Init the game object
         :param totalTurns: (int) max number of ticks in a game
@@ -72,15 +74,13 @@ class Game(object):
     # @returns True if the game is still running, False otherwise
     def execute_turn(self):
 
-        action_priority_order = ["attack", "cast", "move"]
-
         # Clear Turn results
         self.turnResults = {}
         for playerId in self.queuedTurns:
             self.turnResults[playerId] = []
 
         # Execute turns
-        for action_type in action_priority_order:
+        for action_type in Game.action_priority_order:
             for playerId in self.queuedTurns:
                 turn = self.queuedTurns[playerId]
 
@@ -170,23 +170,33 @@ class Game(object):
                                 actionResult["message"] = "Invalid target to attack"
                                 continue
 
-                            if abilityId == -1:
+                            if not abilityId:
                                 actionResult["message"] = "Could not find ability id"
                                 continue
 
                             if self.map.in_vision_of((character.posX, character.posY),
-                                                     targetId,
+                                                     (target.posX, target.posY),
                                                      character.attributes.get_attribute("AttackRange")):
-                                if not character.use_ability(abilityId, target):
-                                    actionResult["message"] = "Character does not have that ability!"
+                                character.use_ability(abilityId, target)
                             else:
                                 actionResult["message"] = "Target is out of range or not in vision"
                         else:
                             actionResult["message"] = "Invalid action type."
+                    except InvalidAbilityIdException:
+                        actionResult["message"] = "Character does not have that ability"
+                    except AbilityOnCooldownException:
+                        actionResult["message"] = "Ability is on cooldown"
+                    except RootedException:
+                        actionResult["message"] = "Character is rooted"
+                    except StunnedException:
+                        actionResult["message"] = "Character is stunned"
+                    except SilencedException:
+                        actionResult["message"] = "Character is silenced"
+                    except NotEnoughMovementSpeedException:
+                        actionResult["message"] = "Character doesn't have enough movement speed"
                     except Exception as e:
                         raise  # Uncomment me to raise unhandled exceptions
                         actionResult["message"] = "Unknown exception: " + str(e)
-
                     actionResult["status"] = "fail" if "message" in actionResult else "ok"
 
                     # Record results

@@ -1,4 +1,19 @@
 import src.game.game_constants as gameConstants
+# Abilities
+class InvalidAbilityIdException(Exception):
+    pass
+class AbilityOnCooldownException(Exception):
+    pass
+# Attributes
+class RootedException(Exception):
+    pass
+class StunnedException(Exception):
+    pass
+class SilencedException(Exception):
+    pass
+# Movement
+class NotEnoughMovementSpeedException(Exception):
+    pass
 
 
 class Character(object):
@@ -68,11 +83,6 @@ class Character(object):
 
         return error
 
-    def apply_pending_stat_changes(self):
-        for stat_change in self.pending_stat_changes:
-            self.apply_stat_change(stat_change)
-        self.pending_stat_changes = []
-
     def update(self):
         if self.casting:
             if self.casting["currentCastTime"] == 0:
@@ -86,19 +96,19 @@ class Character(object):
 
         # Update buffs
         for buff in self.buffs:
-            if buff['time'] == 0:
+            if buff['Time'] == 0:
                 self.apply_stat_change(buff, remove=True)
                 self.buffs.remove(buff)
             else:
-                buff['time'] -= 0
+                buff['Time'] -= 0
 
         # Update debuffs
         for debuff in self.debuffs:
-            if debuff['time'] == 0:
+            if debuff['Time'] == 0:
                 self.apply_stat_change(debuff, remove=True)
                 self.debuffs.remove(debuff)
             else:
-                debuff['time'] -= 0
+                debuff['Time'] -= 0
 
         # Apply buffs and debuffs
         self.apply_pending_stat_changes()
@@ -110,31 +120,30 @@ class Character(object):
     def can_use_ability(self, ability_id):
         """ Checks if a character can use an ability (must have that ability)
         :param ability_id: id of the ability to check
-        :return: True if yes, False if no
+        :return: True if yes, Exception if false
         """
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
-            return False
-
-        # Is the character stunned?
-        if self.stunned:
-            return False
-
-        # Is the character silenced?
-        if self.silenced:
-            return False
-
-        return self.abilities[ability_id] == 0
+            raise InvalidAbilityIdException
+        # Is the character stunned
+        elif self.attributes.get_attribute("Stunned"):
+            raise StunnedException
+        # Is the character silenced
+        elif self.attributes.get_attribute("Silenced"):
+            raise SilencedException
+        # Is the ability on cool down
+        elif self.abilities[ability_id] != 0:
+            raise AbilityOnCooldownException
 
     def use_ability(self, ability_id, character):
-        if not self.can_use_ability(self, ability_id):
-            return False
+        # Check if we can use the ability
+        self.can_use_ability(ability_id)
 
         # Reset casting
         self.casting = None
 
         if gameConstants.abilitiesList[ability_id]['CastTime'] > 0:
-            self.casting = {"abilityId": ability_id, "currentCastTime": 0}
+            self.casting = {"AbilityId": ability_id, "CurrentCastTime": 0}
         else:
             self.cast_ability(ability_id, character)
 
@@ -145,16 +154,16 @@ class Character(object):
         :param character: Character object to cast on, if needed
         :return: None or string error
         """
-        # If the character is silenced or stunned, it is unable to cast a spell
-        if self.attributes.get_attribute('Silenced') or self.attributes.get_attribute('Stunned'):
-            return "Character is silenced or stunned"
+        # Check if we can use the ability
+        self.can_use_ability(ability_id)
 
+        # Remove current casting
         self.casting = None
 
         # Get ability json
         ability = gameConstants.abilitiesList[ability_id].copy()
 
-        # Apply Cooldown
+        # Apply cool down
         self.abilities[ability_id] = ability["Cooldown"]
 
         # Iterate through stat changes
@@ -171,6 +180,11 @@ class Character(object):
 
     def add_stat_change(self, stat_change):
         self.pending_stat_changes.append(stat_change)
+
+    def apply_pending_stat_changes(self):
+        for stat_change in self.pending_stat_changes:
+            self.apply_stat_change(stat_change)
+        self.pending_stat_changes = []
 
     def apply_stat_change(self, stat_change, remove=False):
         change = stat_change['Change']
@@ -205,7 +219,10 @@ class Character(object):
                 self.buffs.append(stat_change)
 
     def can_move(self):
-        return not (self.attributes.get_attribute("Rooted") or self.attributes.get_attribute("Stunned"))
+        if self.attributes.get_attribute("Rooted"):
+            raise RootedException
+        elif self.attributes.get_attribute("Stunned"):
+            raise StunnedException
 
     def move_towards(self, target, map):
         # Same position
@@ -213,8 +230,7 @@ class Character(object):
             return
 
         # Can we move?
-        if not self.can_move():
-            return "Unable to move currently"
+        self.can_move()
 
         path = map.bfs((self.posX, self.posY), (target.posX, target.posY))
 
@@ -225,6 +241,7 @@ class Character(object):
             new_loc = path[-1]
         else:
             new_loc = path[movement_speed + 1]
+
         self.posX = new_loc[0]
         self.posY = new_loc[1]
         self.casting = None
@@ -235,14 +252,13 @@ class Character(object):
             return
 
         # Can we move?
-        if not self.can_move():
-            return "Unable to move currently"
+        self.can_move()
 
         # Actually find path
         if not map.can_move_to((self.posY, self.posY),
                                new_pos,
                                self.attributes.get_attribute("MovementSpeed")):
-            return "Not enough movement speed to reach target"
+            raise NotEnoughMovementSpeedException
 
         self.posX = new_pos[0]
         self.posY = new_pos[1]

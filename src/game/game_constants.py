@@ -119,6 +119,7 @@ abilitiesList = [
             "Change": False,
             "Time": 0
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 0,
     },
@@ -129,6 +130,7 @@ abilitiesList = [
             "Change": True,
             "Time": 1
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 6,
         "Range"     : 0,
     },
@@ -139,6 +141,7 @@ abilitiesList = [
             "Change": -10,
             "Time": 4
         }],
+        "CastTime"  : 0,
         "Cooldown"	: 10,
         "Range"		: 2,
     },
@@ -149,6 +152,7 @@ abilitiesList = [
             "Change": 200,
             "Time": 0
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 5,
         "Range"     : 1,
     },
@@ -159,6 +163,7 @@ abilitiesList = [
             "Change": 20,
             "Time": 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 8,
         "Range"     : 1,
     },
@@ -169,6 +174,7 @@ abilitiesList = [
             "Change": True,
             "Time": 2
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 8,
         "Range"     : 0,
     },
@@ -179,6 +185,7 @@ abilitiesList = [
             "Change": -20,
             "Time": 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 8,
         "Range"     : 2,
     },
@@ -195,6 +202,7 @@ abilitiesList = [
             "Change": 20,
             "Time": 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 2,
     },
@@ -210,6 +218,7 @@ abilitiesList = [
             "Change": 50,
             "Time" : 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 6,
         "Range"     : 0,
     },
@@ -220,6 +229,7 @@ abilitiesList = [
             "Change": True,
             "Time": 1
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 12,
         "Range"     : 1,
     },
@@ -230,6 +240,7 @@ abilitiesList = [
             "Change": -200,
             "Time": 0
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 3,
         "Range"     : 1,
     },
@@ -240,6 +251,7 @@ abilitiesList = [
             "Change": -250,
             "Time": 0
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 0,
     },
@@ -250,6 +262,7 @@ abilitiesList = [
             "Change": 1,
             "Time": 2
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 8,
         "Range"     : 1,
     },
@@ -260,6 +273,7 @@ abilitiesList = [
             "Change": True,
             "Time": 2
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 8,
         "Range"     : 1,
     },
@@ -270,6 +284,7 @@ abilitiesList = [
             "Change": True,
             "Time": 1
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 1,
     },
@@ -280,6 +295,7 @@ abilitiesList = [
             "Change": 15,
             "Time": 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 0,
     },
@@ -290,6 +306,7 @@ abilitiesList = [
             "Change": -100,
             "Time": 3
         }],
+        "CastTime"  : 0,
         "Cooldown"  : 10,
         "Range"     : 2,
     },
