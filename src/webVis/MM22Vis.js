@@ -467,6 +467,7 @@ function preload () {
     game.load.image('spell2', 'assets/spell-2_360.png');
     game.load.image('frostbolt', 'assets/Frostbolt.png');
     game.load.image('armorbuff', 'assets/ArmorBuff.png');
+    game.load.image('spell9', 'assets/Stun.png');
     
     //log success
     console.log("preload() complete");
@@ -1319,6 +1320,9 @@ function processTurn(){
 
   */
 function resolveActions(currTurn){
+  //constant determined by Python Game to signify a successful spell
+  var SPELL_SUCCESSFUL = "ok";
+
   var teamATweens = [];
   var teamBTweens = [];
   for(var i = 0; i < currTurn.turnResults.length; i++){
@@ -1358,9 +1362,20 @@ function resolveActions(currTurn){
         case "move":
           //do nothing since movement is handled by another function
           break;
-        //TODO: change case to whatever spells are called
-        case "spell":
-          //TODO: spell stuff
+        case "cast":
+          //the spell was successfully cast, so call addSpell and 
+          //  pass in corresponding arguments
+          if(action.status == SPELL_SUCCESSFUL){
+            console.log("I AM SO TRIGGERED RIGHT NOW");
+            var casterIndex = characterIDToMultiPlayerIndex[action.characterId];
+            var casterSrite = statScreen.MultiPlayer[casterIndex].Sprite;
+            var targetIndex = characterIDToMultiPlayerIndex[action.targetId];
+            var targetSprite = statScreen.MultiPlayer[targetIndex].Sprite;
+            var spellName = "spell" + action.abilityId;
+
+            addSpell(casterSprite, casterIndex, targetSprite, spellName);
+
+          }        
           break;
       }
   });
@@ -1386,6 +1401,9 @@ function resolveActions(currTurn){
         tween.start();
     }); 
   }
+
+  //release all spells
+  releaseSpells();
 }
 
 
