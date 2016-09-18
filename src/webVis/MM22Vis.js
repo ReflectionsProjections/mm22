@@ -456,18 +456,42 @@ function preload () {
     //background image
     game.load.image('background', 'assets/Map-update.png');
 
-    //sprites for the characters and spells
+    //sprites for the characters 
     game.load.image('wizard1', 'assets/wizard1.png');
     game.load.image('wizard2', 'assets/wizard2.png');
     game.load.image('archer1', 'assets/archer1.png');
     game.load.image('archer2', 'assets/archer2.png');
     game.load.image('druid1', 'assets/druid1.png');
     game.load.image('druid2', 'assets/druid2.png');
-    game.load.image('spell1', 'assets/spell-1_360.png');
-    game.load.image('spell2', 'assets/spell-2_360.png');
-    game.load.image('frostbolt', 'assets/Frostbolt.png');
-    game.load.image('armorbuff', 'assets/ArmorBuff.png');
+    game.load.image('enchantress1', 'assets/enchantress1.png');
+    game.load.image('enchantress2', 'assets/enchantress2.png');
+    game.load.image('knight1', 'assets/knight1.png');
+    game.load.image('knight2', 'assets/knight2.png');
+    game.load.image('mage1', 'assets/mage1.png');
+    game.load.image('mage2', 'assets/mage2.png');
+    game.load.image('paladin1', 'assets/paladin1.png');
+    game.load.image('paladin2', 'assets/paladin2.png');
+    
+
+    //sprites for the spells
+    //TODO: Make sure the abilityID of the keys for 
+    //  these sprites match those used in the game JSON 
+    //  (Eric/Jack/Asaf)
+    //
+    // key = 'spell' + abilityId
+    game.load.image('spell1', 'assets/Frostbolt.png');
+    game.load.image('spell2', 'assets/ArmorBuff.png');
+    game.load.image('spell3', 'asstes/AttackSpeedBuff.png');
+    game.load.image('spell4', 'assets/Burst.png');
+    game.load.image('spell5', 'assets/DeepFreeze.png');
+    game.load.image('spell6', 'assets/IciclesFlying.png');
+    game.load.image('spell7', 'assets/IciclesGround.png');
+    game.load.image('spell8', 'assets/RangeArmorBuff.png');
     game.load.image('spell9', 'assets/Stun.png');
+    game.load.image('spell10', 'assets/RangeAttackBuff.png');
+    game.load.image('spell11', 'assets/RangeAttackDebuffCurse.png');
+    game.load.image('spell12', 'assets/RangeHeal.png');
+    game.load.image('spell13', 'assets/SacrificeHealth.png');
     
     //log success
     console.log("preload() complete");
@@ -1699,11 +1723,11 @@ function Move(){
 //Tests addSpells and releaseSpells
 function testIfSpellsWork(){
     for(var i = 0; i < 6; i++){
-      addSpell(statScreen["MultiPlayer"][i].Sprite, i, statScreen["MultiPlayer"][i].Sprite, "armorbuff");
+      addSpell(statScreen["MultiPlayer"][i].Sprite, i, statScreen["MultiPlayer"][i].Sprite, "spell2");
     }
-    addSpell(statScreen["MultiPlayer"][0].Sprite, 0, statScreen["MultiPlayer"][5].Sprite, "frostbolt");
-    addSpell(statScreen["MultiPlayer"][4].Sprite, 4, statScreen["MultiPlayer"][1].Sprite, "frostbolt");
-    addSpell(statScreen["MultiPlayer"][3].Sprite, 3, statScreen["MultiPlayer"][0].Sprite, "frostbolt");
+    addSpell(statScreen["MultiPlayer"][0].Sprite, 0, statScreen["MultiPlayer"][5].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, 4, statScreen["MultiPlayer"][1].Sprite, "spell1");
+    addSpell(statScreen["MultiPlayer"][3].Sprite, 3, statScreen["MultiPlayer"][0].Sprite, "spell1");
     releaseSpells();
 }
 
