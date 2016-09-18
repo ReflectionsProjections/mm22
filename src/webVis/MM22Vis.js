@@ -139,6 +139,9 @@ var TIME_TO_NEXT_UPDATE = 2000;
 //  i.e. to move from caster to target 
 var TIME_FOR_SPELLS = 1000;
 
+//Number of milliseconds for the whole attack tween chain
+var TIME_FOR_ATTACKS = 800;
+
 
 
 //Constants to define Phaser's width and height
@@ -193,6 +196,11 @@ var teamA = [];
 var teamB = [];
 
 
+//Mapping of characterID's to 
+//  corresponding index within statScreen.MultiPlayer
+var characterIDToMultiPlayerIndex = [];
+
+
 
 //Group containing all the spells to be cast on one turn
 var spells;
@@ -233,10 +241,14 @@ var statScreen = {
     },
     //Contains All the players, in order
     "MultiPlayer" : [
-        {
+        { 
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -260,9 +272,13 @@ var statScreen = {
             "HealthBar" : null,
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -283,9 +299,13 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -306,9 +326,13 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -329,9 +353,13 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -352,9 +380,13 @@ var statScreen = {
             "HealthBar" : null
         },
         {
+            //used in controlling depth of sprites
+            "PhaserGroup": null,
             "Sprite" : null,
             //Handle to the Text Object containing the tracked character's name
             "CharacterName" : null,
+            //ID of the character according to the game
+            "CharacterID": null,
             //Handles to the Phaser.Text Objects of each attribute
             //Use this object if we are tracking only one characer
             "AttributeStrings" : {
@@ -375,6 +407,7 @@ var statScreen = {
             "HealthBar" : null
         },
     ],
+    //reference to the current turn being processed
     "CurrentTurn" : null,
 
 };
@@ -432,6 +465,8 @@ function preload () {
     game.load.image('druid2', 'assets/druid2.png');
     game.load.image('spell1', 'assets/spell-1_360.png');
     game.load.image('spell2', 'assets/spell-2_360.png');
+    game.load.image('frostbolt', 'assets/Frostbolt.png');
+    game.load.image('armorbuff', 'assets/ArmorBuff.png');
     
     //log success
     console.log("preload() complete");
@@ -467,8 +502,13 @@ function create () {
         });
     });
 
-    //Add all players to the characters group at their initial locations
+    //Add all players to the characters group at their initial locations and other init work
     for(var index = 0; index < statScreen.MultiPlayer.length; index++){
+      //set CharacterID
+      var characterID = characterArray[index].id;
+      statScreen.MultiPlayer[index].CharacterID = characterID;
+      characterIDToMultiPlayerIndex[characterID] = index;
+
       var initPos = calcXAndY(characterArray[index].x, characterArray[index].y);
      
       //generate the string of the key for the character sprite 
@@ -481,10 +521,20 @@ function create () {
       }
       //wizard1.png, druid2.png etc.
       var spriteName = characterArray[index]["class"] + teamNumber;
-      statScreen.MultiPlayer[index].Sprite = characters.create(initPos.x, initPos.y, spriteName);
+
+      //Add the character's sprite to its own Phaser Group
+      //Used for rendering order of sprites
+      var characterGroup = game.add.group(); 
+      statScreen.MultiPlayer[index].Sprite = characterGroup.create(initPos.x, initPos.y, spriteName);
+      statScreen.MultiPlayer[index].PhaserGroup = characterGroup;
+
+      //add the sprite to the characters group (global group)
+      characters.add(statScreen.MultiPlayer[index].Sprite);
+
+
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
-      statScreen.MultiPlayer[index].Sprite.index = 0;
+      statScreen.MultiPlayer[index].Sprite.index = index;
       statScreen.MultiPlayer[index].Sprite.name = characterArray[index].name;
 
       //Set initial values of attributes
@@ -593,20 +643,27 @@ var spellList = [];
         same value.
 
     caster--the sprite of the character casting the spell
+    casterIndex -- index of the caster within statScreen.MultiPlayer 
     target--the sprite of the charcter targetted by the spell
     spellName--string of the key denoting the sprite of a 
         certain spell.
 */
-function addSpell(caster, target, spellName){
+function addSpell(caster, casterIndex, target, spellName){
     //add spell to center of sprite
     var newSpell = game.add.sprite(caster.x, caster.y, spellName);
     newSpell.anchor.setTo(0.5);
-    //add the spell sprite to the spells group
-    //  and add the corresponding spell's sprite 
-    //  to the caster's current position
-    spells.add(newSpell);
+
     //add the caster and target to the spellList array
-    spellList.push({"caster" : caster, "target" : target});
+    spellList.push(
+      {
+        "caster" : caster, 
+        "casterIndex": casterIndex,
+        "target" : target, 
+        "spell" : newSpell
+       }
+     );
+    statScreen.MultiPlayer[casterIndex].PhaserGroup.add(newSpell);
+    statScreen.MultiPlayer[casterIndex].PhaserGroup.bringToTop(newSpell);
 }
 
 /*
@@ -618,15 +675,15 @@ function addSpell(caster, target, spellName){
     This function clears both spellList and the spells group.
 */
 function releaseSpells(){
+  if(spellList.length > 0){
     //Go through all the spells in the spells group
     //  and tween them to their targets
-    var index = spellList.length-1;
     var holdOnCaster;
     var moveToTarget;
-    while(index >= 0){
+    for(var index = 0; index < spellList.length; index++){
         //get the child, starting at the end of the group
         //  and moving towards the first element
-        var currentSpell = spells.getChildAt(index);
+        var currentSpell = spellList[index].spell;
         //moves the spell on the screen, takes TIME_FOR_SPELLS amount of milliseconds
         holdOnCaster = game.add.tween(currentSpell).to({
             x: spellList[index].caster.x, 
@@ -640,17 +697,26 @@ function releaseSpells(){
           TIME_FOR_SPELLS/2, null);
         holdOnCaster.chain(moveToTarget);
         holdOnCaster.start();
-        index--;
-    }
+
+        
+   }
     
-    //cleanup
-    spellList = [];
-    if(moveToTarget != undefined || moveToTarget!=null){
-      moveToTarget.onComplete.add(function(){
-         spells.removeAll(true, false);
-      }, 
-      this);
-    }
+    //remove spell sprites from caster's group
+    //  after the last spell has finished tweening
+    moveToTarget.onComplete.add(function(){
+
+      spellList.forEach(function(val){
+          var groupIndex = val.casterIndex;
+          statScreen.MultiPlayer[groupIndex].PhaserGroup
+           .removeChild(val.spell);
+      }); 
+
+      //cleanup
+      spellList = [];
+
+    }, this);
+
+  }
     
 }
 
@@ -925,13 +991,6 @@ function moveCharactersQuadrantAbsolute(currTurn){
         }
     }
 
-    //Add spells for testing
-    //TODO: Delete this
-    //addSpell(statScreen["MultiPlayer"][2].Sprite, statScreen["MultiPlayer"][2].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][0].Sprite, statScreen["MultiPlayer"][5].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][4].Sprite, statScreen["MultiPlayer"][1].Sprite, "spell2");
-    //addSpell(statScreen["MultiPlayer"][3].Sprite, statScreen["MultiPlayer"][0].Sprite, "spell1");
-    releaseSpells();
 }
 
 
@@ -1222,10 +1281,12 @@ function showSinglePlayerStatScreen(){
 }
 
 /**
-    This function is run every TIME_TO_NEXT_UPDATE milliseconds
-    This function decides which screen to update:
-        MultiPlayer StatScreen
-        SinglePlayer StatScreen
+    This core game-loop function is run every TIME_TO_NEXT_UPDATE milliseconds
+    Moves characters according to game JSON
+    Casts spells and visualizes attacks
+    Updates both MultiPlayer and SinglePlayer stat screens 
+      (although only one is visible at any time)
+    
 */
 function processTurn(){
   if(serverJSON.length > 0){
@@ -1235,13 +1296,95 @@ function processTurn(){
     statScreen.CurrentTurn = currTurn;
     //move the sprites
     moveCharactersQuadrantAbsolute(currTurn);
-    //TODO: write helper function to add all spells
-    //call release spells after ^^^
+
+    //resolves everything in turnResults (attacks/spells)
+    //TODO: handle spells
+    resolveActions(currTurn);
+
+
+    //TODO: This is for testing, remove this line in production
+    //Uncomment this below to see some spells in action
+    //testIfSpellsWork();
 
     //update both stat screens (although only one will be showing)
     //  at any time
     updateMultiPlayerStatScreen(currTurn);
     updateSinglePlayerStatScreen(currTurn);
+  }
+}
+
+/**
+
+  Animates any actions occuring in turnResults  
+
+  */
+function resolveActions(currTurn){
+  var teamATweens = [];
+  var teamBTweens = [];
+  for(var i = 0; i < currTurn.turnResults.length; i++){
+    currTurn.turnResults[i].forEach(function(action){
+      var actionType = action.action;
+      //the id of the character making the action
+      var casterID = action.characterId;
+      var casterMultiPlayerIndex = characterIDToMultiPlayerIndex[casterID];
+      var casterSprite = statScreen.MultiPlayer[casterMultiPlayerIndex].Sprite;
+      //the id of the character targetted by the action
+      var targetID = action.targetId;
+      var targetMultiPlayerIndex = characterIDToMultiPlayerIndex[targetID];
+      var targetSprite = statScreen.MultiPlayer[targetMultiPlayerIndex].Sprite;
+      switch(actionType){
+        case "attack":
+          //do attack stuff
+          console.log(casterMultiPlayerIndex + " is attacking " + targetMultiPlayerIndex);
+          var attackTween = game.add.tween(casterSprite).to(
+              {
+                x: targetSprite.x,
+                y: targetSprite.y
+              },
+              TIME_FOR_ATTACKS/4,
+              null,
+              false,
+              0,
+              0,
+              true
+          );
+          if(i == 0){
+            teamATweens.push(attackTween);
+          }
+          else{
+            teamBTweens.push(attackTween);
+          }
+          break;
+        case "move":
+          //do nothing since movement is handled by another function
+          break;
+        //TODO: change case to whatever spells are called
+        case "spell":
+          //TODO: spell stuff
+          break;
+      }
+  });
+
+  } //end for loop for turnResults
+
+  //have any tweens for teamB after all (or none) of
+  // team A's tweens have completed
+  if(teamATweens.length > 0){
+    teamATweens[teamATweens.length-1].onComplete.add(function(){
+      teamBTweens.forEach(function(tween){
+          tween.start();
+      });
+    }
+    , this);
+    teamATweens.forEach(function(tween){
+        tween.start();
+    }); 
+  }
+  //team A had no turns, so just do team B's tweens
+  else{
+    teamBTweens.forEach(function(tween){
+        tween.start();
+    }); 
   }
 }
 
@@ -1255,6 +1398,7 @@ function processTurn(){
     character
 */
 function changeStatScreen(character){
+    console.log(character);
     //update PlayerIndex of statScreen 
     statScreen.SinglePlayer.PlayerIndex = character.index;
     statScreen.SinglePlayer.CharacterNameString = character.name;
@@ -1263,9 +1407,10 @@ function changeStatScreen(character){
     //updates the name of the character whose stats are displayed
     //NOTE: Does not check to see if name will fit yet
     statScreen.SinglePlayer.CharacterName.setText((character.name).toUpperCase());
-    //redraw health bar if on the single player screen
+    //redraw health bar and update stats if on the single player screen
     if(!statScreen.ShowAll){
       updateSinglePlayerHealthBar(statScreen.CurrentTurn);
+      updateSinglePlayerStatScreen(statScreen.CurrentTurn);
     }
 }
 
@@ -1533,6 +1678,16 @@ function Move(){
   };
 }
 
+//Tests addSpells and releaseSpells
+function testIfSpellsWork(){
+    for(var i = 0; i < 6; i++){
+      addSpell(statScreen["MultiPlayer"][i].Sprite, i, statScreen["MultiPlayer"][i].Sprite, "armorbuff");
+    }
+    addSpell(statScreen["MultiPlayer"][0].Sprite, 0, statScreen["MultiPlayer"][5].Sprite, "frostbolt");
+    addSpell(statScreen["MultiPlayer"][4].Sprite, 4, statScreen["MultiPlayer"][1].Sprite, "frostbolt");
+    addSpell(statScreen["MultiPlayer"][3].Sprite, 3, statScreen["MultiPlayer"][0].Sprite, "frostbolt");
+    releaseSpells();
+}
 
 
 
