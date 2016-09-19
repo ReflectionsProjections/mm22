@@ -3,6 +3,8 @@ import socket
 import json
 import random
 import sys
+from socket import error as SocketError
+import errno
 
 # Python terminal colors; useful for debugging
 # Make sure to concat a "printColors.RESET" to the end of your statement!
@@ -59,7 +61,7 @@ def processTurn(serverResponse):
                 "action": "cast",
                 "characterId": character["id"],
                 "targetId": enemyteam["characters"][0]["id"],
-                "abilityId": 9
+                "abilityId": 2
             })
         else:
             actions.append({
@@ -77,7 +79,6 @@ def processTurn(serverResponse):
 # Main method
 # @competitors DO NOT MODIFY
 if __name__ == "__main__":
-
     # Config
     conn = ('localhost', 1337)
     if len(sys.argv) > 2:
@@ -95,26 +96,31 @@ if __name__ == "__main__":
     members = None
 
     # Run game
-    data = s.recv(1024)
-    while len(data) > 0 and game_running:
-        value = None
-        if "\n" in data:
-            data = data.split('\n')
-            if len(data) > 1 and data[1] != "":
-                data = data[1]
-                data += s.recv(1024)
-            else:
-                value = json.loads(data[0])
-
-                # Check game status
-                if 'winner' in value:
-                    game_running = False
-
-                # Send next turn (if appropriate)
+    try:
+        data = s.recv(1024)
+        while len(data) > 0 and game_running:
+            value = None
+            if "\n" in data:
+                data = data.split('\n')
+                if len(data) > 1 and data[1] != "":
+                    data = data[1]
+                    data += s.recv(1024)
                 else:
-                    msg = processTurn(value) if "playerInfo" in value else initialResponse()
-                    s.sendall(json.dumps(msg) + '\n')
-                    data = s.recv(1024)
-        else:
-            data += s.recv(1024)
+                    value = json.loads(data[0])
+
+                    # Check game status
+                    if 'winner' in value:
+                        game_running = False
+
+                    # Send next turn (if appropriate)
+                    else:
+                        msg = processTurn(value) if "playerInfo" in value else initialResponse()
+                        s.sendall(json.dumps(msg) + '\n')
+                        data = s.recv(1024)
+            else:
+                data += s.recv(1024)
+    except SocketError as e:
+        if e.errno != errno.ECONNRESET:
+            raise  # Not error we are looking for
+        pass  # Handle error here.
     s.close()

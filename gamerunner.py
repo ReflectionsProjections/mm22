@@ -31,7 +31,7 @@ def launch_clients():
             launch_client()
     else:
         numberOfClients = 0
-    for x in range(numberOfClients, parameters.teams + 1):
+    for x in range(numberOfClients, parameters.teams):
         path = os.path.join(os.getcwd(), parameters.defaultClient)
         if os.name == "nt":
             path = path.replace("\\","/")
@@ -204,7 +204,6 @@ class Client_program(object):
             if os.name == "nt":
                 path = os.path.join(self.client_path, "test_client.py").replace("\\","/")
                 commands += ["python", path]
-                print(commands)
             else:
                 path = os.path.join(self.client_path, "run.sh")
                 commands += ["sh", path]

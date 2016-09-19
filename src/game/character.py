@@ -85,9 +85,9 @@ class Character(object):
 
     def update(self):
         if self.casting:
-            if self.casting["currentCastTime"] == 0:
-                self.cast_ability(self.casting["abilityId"])
-            self.casting["currentCastTime"] -= 1
+            if self.casting["CurrentCastTime"] == 0:
+                self.cast_ability(self.casting["AbilityId"])
+            self.casting["CurrentCastTime"] -= 1
 
         # Update ability cooldowns
         for ability in self.abilities:
@@ -142,8 +142,9 @@ class Character(object):
         # Reset casting
         self.casting = None
 
-        if gameConstants.abilitiesList[ability_id]['CastTime'] > 0:
-            self.casting = {"AbilityId": ability_id, "CurrentCastTime": 0}
+        cast_time = gameConstants.abilitiesList[ability_id]['CastTime']
+        if cast_time > 0:
+            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time}
         else:
             self.cast_ability(ability_id, character)
 
@@ -210,8 +211,7 @@ class Character(object):
                 self.buffs.remove(stat_change)
         else:
             # Interrupt casting if silenced/stunned
-            if (stat_change['Attribute'] is 'Silenced' or stat_change['Attribute'] is 'Stunned') and stat_change[
-                'Change'] < 0:
+            if (stat_change['Attribute'] is 'Silenced' or stat_change['Attribute'] is 'Stunned') and stat_change['Change'] < 0:
                 self.casting = None
             if stat_change['Change'] < 0:
                 self.debuffs.append(stat_change)

@@ -15,7 +15,7 @@ Defines the classes
 """
 classesJson = {
 	"archer" : {
-			"Health"        : 500,
+			"Health"        : 1000,
             "Damage"        : 100,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
@@ -24,7 +24,7 @@ classesJson = {
             "Abilities"     : [ 0,2,12 ] #sprint, armordebuff
 	},
 	"assassin" : {
-			"Health"        : 400,
+			"Health"        : 800,
             "Damage"        : 100,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
@@ -33,7 +33,7 @@ classesJson = {
             "Abilities"     : [ 0,12,11 ] #sprint,backstab
 	},
     "druid" : {
-            "Health"        : 600,
+            "Health"        : 1200,
             "Damage"        : 40,
             "SpellPower"    : 0,
             "AttackRange"   : 1,
@@ -42,7 +42,7 @@ classesJson = {
             "Abilities"     : [ 0,3,4,13 ] #heal, ranged armor buff, root
     },
     "enchanter" : {
-            "Health"        : 400,
+            "Health"        : 800,
             "Damage"        : 40,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
@@ -51,7 +51,7 @@ classesJson = {
             "Abilities"     : [ 0,6,7,5 ] #armor reduction, armor+dmg buff, silence
     },
     "paladin" : {
-            "Health"        : 700,
+            "Health"        : 1400,
             "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
@@ -60,7 +60,7 @@ classesJson = {
             "Abilities"     : [ 0,3,14 ] #heal, med cd stun
     },
     "sorcerer" : {
-            "Health"        : 500,
+            "Health"        : 1000,
             "Damage"        : 80,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
@@ -69,7 +69,7 @@ classesJson = {
             "Abilities"     : [ 0,8,16 ] #self damage buff, dot spell
     },
     "warrior" : {
-            "Health"        : 600,
+            "Health"        : 1200,
             "Damage"        : 75,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
@@ -78,7 +78,7 @@ classesJson = {
             "Abilities"     : [ 0,1,15 ] #short cd stun, self armor buff
     },
     "wizard" : {
-            "Health"        : 500,
+            "Health"        : 1000,
             "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 1,
@@ -141,7 +141,7 @@ abilitiesList = [
             "Change": -10,
             "Time": 4
         }],
-        "CastTime"  : 1,
+        "CastTime"  : 0,
         "Cooldown"	: 10,
         "Range"		: 2,
     },
