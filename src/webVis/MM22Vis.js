@@ -481,7 +481,7 @@ function preload () {
     // key = 'spell' + abilityId
     game.load.image('spell1', 'assets/Frostbolt.png');
     game.load.image('spell2', 'assets/ArmorBuff.png');
-    game.load.image('spell3', 'asstes/AttackSpeedBuff.png');
+    game.load.image('spell3', 'assets/AttackSpeedBuff.png');
     game.load.image('spell4', 'assets/Burst.png');
     game.load.image('spell5', 'assets/DeepFreeze.png');
     game.load.image('spell6', 'assets/IciclesFlying.png');
