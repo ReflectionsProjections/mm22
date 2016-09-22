@@ -137,10 +137,10 @@ var TIME_TO_NEXT_UPDATE = 2000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
-var TIME_FOR_SPELLS = 1000;
+var TIME_FOR_SPELLS = TIME_TO_NEXT_UPDATE/2;
 
 //Number of milliseconds for the whole attack tween chain
-var TIME_FOR_ATTACKS = 800;
+var TIME_FOR_ATTACKS = TIME_FOR_SPELLS - (TIME_TO_NEXT_UPDATE/10);
 
 
 
