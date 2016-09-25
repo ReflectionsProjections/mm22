@@ -201,7 +201,7 @@ class Game(object):
                     except Exception as e:
                         raise  # Uncomment me to raise unhandled exceptions
                         actionResult["Message"] = "Unknown exception: " + str(e)
-                    actionResult["Status"] = "fail" if "Message" in actionResult else "ok"
+                    actionResult["Status"] = "Fail" if "Message" in actionResult else "Ok"
 
                     # Record results
                     self.turnResults[playerId].append(actionResult)

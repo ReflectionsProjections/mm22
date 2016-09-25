@@ -135,7 +135,7 @@ class Logger(object):
         self.filename = filename
         self.turns = []
 
-        if not os._exists("gamerunner"):
+        if not os.path.exists("gamerunner"):
             os.mkdir("gamerunner")
 
         open(filename, 'w').close()
