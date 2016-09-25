@@ -42,7 +42,6 @@ def processTurn(serverResponse):
                 character = Character()
                 character.serialize(characterJson)
                 enemyteam.append(character)
-
     target = None
     for character in enemyteam:
         if not character.is_dead():

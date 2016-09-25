@@ -60,13 +60,6 @@ def parse_args():
         default=miscConstants.port,
         type=int)
     parser.add_argument(
-        "-w", "--debug-view",
-        help="Run the debug view.",
-        const=True,
-        default=False,
-        action="store_const",
-    )
-    parser.add_argument(
         "-l", "--log",
         help="Specify where the game log will be written to. " +
         "For example, ./gamerunner.py --log LOG.out. Default: {0}".
@@ -84,26 +77,6 @@ def parse_args():
         help="The default client to use when others aren't specified."
         "Default: {0}".format(miscConstants.defaultClient),
         default=os.path.join(*miscConstants.defaultClient.split("/")))
-
-    parser.add_argument(
-        "-v", "--verbose",
-        help="Print player 1's standard output.",
-        const=None,
-        default=FNULL,
-        action="store_const")
-    parser.add_argument(
-        "-vv", "--veryVerbose",
-        help="Prints all players' standard output.",
-        const=None,
-        default=FNULL,
-        action="store_const")
-
-    parser.add_argument(
-        "-o", "--only_log",
-        help="Don't run the game, just use the log file for turns",
-        const=True,
-        default=False,
-        action="store_const")
     parser.add_argument(
         "-th", "--turnsinhour",
         help="Set the game's length.",
@@ -152,37 +125,15 @@ class Logger(object):
 def main():
     global parameters
     parameters = parse_args()
-    if parameters.only_log:
-        fileLog = Logger(parameters.logJson)
-        try:
-            logJsonObject = []
-
-            with open(parameters.log) as json_file:
-                for line in json_file:
-                    fileLog.print_stuff(line)
-            if(logJsonObject is None):
-                raise Exception
-        except IOError:
-            print("File " + parameters.logJson + " does not exist")
-            raise
-            exit(1)
-        except Exception:
-            print("Failed to parse log json data")
-            raise
-            exit(1)
-    else:
-        sys.stdout.write("Creating server with {0} players, ".format(
-            parameters.teams))
-        print ("Running server on port {0}\n".format(parameters.port))
-        print ("Writing log to {0}".format(parameters.log))
-        fileLog = Logger(parameters.log)
-        print ("Starting Game")
-        my_game = Game()
-        serv = MMServer(parameters.teams,
-                        my_game,
-                        logger=fileLog)
-        serv.run(parameters.port, launch_clients)
-        fileLog.write_to_file()
+    sys.stdout.write("Creating server with {0} players, ".format(parameters.teams))
+    print ("Running server on port {0}\n".format(parameters.port))
+    print ("Writing log to {0}".format(parameters.log))
+    fileLog = Logger(parameters.log)
+    print ("Starting Game")
+    my_game = Game()
+    serv = MMServer(parameters.teams, my_game, logger=fileLog)
+    serv.run(parameters.port, launch_clients)
+    fileLog.write_to_file()
 
 class Client_program(object):
 
@@ -211,8 +162,7 @@ class Client_program(object):
                 path = os.path.join(self.client_path, "run.sh")
                 commands += ["sh", path]
             commands += ["localhost", str(self.port or parameters.port)]
-            self.bot = Popen(commands,
-                             stdout=self.chose_output(), cwd=self.client_path)
+            self.bot = Popen(commands, cwd=self.client_path)
         except OSError as e:
             msg = "the player {} failed to start with error {}".format(
                 self.client_path, e)
@@ -231,16 +181,6 @@ class Client_program(object):
             self.bot.terminate()
         except OSError:
             pass
-
-    @classmethod
-    def chose_output(cls):
-        output = parameters.veryVerbose
-        if cls.first and parameters.veryVerbose == FNULL:
-            output = parameters.verbose
-
-        cls.first = False
-        return output
-
 
 class ClientFailedToRun(Exception):
 
