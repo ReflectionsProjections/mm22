@@ -133,7 +133,7 @@ var serverJSON = [];
 
 //Number of milliseconds until the next bit of JSON will be processed
 //  and the visualizer is updated
-var TIME_TO_NEXT_UPDATE = 1000;
+var TIME_TO_NEXT_UPDATE = 2000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
