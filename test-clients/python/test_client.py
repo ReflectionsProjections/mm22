@@ -56,16 +56,13 @@ def processTurn(serverResponse):
             target = character
     if target:
         for character in myteam:
-            try:
-                # Check if character is in range, throw exception if not
-                character.in_range_of(target, gameMap)
-
+            if character.in_range_of(target, gameMap):
                 actions.append({
                     "Action": "Attack",
                     "CharacterId": character.id,
                     "TargetId": target.id,
                 })
-            except OutOfRangeException as e:
+            else:
                 actions.append({
                     "Action": "Move",
                     "CharacterId": character.id,

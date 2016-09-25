@@ -117,36 +117,56 @@ class Character(object):
         self.apply_pending_stat_changes()
         self.attributes.update()
 
+# ---------------------- Helper Functions -------------------
     def is_dead(self):
         return self.attributes.get_attribute("Health") <= 0
 
-    def in_range_of(self, target, map):
+    def in_range_of(self, target, map, ret=False):
         if not map.in_vision_of(self.position,
                                 target.position,
                                 self.attributes.get_attribute("AttackRange")):
-            raise OutOfRangeException
+            if ret:
+                raise OutOfRangeException
+            else:
+                return False
+        return True
 
-    def can_use_ability(self, ability_id):
+    def can_use_ability(self, ability_id, ret=False):
         """ Checks if a character can use an ability (must have that ability)
         :param ability_id: id of the ability to check
         :return: True if yes, Exception if false
         """
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
-            raise InvalidAbilityIdException
+            if ret:
+                raise InvalidAbilityIdException
+            else:
+                return False
         # Is the character stunned
         elif self.attributes.get_attribute("Stunned"):
-            raise StunnedException
+            if ret:
+                raise StunnedException
+            else:
+                return False
         # Is the character silenced
         elif self.attributes.get_attribute("Silenced"):
-            raise SilencedException
+            if ret:
+                raise SilencedException
+            else:
+                return False
         # Is the ability on cool down
         elif self.abilities[ability_id] != 0:
-            raise AbilityOnCooldownException
+            if ret:
+                raise AbilityOnCooldownException
+            else:
+                return False
+        return True
+
+# -------------------------------------------------------------
 
     def use_ability(self, ability_id, target, map):
         # Check if we can use the ability
-        self.can_use_ability(ability_id)
+        self.can_use_ability(ability_id, True)
 
         if not map.in_vision_of(self.position,
                                 target.position,
@@ -173,10 +193,10 @@ class Character(object):
             raise InvalidTargetException
 
         # Check if we can use the ability
-        self.can_use_ability(ability_id)
+        self.can_use_ability(ability_id, True)
 
         # Check if we are in range
-        self.in_range_of(target, map)
+        self.in_range_of(target, map, True)
 
         # Remove current casting
         self.casting = None

@@ -156,7 +156,7 @@ class Game(object):
                             if character == target or target is None:
                                 raise InvalidTargetException
 
-                            character.in_range_of(target, self.map)
+                            character.in_range_of(target, self.map, True)
 
                             target.add_stat_change({
                                 "Target": 1,
@@ -225,7 +225,17 @@ class Game(object):
         self.queuedTurns = {}
         self.turnsExecuted += 1
         # False if game is finished\
-        return len(alive_teams) >= 2 and self.turnsExecuted <= self.totalTurns
+        gameDone = True
+        if len(alive_teams) == 0:
+            gameDone = False
+            print("Both teams died. Tie!")
+        elif len(alive_teams) == 1:
+            gameDone = False
+            print("Team " + str(alive_teams[0]) + " Won")
+        if self.turnsExecuted > self.totalTurns:
+            gameDone = False
+            print("Game ran out of time. Tie!")
+        return gameDone
 
     # Return the results of a turn ("server response") for a particular player
     def get_info(self, playerId):
