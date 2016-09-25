@@ -223,9 +223,11 @@ var statScreen = {
         "AttributeStrings" : {
             "Damage" : null,
             "SpellPower" : null,
-            "AttackRange" : null,
             "Armor" : null,
-            "MovementSpeed" : null
+            "MovementSpeed" : null,
+            "Rooted": null,
+            "Silenced": null,
+            "Stunned": null
         },
         //Contains handles to the rectangle and Text object representing
         //  The health bar
@@ -254,19 +256,23 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced" : null,
+                "Stunned" : null
             },
             //Contains initial value for each stat
             //Used for coloring each abbreviation correctly
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             //Handle to the Rect Object indicating the player's health
             "HealthBar" : null,
@@ -284,17 +290,21 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced": null,
+                "Stunned": null
             },
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             "HealthBar" : null
         },
@@ -311,17 +321,21 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced": null,
+                "Stunned": null
             },
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             "HealthBar" : null
         },
@@ -338,17 +352,21 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced": null,
+                "Stunned": null
             },
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             "HealthBar" : null
         },
@@ -365,17 +383,21 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced": null,
+                "Stunned": null
             },
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             "HealthBar" : null
         },
@@ -392,17 +414,21 @@ var statScreen = {
             "AttributeStrings" : {
                 "Damage" : null,
                 "SpellPower" : null,
-                "AttackRange" : null,
                 "Armor" : null,
-                "MovementSpeed" : null
+                "MovementSpeed" : null,
+                "Rooted" : null,
+                "Silenced": null,
+                "Stunned": null
             },
             "InitialValue" : {
                 "Damage" : -1,
                 "SpellPower" : -1,
-                "AttackRange" : -1,
                 "Armor" : -1,
                 "MovementSpeed" : -1,
                 "Health" : 500,
+                "Rooted" : 0,
+                "Silenced" : 0,
+                "Stunned" : 0
              },
             "HealthBar" : null
         },
@@ -415,7 +441,7 @@ var statScreen = {
 
 //constant of Y-position of where the text of attributes will be positioned
 //  relative to this coordinate
-var ATTRIBUTE_STRINGS_Y = 300;
+var ATTRIBUTE_STRINGS_Y = 230;
 
 //dummyJSON for testing
 var dummyPlayer = {
@@ -1121,13 +1147,21 @@ function initSinglePlayerStatScreen(character){
         ATTRIBUTE_STRINGS_Y + 2*attrStrSpacing, 
         "Spell Power: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.SpellPower, 
         {font: "3em Arial", fill: DEF_COLOR});
-    statScreen.SinglePlayer.AttributeStrings.AttackRange = game.add.text(GAME_WIDTH + 20, 
-        ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
-        "Attack Range: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.AttackRange, 
-        {font: "3em Arial", fill: DEF_COLOR});
     statScreen.SinglePlayer.AttributeStrings.Armor = game.add.text(GAME_WIDTH + 20, 
-        ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        ATTRIBUTE_STRINGS_Y + 3*attrStrSpacing,
         "Armor: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Armor, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Rooted = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 4*attrStrSpacing,
+        "Rooted: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Rooted, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Stunned = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 5*attrStrSpacing,
+        "Stunned: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Stunned, 
+        {font: "3em Arial", fill: DEF_COLOR});
+    statScreen.SinglePlayer.AttributeStrings.Silenced = game.add.text(GAME_WIDTH + 20, 
+        ATTRIBUTE_STRINGS_Y + 6*attrStrSpacing,
+        "Silenced: " + statScreen.MultiPlayer[statScreen.SinglePlayer.PlayerIndex].InitialValue.Silenced, 
         {font: "3em Arial", fill: DEF_COLOR});
 
 }
@@ -1177,15 +1211,21 @@ function initMultiPlayerStatScreen(){
       strings.SpellPower = game.add.text(strings.Damage.x 
           + strings.Damage.width + 5,
           attrStrY, "SP", attrstyle);
-      strings.AttackRange = game.add.text(strings.SpellPower.x 
+      strings.Armor = game.add.text(strings.SpellPower.x 
           + strings.SpellPower.width + 5, 
-          attrStrY, "AR", attrstyle);
-      strings.Armor = game.add.text(strings.AttackRange.x 
-          + strings.AttackRange.width + 5, 
           attrStrY, "ARMOR", attrstyle);
       strings.MovementSpeed = game.add.text(strings.Armor.x 
           + strings.Armor.width + 5, 
           attrStrY, "MS", attrstyle);
+      strings.Rooted = game.add.text(strings.MovementSpeed.x 
+          + strings.MovementSpeed.width + 5, 
+          attrStrY, "RT", attrstyle);
+      strings.Stunned = game.add.text(strings.Rooted.x 
+          + strings.Rooted.width + 5, 
+          attrStrY, "STUN", attrstyle);
+      strings.Silenced = game.add.text(strings.Stunned.x 
+          + strings.Stunned.width + 5, 
+          attrStrY, "SIL", attrstyle);
   
       //draw the healthbar
       statScreen.MultiPlayer[player].HealthBar = multiGraphics.drawRect(startX, 
@@ -1505,7 +1545,8 @@ function updateMultiPlayerStatScreen(currTurn){
     //update the color of the strings
     statScreen.MultiPlayer.forEach(function(player, index){
         for (var attrString in player["AttributeStrings"]){
-            if(player["AttributeStrings"].hasOwnProperty(attrString)){               
+            //ignore AttackRange attribute
+            if(player["AttributeStrings"].hasOwnProperty(attrString) && attrString != "AttackRange"){               
                 player["AttributeStrings"][attrString].setStyle({
                     font: "2em Arial", 
                     fill: chooseColor(currTurn, index, attrString) 
@@ -1556,8 +1597,21 @@ function updateSinglePlayerStatScreen(currTurn){
    var characterArray = convertTurnToPlayerArray(currTurn); 
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
+            //the attribute string with appropiate spacing if necessary
+            //"MovementSpeed" --> "Movement Speed"
+            var spacedAttrStr = attrStr;
+            switch(attrStr){
+              case "MovementSpeed":
+                spacedAttrStr = "Movement Speed"
+                break;
+              case "SpellPower":
+                spacedAttrStr = "Spell Power"
+                break;
+              default:
+                break;
+            }
             statScreen.SinglePlayer.AttributeStrings[attrStr]
-              .setText(attrStr + ": " + characterArray[statScreen.SinglePlayer.PlayerIndex].Attributes[attrStr]);
+              .setText(spacedAttrStr + ": " + characterArray[statScreen.SinglePlayer.PlayerIndex].Attributes[attrStr]);
             statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
                 font: "3em Arial", 
                 fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
