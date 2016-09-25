@@ -474,24 +474,38 @@ function preload () {
     
 
     //sprites for the spells
-    //TODO: Make sure the abilityID of the keys for 
-    //  these sprites match those used in the game JSON 
-    //  (Eric/Jack/Asaf)
-    //
-    // key = 'spell' + abilityId
-    game.load.image('spell1', 'assets/Frostbolt.png');
-    game.load.image('spell2', 'assets/ArmorBuff.png');
-    game.load.image('spell3', 'assets/AttackSpeedBuff.png');
-    game.load.image('spell4', 'assets/Burst.png');
-    game.load.image('spell5', 'assets/DeepFreeze.png');
-    game.load.image('spell6', 'assets/IciclesFlying.png');
-    game.load.image('spell7', 'assets/IciclesGround.png');
-    game.load.image('spell8', 'assets/RangeArmorBuff.png');
-    game.load.image('spell9', 'assets/Stun.png');
-    game.load.image('spell10', 'assets/RangeAttackBuff.png');
-    game.load.image('spell11', 'assets/RangeAttackDebuffCurse.png');
-    game.load.image('spell12', 'assets/RangeHeal.png');
-    game.load.image('spell13', 'assets/SacrificeHealth.png');
+    //TODO: NEEDED ASSETS FOR SPELLS 
+    // Armor Debuff Y 
+    // Backstab Y
+    // Sprint Y
+    // Root Y
+    // Corruption Y
+    // Silence Y
+    game.load.image('spell0', 'assets/Burst.png');
+    game.load.image('spell1', 'assets/Stun.png');
+    //Armor Debuff
+    game.load.image('spell2', 'assets/defaultSpell.png');
+    game.load.image('spell3', 'assets/RangeHeal.png');
+    game.load.image('spell4', 'assets/RangeArmorBuff.png');
+    //Silence
+    game.load.image('spell5', 'assets/defaultSpell.png');
+    game.load.image('spell6', 'assets/RangeAttackDebuffCurse.png');
+    game.load.image('spell7', 'assets/RangeAttackBuff.png');
+    game.load.image('spell8', 'assets/SacrificeHealth.png');
+    game.load.image('spell9', 'assets/DeepFreeze.png');
+    game.load.image('spell10', 'assets/Frostbolt.png');
+    //Backstab
+    game.load.image('spell11', 'assets/defaultSpell.png');
+    //Sprint
+    game.load.image('spell12', 'assets/defaultSpell.png');
+    //Root
+    game.load.image('spell13', 'assets/defaultSpell.png');
+    game.load.image('spell14', 'assets/Stun.png');
+    game.load.image('spell15', 'assets/ArmorBuff.png');
+    //Corruption
+    game.load.image('spell16', 'assets/defaultSpell.png');
+
+
     
     //log success
     console.log("preload() complete");
@@ -544,7 +558,6 @@ function create () {
       }
       //Wizard1.png, Druid2.png etc.
       var spriteName = characterArray[index].ClassId + teamNumber;
-      console.log(spriteName);
 
       //Add the character's sprite to its own Phaser Group
       //Used for rendering order of sprites
