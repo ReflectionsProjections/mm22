@@ -491,12 +491,14 @@ function preload () {
     game.load.image('Druid2', 'assets/Druid2.png');
     game.load.image('Enchanter1', 'assets/Enchanter1.png');
     game.load.image('Enchanter2', 'assets/Enchanter2.png');
-    game.load.image('Knight1', 'assets/Knight1.png');
-    game.load.image('Knight2', 'assets/Knight2.png');
-    game.load.image('Mage1', 'assets/Mage1.png');
-    game.load.image('Mage2', 'assets/Mage2.png');
+    game.load.image('Warrior1', 'assets/Warrior1.png');
+    game.load.image('Warrior2', 'assets/Warrior2.png');
+    game.load.image('Sorcerer1', 'assets/Sorcerer1.png');
+    game.load.image('Sorcerer2', 'assets/Sorcerer2.png');
     game.load.image('Paladin1', 'assets/Paladin1.png');
     game.load.image('Paladin2', 'assets/Paladin2.png');
+
+    //TODO: Add Assassin class
     
 
     //sprites for the spells
