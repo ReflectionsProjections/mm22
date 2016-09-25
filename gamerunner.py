@@ -135,6 +135,9 @@ class Logger(object):
         self.filename = filename
         self.turns = []
 
+        if not os._exists("gamerunner"):
+            os.mkdir("gamerunner")
+
         open(filename, 'w').close()
 
     def print_stuff(self, data):
