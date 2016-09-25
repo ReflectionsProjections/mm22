@@ -77,7 +77,7 @@ function WebSocketTest()
          {
             if ("WebSocket" in window)
             {
-               alert("WebSocket is supported by your Browser!");
+               //alert("WebSocket is supported by your Browser!");
                
                // Let us open a web socket
                var ws = new WebSocket(WEBSOCKET_SERVER_FQDN);
@@ -86,7 +86,7 @@ function WebSocketTest()
                {
                   // Web Socket is connected, send data using send()
                   ws.send("Message to send");
-                  alert("Message is sent...");
+                  //alert("Message is sent...");
                };
                 
                ws.onmessage = function (evt) 
@@ -109,7 +109,7 @@ function WebSocketTest()
                        'phaser-game', { preload: preload, create: create, update: update});
                   });
                   
-                  alert("Message is received...");
+                  //alert("Message is received...");
                   reader.readAsText(received_msg);
                };
                 
@@ -457,20 +457,20 @@ function preload () {
     game.load.image('background', 'assets/Map-update.png');
 
     //sprites for the characters 
-    game.load.image('wizard1', 'assets/wizard1.png');
-    game.load.image('wizard2', 'assets/wizard2.png');
-    game.load.image('archer1', 'assets/archer1.png');
-    game.load.image('archer2', 'assets/archer2.png');
-    game.load.image('druid1', 'assets/druid1.png');
-    game.load.image('druid2', 'assets/druid2.png');
-    game.load.image('enchantress1', 'assets/enchantress1.png');
-    game.load.image('enchantress2', 'assets/enchantress2.png');
-    game.load.image('knight1', 'assets/knight1.png');
-    game.load.image('knight2', 'assets/knight2.png');
-    game.load.image('mage1', 'assets/mage1.png');
-    game.load.image('mage2', 'assets/mage2.png');
-    game.load.image('paladin1', 'assets/paladin1.png');
-    game.load.image('paladin2', 'assets/paladin2.png');
+    game.load.image('Wizard1', 'assets/Wizard1.png');
+    game.load.image('Wizard2', 'assets/Wizard2.png');
+    game.load.image('Archer1', 'assets/Archer1.png');
+    game.load.image('Archer2', 'assets/Archer2.png');
+    game.load.image('Druid1', 'assets/Druid1.png');
+    game.load.image('Druid2', 'assets/Druid2.png');
+    game.load.image('Enchantress1', 'assets/Enchantress1.png');
+    game.load.image('Enchantress2', 'assets/Enchantress2.png');
+    game.load.image('Knight1', 'assets/Knight1.png');
+    game.load.image('Knight2', 'assets/Knight2.png');
+    game.load.image('Mage1', 'assets/Mage1.png');
+    game.load.image('Mage2', 'assets/Mage2.png');
+    game.load.image('Paladin1', 'assets/Paladin1.png');
+    game.load.image('Paladin2', 'assets/Paladin2.png');
     
 
     //sprites for the spells
@@ -505,8 +505,6 @@ function create () {
 
     //Remove the first turn from the array (init information)
     var initInformation = serverJSON[0];
-    console.log("INIT INFO");
-    console.log(initInformation);
     serverJSON.shift();
 
     //set background image
@@ -522,7 +520,7 @@ function create () {
     // as one array to make iteration easier
     var characterArray = [];
     initInformation.forEach(function(teamObject){
-        teamObject.characters.forEach(function(characterInfo){
+        teamObject.Characters.forEach(function(characterInfo){
             characterArray.push(characterInfo);
         });
     });
@@ -530,11 +528,11 @@ function create () {
     //Add all players to the characters group at their initial locations and other init work
     for(var index = 0; index < statScreen.MultiPlayer.length; index++){
       //set CharacterID
-      var characterID = characterArray[index].id;
+      var characterID = characterArray[index].Id;
       statScreen.MultiPlayer[index].CharacterID = characterID;
       characterIDToMultiPlayerIndex[characterID] = index;
 
-      var initPos = calcXAndY(characterArray[index].x, characterArray[index].y);
+      var initPos = calcXAndY(characterArray[index].Position[0], characterArray[index].Position[1]);
      
       //generate the string of the key for the character sprite 
       var teamNumber;
@@ -544,8 +542,9 @@ function create () {
       else{
         teamNumber = 2
       }
-      //wizard1.png, druid2.png etc.
-      var spriteName = characterArray[index]["class"] + teamNumber;
+      //Wizard1.png, Druid2.png etc.
+      var spriteName = characterArray[index].ClassId + teamNumber;
+      console.log(spriteName);
 
       //Add the character's sprite to its own Phaser Group
       //Used for rendering order of sprites
@@ -560,12 +559,12 @@ function create () {
       //set the anchor of each character sprite to the middle of the sprite
       statScreen.MultiPlayer[index].Sprite.anchor.setTo(0.5);
       statScreen.MultiPlayer[index].Sprite.index = index;
-      statScreen.MultiPlayer[index].Sprite.name = characterArray[index].name;
+      statScreen.MultiPlayer[index].Sprite.name = characterArray[index].Name;
 
       //Set initial values of attributes
       for(var attr in statScreen.MultiPlayer[index].InitialValue){
         statScreen.MultiPlayer[index].InitialValue[attr] = 
-          characterArray[index].attributes[attr];
+          characterArray[index].Attributes[attr];
       }
       
     }
@@ -616,7 +615,7 @@ function create () {
 }
 
 //called every frame, roughly 60 frames per second
-//this is unnecessary
+//this is unnecessary for MM22
 function update () {
 
 
@@ -985,10 +984,11 @@ function moveCharactersQuadrantAbsolute(currTurn){
     //contains the positions(x,y) of players in an array as an object
     var playerPositionArray = [];
     var characterArray = convertTurnToPlayerArray(currTurn);
+    console.log(characterArray);
     characterArray.forEach(function(playerObject, index){
         playerPositionArray[index] = {
-          x: playerObject.x,
-          y: playerObject.y
+          x: playerObject.Position[0],
+          y: playerObject.Position[1]
         };
     });
     
@@ -1067,7 +1067,6 @@ function initSinglePlayerStatScreen(character){
     var HEALTH_BAR_HEIGHT = 20;
     console.log("initSinglePlayerScreen");
     statScreen.ShowAll = false;
-
     //set the Text displaying which character we are tracking
     statScreen.SinglePlayer.CharacterNameString = character.name;
     statScreen.SinglePlayer.CharacterName = game.add.text(GAME_WIDTH + 10, 10, character.name.toUpperCase(), {font: "4em Arial", fill: "#ff944d"});
@@ -1349,19 +1348,19 @@ function resolveActions(currTurn){
 
   var teamATweens = [];
   var teamBTweens = [];
-  for(var i = 0; i < currTurn.turnResults.length; i++){
-    currTurn.turnResults[i].forEach(function(action){
-      var actionType = action.action;
+  for(var i = 0; i < currTurn.TurnResults.length; i++){
+    currTurn.TurnResults[i].forEach(function(action){
+      var actionType = action.Action;
       //the id of the character making the action
-      var casterID = action.characterId;
+      var casterID = action.CharacterId;
       var casterMultiPlayerIndex = characterIDToMultiPlayerIndex[casterID];
       var casterSprite = statScreen.MultiPlayer[casterMultiPlayerIndex].Sprite;
       //the id of the character targetted by the action
-      var targetID = action.targetId;
+      var targetID = action.TargetId;
       var targetMultiPlayerIndex = characterIDToMultiPlayerIndex[targetID];
       var targetSprite = statScreen.MultiPlayer[targetMultiPlayerIndex].Sprite;
       switch(actionType){
-        case "attack":
+        case "Attack":
           //do attack stuff
           console.log(casterMultiPlayerIndex + " is attacking " + targetMultiPlayerIndex);
           var attackTween = game.add.tween(casterSprite).to(
@@ -1383,19 +1382,19 @@ function resolveActions(currTurn){
             teamBTweens.push(attackTween);
           }
           break;
-        case "move":
+        case "Move":
           //do nothing since movement is handled by another function
           break;
-        case "cast":
+        case "Cast":
           //the spell was successfully cast, so call addSpell and 
           //  pass in corresponding arguments
           if(action.status == SPELL_SUCCESSFUL){
-            console.log("I AM SO TRIGGERED RIGHT NOW");
-            var casterIndex = characterIDToMultiPlayerIndex[action.characterId];
+            console.log("Casting Spell");
+            var casterIndex = characterIDToMultiPlayerIndex[action.CharacterId];
             var casterSrite = statScreen.MultiPlayer[casterIndex].Sprite;
-            var targetIndex = characterIDToMultiPlayerIndex[action.targetId];
+            var targetIndex = characterIDToMultiPlayerIndex[action.TargetId];
             var targetSprite = statScreen.MultiPlayer[targetIndex].Sprite;
-            var spellName = "spell" + action.abilityId;
+            var spellName = "spell" + action.AbilityId;
 
             addSpell(casterSprite, casterIndex, targetSprite, spellName);
 
@@ -1530,9 +1529,8 @@ function updateSinglePlayerStatScreen(currTurn){
    var characterArray = convertTurnToPlayerArray(currTurn); 
     for(var attrStr in statScreen.SinglePlayer.AttributeStrings){
         if(statScreen.SinglePlayer.AttributeStrings.hasOwnProperty(attrStr)){
-            //TODO: Change Text using whatever JSON format server has
             statScreen.SinglePlayer.AttributeStrings[attrStr]
-              .setText(attrStr + ": " + characterArray[statScreen.SinglePlayer.PlayerIndex].attributes[attrStr]);
+              .setText(attrStr + ": " + characterArray[statScreen.SinglePlayer.PlayerIndex].Attributes[attrStr]);
             statScreen.SinglePlayer.AttributeStrings[attrStr].setStyle({
                 font: "3em Arial", 
                 fill: chooseColor(currTurn, statScreen.SinglePlayer.PlayerIndex, attrStr),
@@ -1587,7 +1585,7 @@ function calcHealthBarWidth(currTurn, playerNumber){
     return HEALTH_BAR_MAX_WIDTH;
   }
   var characterArray = convertTurnToPlayerArray(currTurn);
-  var currHealth = characterArray[playerNumber].attributes.Health;
+  var currHealth = characterArray[playerNumber].Attributes.Health;
   var maxHealth = statScreen.MultiPlayer[playerNumber].InitialValue.Health;
   var width = Math.floor((currHealth*HEALTH_BAR_MAX_WIDTH)/maxHealth);
   return width;
@@ -1618,7 +1616,7 @@ function chooseColor(currTurn, playerNumber, attribute){
   // as one array to make iteration easier
   var characterArray = convertTurnToPlayerArray(currTurn);
    
-  var currValue = characterArray[playerNumber].attributes[attribute];
+  var currValue = characterArray[playerNumber].Attributes[attribute];
   var initialValue = statScreen.MultiPlayer[playerNumber].InitialValue[attribute];
      
   if(currValue === initialValue){
@@ -1658,8 +1656,8 @@ function calcXAndY(row, column){
   */
 function convertTurnToPlayerArray(currTurn){
   var playerArray = [];
-  currTurn.teams.forEach(function(team){
-      team.characters.forEach(function(player){
+  currTurn.Teams.forEach(function(team){
+      team.Characters.forEach(function(player){
           playerArray.push(player);
       });
   });
