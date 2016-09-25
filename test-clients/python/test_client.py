@@ -43,23 +43,27 @@ def processTurn(serverResponse):
                 character.serialize(characterJson)
                 enemyteam.append(character)
 
-    target = enemyteam[0]
-    for character in myteam:
-        try:
-            # Check if character is in range, throw exception if not
-            character.in_range_of(target, gameMap)
+    target = None
+    for character in enemyteam:
+        if not character.is_dead():
+            target = character
+    if target:
+        for character in myteam:
+            try:
+                # Check if character is in range, throw exception if not
+                character.in_range_of(target, gameMap)
 
-            actions.append({
-                "Action": "Attack",
-                "CharacterId": character.id,
-                "TargetId": enemyteam[0].id,
-            })
-        except OutOfRangeException as e:
-            actions.append({
-                "Action": "Move",
-                "CharacterId": character.id,
-                "TargetId": enemyteam[0].id,
-            })
+                actions.append({
+                    "Action": "Attack",
+                    "CharacterId": character.id,
+                    "TargetId": target.id,
+                })
+            except OutOfRangeException as e:
+                actions.append({
+                    "Action": "Move",
+                    "CharacterId": character.id,
+                    "TargetId": target.id,
+                })
 
     # Send actions to the server
     return {

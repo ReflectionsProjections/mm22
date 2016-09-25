@@ -38,7 +38,6 @@ class Character(object):
         # Game related attributes
         self.position = (0, 0)
         self.id = Character.get_new_character_id()
-        self.dead = False
 
         # A json object if the character is casting an ability
         # {"abilityId": (int), "currentCastTime": (int)}
@@ -118,8 +117,8 @@ class Character(object):
         self.apply_pending_stat_changes()
         self.attributes.update()
 
-        if not self.dead and self.attributes.get_attribute("Health") <= 0:
-            self.dead = True
+    def is_dead(self):
+        return self.attributes.get_attribute("Health") <= 0
 
     def in_range_of(self, target, map):
         if not map.in_vision_of(self.position,

@@ -3,10 +3,16 @@ from src.game.character import *
 from src.game.team import Team
 import src.game.game_constants as gameConst
 
-
 class InvalidPlayerException(Exception):
     pass
-
+class InvalidCharacterException(Exception):
+    pass
+class InvalidTargetException(Exception):
+    pass
+class DeadCharacterException(Exception):
+    pass
+class DeadTargetException(Exception):
+    pass
 
 class Game(object):
 
@@ -121,12 +127,11 @@ class Game(object):
 
                         # Did we find the character?
                         if not character:
-                            actionResult["Message"] = "Invalid characterId: could not find character on your team"
-                            continue
+                            raise InvalidCharacterException
 
                         # Is character dead?
-                        if character.dead:
-                            actionResult["Message"] = "Invalid character: Character is dead"
+                        if character.is_dead():
+                            raise DeadCharacterException
 
                         # Get target character object
                         target = None
@@ -136,27 +141,20 @@ class Game(object):
                                 if target:
                                     break
                             if not target:
-                                actionResult["Message"] = "Unable to find target"
-                                continue
-                            if target.dead:
-                                actionResult["Message"] = "Invalid target: target is dead"
-                                continue
+                                raise InvalidTargetException
+                            if target.is_dead():
+                                raise DeadTargetException
 
                         if action == "Move":
                             if target:
-                                ret = character.move_towards_target(target, self.map)
-                                if ret is not None:
-                                    actionResult["Message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                                character.move_towards_target(target, self.map)
                             elif location:
-                                ret = character.move_towards_position(location, self.map)
-                                if ret is not None:
-                                    actionResult["Message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                                character.move_towards_position(location, self.map)
                             else:
                                 actionResult["Message"] = "Invalid target and couldn't find location"
                         elif action == "Attack":
                             if character == target or target is None:
-                                actionResult["Message"] = "Invalid target to attack"
-                                continue
+                                raise InvalidTargetException
 
                             character.in_range_of(target, self.map)
 
@@ -168,16 +166,22 @@ class Game(object):
                             })
                         elif action == "Cast":
                             if target is None:
-                                actionResult["Message"] = "Invalid target to attack"
-                                continue
-
+                                raise InvalidTargetException
                             if not abilityId:
-                                actionResult["Message"] = "Could not find ability id"
-                                continue
+                                raise InvalidAbilityIdException
 
                             character.use_ability(abilityId, target, self.map)
                         else:
                             actionResult["Message"] = "Invalid action type."
+
+                    except InvalidCharacterException:
+                        actionResult["Message"] = "Invalid Character"
+                    except InvalidTargetException:
+                        actionResult["Message"] = "Invalid Target"
+                    except DeadCharacterException:
+                        actionResult["Message"] = "Character is dead!"
+                    except DeadTargetException:
+                        actionResult["Message"] = "Target is dead!"
                     except InvalidAbilityIdException:
                         actionResult["Message"] = "Character does not have that ability"
                     except AbilityOnCooldownException:
@@ -212,7 +216,7 @@ class Game(object):
         for teamId, team in self.teams.items():
             alive_team = False
             for character in team.characters:
-                if not character.dead:
+                if not character.is_dead():
                     alive_team = True
             if alive_team:
                 alive_teams.append(team.id)
