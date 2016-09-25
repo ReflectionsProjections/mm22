@@ -25,10 +25,10 @@ def launch_clients():
     if parameters.client:
         numberOfClients = len(parameters.client)
         for client in parameters.client:
-            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), os.pardir, 'test-clients/', client)
+            path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'test-clients/', client)
             if os.name == "nt":
                 path = path.replace("\\","/")
-            launch_client()
+            launch_client(path)
     else:
         numberOfClients = 0
     for x in range(numberOfClients, parameters.teams):
