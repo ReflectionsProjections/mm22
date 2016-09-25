@@ -50,10 +50,10 @@ class Team:
         """
 
         json = {}
-        json['teamName'] = self.name
-        json['id'] = self.id
-        json['characters'] = []
+        json['Teamname'] = self.name
+        json['Id'] = self.id
+        json['Characters'] = []
         for character in self.characters:
-            json['characters'].append(character.deserialize())
+            json['Characters'].append(character.deserialize())
 
         return json

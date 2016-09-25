@@ -10,7 +10,7 @@ class InvalidPlayerException(Exception):
 
 class Game(object):
 
-    action_priority_order = ["attack", "cast", "move"]
+    action_priority_order = ["Attack", "Cast", "Move"]
 
     def __init__(self):
         """ Init the game object
@@ -39,11 +39,11 @@ class Game(object):
         # Validate jsonObject
         error = None
         try:
-            if "teamName" not in jsonObject:
+            if "TeamName" not in jsonObject:
                 error = "Missing 'teamName' parameter"
-            elif len(jsonObject["teamName"]) == 0:
-                error = "'teamName' cannot be an empty string"
-            elif len(jsonObject["characters"]) == 0:
+            elif len(jsonObject["TeamName"]) == 0:
+                error = "'TeamName' cannot be an empty string"
+            elif len(jsonObject["Characters"]) == 0:
                 error = "list of classes can not be empty"
         except KeyError as e:
             error = "json response doesn't have the correct format"
@@ -53,15 +53,15 @@ class Game(object):
             return False, error
 
         # Add player to game data
-        new_team = Team(jsonObject['teamName'])
-        for character in jsonObject['characters']:
+        new_team = Team(jsonObject['TeamName'])
+        for character in jsonObject['Characters']:
             new_team.add_character(character)
 
         self.teams[new_team.id] = new_team
 
         self.playerInfos[playerId] = jsonObject
-        self.playerInfos[playerId]["id"] = playerId
-        self.playerInfos[playerId]["teamId"] = new_team.id
+        self.playerInfos[playerId]["Id"] = playerId
+        self.playerInfos[playerId]["TeamId"] = new_team.id
 
         # Return response (as a JSON object)
         return (True, new_team.toJson())
@@ -73,7 +73,6 @@ class Game(object):
     # Execute everyone's actions for this turn
     # @returns True if the game is still running, False otherwise
     def execute_turn(self):
-
         # Clear Turn results
         self.turnResults = {}
         for playerId in self.queuedTurns:
@@ -87,42 +86,47 @@ class Game(object):
                 # Get actions
                 actions = []
                 try:
-                    actions = list(turn.get("actions", []))
+                    actions = list(turn.get("Actions", []))
                 except:
-                    self.turnResults[playerId] = [{"status": "fail", "messages": "'Actions' parameter must be a list."}]
+                    self.turnResults[playerId] = [{"Status": "fail", "messages": "'Actions' parameter must be a list."}]
                     continue  # Skip invalid turn
 
                 # Execute actions
                 for actionJson in actions:
-                    action = actionJson.get("action", "").lower()
+                    action = actionJson.get("Action", "")
+
+                    actionResult = actionJson
+
+                    if not action in Game.action_priority_order:
+                        actionResult["Message"] = "Invalid action: " + action
+                        continue
 
                     if action != action_type:
                         continue
 
-                    teamId = self.playerInfos[playerId]["teamId"]
-                    characterId = actionJson.get("characterId", None)
-                    targetId = actionJson.get("targetId", None)
-                    location = actionJson.get("location", None)
-                    abilityId = actionJson.get("abilityId", None)
 
-                    actionResult = actionJson
+                    teamId = self.playerInfos[playerId]["TeamId"]
+                    characterId = actionJson.get("CharacterId", None)
+                    targetId = actionJson.get("TargetId", None)
+                    location = actionJson.get("Location", None)
+                    abilityId = actionJson.get("AbilityId", None)
 
                     try:
                         # Get player character object
                         if characterId:
                             character = self.teams[teamId].get_character(id=characterId)
                         else:
-                            actionResult["message"] = "Invalid characterId: could not find characterId in json"
+                            actionResult["Message"] = "Invalid characterId: could not find characterId in json"
                             continue
 
                         # Did we find the character?
                         if not character:
-                            actionResult["message"] = "Invalid characterId: could not find character on your team"
+                            actionResult["Message"] = "Invalid characterId: could not find character on your team"
                             continue
 
                         # Is character dead?
                         if character.dead:
-                            actionResult["message"] = "Invalid character: Character is dead"
+                            actionResult["Message"] = "Invalid character: Character is dead"
 
                         # Get target character object
                         target = None
@@ -132,72 +136,68 @@ class Game(object):
                                 if target:
                                     break
                             if not target:
-                                actionResult["message"] = "Unable to find target"
+                                actionResult["Message"] = "Unable to find target"
                                 continue
                             if target.dead:
-                                actionResult["message"] = "Invalid target: target is dead"
+                                actionResult["Message"] = "Invalid target: target is dead"
                                 continue
 
-                        if action == "move":
+                        if action == "Move":
                             if target:
-                                ret = character.move_towards(target, self.map)
+                                ret = character.move_towards_target(target, self.map)
                                 if ret is not None:
-                                    actionResult["message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                                    actionResult["Message"] = "Unable to move Character-" + str(characterId) + ": " + ret
                             elif location:
-                                ret = character.move_to(location, self.map)
+                                ret = character.move_towards_position(location, self.map)
                                 if ret is not None:
-                                    actionResult["message"] = "Unable to move Character-" + str(characterId) + ": " + ret
+                                    actionResult["Message"] = "Unable to move Character-" + str(characterId) + ": " + ret
                             else:
-                                actionResult["message"] = "Invalid target and couldn't find location"
-                        elif action == "attack":
+                                actionResult["Message"] = "Invalid target and couldn't find location"
+                        elif action == "Attack":
                             if character == target or target is None:
-                                actionResult["message"] = "Invalid target to attack"
+                                actionResult["Message"] = "Invalid target to attack"
                                 continue
 
-                            if self.map.in_vision_of((character.posX, character.posY),
-                                                     (target.posX, target.posY),
-                                                     character.attributes.get_attribute("AttackRange")):
-                                target.add_stat_change({
-                                    "Target": 1,
-                                    "Attribute": "Health",
-                                    "Change": -1 * character.attributes.get_attribute("Damage"),
-                                    "Time": 0
-                                })
-                            else:
-                                actionResult["message"] = "Target is out of range or not in vision"
-                        elif action == "cast":
+                            character.in_range_of(target, self.map)
+
+                            target.add_stat_change({
+                                "Target": 1,
+                                "Attribute": "Health",
+                                "Change": -1 * character.attributes.get_attribute("Damage"),
+                                "Time": 0
+                            })
+                        elif action == "Cast":
                             if target is None:
-                                actionResult["message"] = "Invalid target to attack"
+                                actionResult["Message"] = "Invalid target to attack"
                                 continue
 
                             if not abilityId:
-                                actionResult["message"] = "Could not find ability id"
+                                actionResult["Message"] = "Could not find ability id"
                                 continue
 
-                            if self.map.in_vision_of((character.posX, character.posY),
-                                                     (target.posX, target.posY),
-                                                     character.attributes.get_attribute("AttackRange")):
-                                character.use_ability(abilityId, target)
-                            else:
-                                actionResult["message"] = "Target is out of range or not in vision"
+                            character.use_ability(abilityId, target, self.map)
                         else:
-                            actionResult["message"] = "Invalid action type."
+                            actionResult["Message"] = "Invalid action type."
                     except InvalidAbilityIdException:
-                        actionResult["message"] = "Character does not have that ability"
+                        actionResult["Message"] = "Character does not have that ability"
                     except AbilityOnCooldownException:
-                        actionResult["message"] = "Ability is on cooldown"
+                        actionResult["Message"] = "Ability is on cooldown"
                     except RootedException:
-                        actionResult["message"] = "Character is rooted"
+                        actionResult["Message"] = "Character is rooted"
                     except StunnedException:
-                        actionResult["message"] = "Character is stunned"
+                        actionResult["Message"] = "Character is stunned"
                     except SilencedException:
-                        actionResult["message"] = "Character is silenced"
+                        actionResult["Message"] = "Character is silenced"
                     except NotEnoughMovementSpeedException:
-                        actionResult["message"] = "Character doesn't have enough movement speed"
+                        actionResult["Message"] = "Character doesn't have enough movement speed"
+                    except InvalidNewPositionException:
+                        actionResult["Message"] = "Invalid new position"
+                    except OutOfRangeException:
+                        actionResult["Message"] = "Character out of range"
                     except Exception as e:
                         raise  # Uncomment me to raise unhandled exceptions
-                        actionResult["message"] = "Unknown exception: " + str(e)
-                    actionResult["status"] = "fail" if "message" in actionResult else "ok"
+                        actionResult["Message"] = "Unknown exception: " + str(e)
+                    actionResult["Status"] = "fail" if "Message" in actionResult else "ok"
 
                     # Record results
                     self.turnResults[playerId].append(actionResult)
@@ -229,15 +229,15 @@ class Game(object):
             raise InvalidPlayerException("Player " + playerId + " doesn't exist.")
 
         return {
-            "playerInfo": self.playerInfos[playerId],
-            "turnResult": self.turnResults.get(playerId, [{"status": "fail", "message": "No turn executed."}]),
-            "teams": [team.toJson() for teamId, team in self.teams.items()]
+            "PlayerInfo": self.playerInfos[playerId],
+            "TurnResult": self.turnResults.get(playerId, [{"Status": "Fail", "Message": "No turn executed."}]),
+            "Teams": [team.toJson() for teamId, team in self.teams.items()]
         }
 
     # Return the entire state of the map
     def get_all_info(self):
         return {
-            "playerInfos": self.playerInfos,
-            "turnResults": [self.turnResults.get(pId, [{"status": "fail", "message": "No turn executed."}]) for pId in self.playerInfos],
-            "teams": [team.toJson() for teamId, team in self.teams.items()]
+            "PlayerInfos": self.playerInfos,
+            "TurnResults": [self.turnResults.get(pId, [{"Status": "Fail", "Message": "No turn executed."}]) for pId in self.playerInfos],
+            "Teams": [team.toJson() for teamId, team in self.teams.items()]
         }

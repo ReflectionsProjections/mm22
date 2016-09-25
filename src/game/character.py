@@ -4,6 +4,10 @@ class InvalidAbilityIdException(Exception):
     pass
 class AbilityOnCooldownException(Exception):
     pass
+class OutOfRangeException(Exception):
+    pass
+class InvalidTargetException(Exception):
+    pass
 # Attributes
 class RootedException(Exception):
     pass
@@ -13,6 +17,8 @@ class SilencedException(Exception):
     pass
 # Movement
 class NotEnoughMovementSpeedException(Exception):
+    pass
+class InvalidNewPositionException(Exception):
     pass
 
 
@@ -30,8 +36,7 @@ class Character(object):
 
     def __init__(self):
         # Game related attributes
-        self.posX = 0
-        self.posY = 0
+        self.position = (0, 0)
         self.id = Character.get_new_character_id()
         self.dead = False
 
@@ -46,26 +51,25 @@ class Character(object):
     def init(self, json, x, y):
         error = ""
 
-        self.posX = x
-        self.posY = y
+        self.position = (x, y)
 
-        if 'classId' not in json:
-            error += "Could not find classId key in json. defaulting to Warrior."
+        if 'ClassId' not in json:
+            error += "Could not find ClassId key in json. defaulting to Warrior."
             self.classId = "warrior"
-        elif json['classId'] not in gameConstants.classesJson:
+        elif json['ClassId'] not in gameConstants.classesJson:
             error += "Invalid classId, defaulting to Warrior."
-            self.classId = "warrior"
+            self.classId = "Warrior"
         else:
-            self.classId = json['classId']
+            self.classId = json['ClassId']
 
-        if 'characterName' not in json:
-            error += "Could not find characterName key in json, defaulting to classId."
+        if 'CharacterName' not in json:
+            error += "Could not find CharacterName key in json, defaulting to classId."
             self.name = self.classId
-        elif not json['characterName'] or len(json['characterName']) >= 12:
-            error += "Invalid characterName (empty or longer than 12 characters), defaulting to classId."
+        elif not json['CharacterName'] or len(json['CharacterName']) >= 12:
+            error += "Invalid CharacterName (empty or longer than 12 characters), defaulting to classId."
             self.name = self.classId
         else:
-            self.name = json['characterName']
+            self.name = json['CharacterName']
 
         self.classJson = gameConstants.classesJson[self.classId]
 
@@ -86,7 +90,7 @@ class Character(object):
     def update(self):
         if self.casting:
             if self.casting["CurrentCastTime"] == 0:
-                self.cast_ability(self.casting["AbilityId"])
+                self.cast_ability(self.casting["AbilityId"], self.casting["Target"], self.casting["Map"])
             self.casting["CurrentCastTime"] -= 1
 
         # Update ability cooldowns
@@ -114,8 +118,14 @@ class Character(object):
         self.apply_pending_stat_changes()
         self.attributes.update()
 
-        if self.attributes.get_attribute("Health") <= 0:
+        if not self.dead and self.attributes.get_attribute("Health") <= 0:
             self.dead = True
+
+    def in_range_of(self, target, map):
+        if not map.in_vision_of(self.position,
+                                target.position,
+                                self.attributes.get_attribute("AttackRange")):
+            raise OutOfRangeException
 
     def can_use_ability(self, ability_id):
         """ Checks if a character can use an ability (must have that ability)
@@ -135,28 +145,39 @@ class Character(object):
         elif self.abilities[ability_id] != 0:
             raise AbilityOnCooldownException
 
-    def use_ability(self, ability_id, character):
+    def use_ability(self, ability_id, target, map):
         # Check if we can use the ability
         self.can_use_ability(ability_id)
+
+        if not map.in_vision_of(self.position,
+                                target.position,
+                                self.attributes.get_attribute("AttackRange")):
+            raise OutOfRangeException
 
         # Reset casting
         self.casting = None
 
         cast_time = gameConstants.abilitiesList[ability_id]['CastTime']
         if cast_time > 0:
-            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time}
+            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time, "Target": target, "Map": map}
         else:
-            self.cast_ability(ability_id, character)
+            self.cast_ability(ability_id, target, map)
 
-    def cast_ability(self, ability_id, target=None):
+    def cast_ability(self, ability_id, target, map):
         """
         Casts a given ability by id, assumes that if it has a cast time it has waited that amount of time
         :param ability_id:
         :param character: Character object to cast on, if needed
         :return: None or string error
         """
+        if not target:
+            raise InvalidTargetException
+
         # Check if we can use the ability
         self.can_use_ability(ability_id)
+
+        # Check if we are in range
+        self.in_range_of(target, map)
 
         # Remove current casting
         self.casting = None
@@ -224,15 +245,16 @@ class Character(object):
         elif self.attributes.get_attribute("Stunned"):
             raise StunnedException
 
-    def move_towards(self, target, map):
+    def move_towards_target(self, target, map):
         # Same position
-        if (self.posX, self.posY) == (target.posX, target.posY):
+        if self.position == target.position:
             return
 
         # Can we move?
         self.can_move()
 
-        path = map.bfs((self.posX, self.posY), (target.posX, target.posY))
+        # Path should never be empty
+        path = map.bfs(self.position, target.position)
 
         movement_speed = self.attributes.get_attribute("MovementSpeed")
 
@@ -242,54 +264,59 @@ class Character(object):
         else:
             new_loc = path[movement_speed + 1]
 
-        self.posX = new_loc[0]
-        self.posY = new_loc[1]
+        self.position = new_loc
         self.casting = None
 
-    def move_to(self, new_pos, map):
+    def move_towards_position(self, new_pos, map):
         # Same position
-        if (self.posX, self.posY) == new_pos:
+        if self.position == new_pos:
             return
 
         # Can we move?
         self.can_move()
 
-        # Actually find path
-        if not map.can_move_to((self.posY, self.posY),
-                               new_pos,
-                               self.attributes.get_attribute("MovementSpeed")):
-            raise NotEnoughMovementSpeedException
+        path = map.bfs(self.position, new_pos)
 
-        self.posX = new_pos[0]
-        self.posY = new_pos[1]
+        # could not find path because of invalid path
+        if not path:
+            raise InvalidNewPositionException
+
+        movement_speed = self.attributes.get_attribute("MovementSpeed")
+
+        new_loc = None
+        if movement_speed >= len(path) - 1:
+            new_loc = path[-1]
+        else:
+            new_loc = path[movement_speed + 1]
+
+        self.position = new_loc
         self.casting = None
 
     def deserialize(self):
         """ Returns information about character as a json
         """
-        return {'id': self.id,
-                'name': self.name,
-                'x': self.posX,
-                'y': self.posY,
-                'class': self.classId,
-                'attributes': self.attributes.deserialize(),
-                'abilities': self.abilities,
-                'buffs': self.buffs,
-                'debuffs': self.debuffs,
-                'casting': self.casting}
+        return {'Id': self.id,
+                'Name': self.name,
+                'Position': self.position,
+                'ClassId': self.classId,
+                'Attributes': self.attributes.deserialize(),
+                'Abilities': self.abilities,
+                'Buffs': self.buffs,
+                'Debuffs': self.debuffs,
+                'Casting': self.casting}
 
     def serialize(self, json):
         try:
-            self.id = json['id']
-            self.name = json['name']
-            self.posX = json['x']
-            self.posY = json['y']
-            self.classId = json['class']
-            self.abilities = json['abilities']
-            self.buffs = json['buffs']
-            self.debuffs = json['debuffs']
-            self.casting = json['casting']
-            if not self.attributes.serialize(json['attributes']):
+            self.id = json['Id']
+            self.name = json['Name']
+            self.position = json['Position']
+            self.classId = json['ClassId']
+            self.abilities = json['Abilities']
+            self.buffs = json['Buffs']
+            self.debuffs = json['Debuffs']
+            self.casting = json['Casting']
+            self.attributes = Attributes()
+            if not self.attributes.serialize(json['Attributes']):
                 return False
         except KeyError as ex:
             print("Failed to serialize: " + str(ex))
@@ -299,12 +326,12 @@ class Character(object):
 
 class Attributes(object):
     def __init__(self,
-                 health,
-                 damage,
-                 spellPower,
-                 attackRange,
-                 armor,
-                 movementSpeed,
+                 health=0,
+                 damage=0,
+                 spellPower=0,
+                 attackRange=0,
+                 armor=0,
+                 movementSpeed=0,
                  silenced=0,
                  stunned=0,
                  rooted=0):

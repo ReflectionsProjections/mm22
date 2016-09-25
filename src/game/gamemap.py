@@ -24,7 +24,7 @@ class GameMap:
             return False
 
         # Same position
-        if pos1[0] == pos2[0] and pos1[1] == pos2[1]:
+        if pos1 == pos2:
             return True
 
         # Out of bounce

@@ -1,79 +1,70 @@
 #!/usr/bin/python2
 import socket
 import json
+import os
 import random
 import sys
 from socket import error as SocketError
 import errno
+sys.path.append("../..")
+from src.game.character import *
+from src.game.gamemap import *
 
-# Python terminal colors; useful for debugging
-# Make sure to concat a "printColors.RESET" to the end of your statement!
-class printColors:
-    HEADER = '\033[95m'
-    BLUE = '\033[94m'
-    GREEN = '\033[92m'
-    YELLOW = '\033[93m'
-    RED = '\033[91m'
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
-
-# Debugging function
-def log(x,c=printColors.BLUE):
-    pass
-    sys.stderr.write(c + str(x) + printColors.RESET + "\n")
+gameMap = GameMap()
 
 # Set initial connection data
-
 def initialResponse():
     # @competitors YOUR CODE HERE
-    return {'teamName':'test',
-            'characters': [
-                {"characterName": "Druid",
-                 "classId": "druid"},
-                {"characterName": "Archer",
-                 "classId": "archer"},
-                {"characterName": "Wizard",
-                 "classId": "wizard"},
+    return {'TeamName':'Test',
+            'Characters': [
+                {"CharacterName": "Druid",
+                 "ClassId": "Druid"},
+                {"CharacterName": "Archer",
+                 "ClassId": "Archer"},
+                {"CharacterName": "Wizard",
+                 "ClassId": "Wizard"},
             ]}
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
-    # Helpful variables
     actions = []
-    myId = serverResponse["playerInfo"]["id"]
-    myteam = None
-    enemyteam = None
-    for team in serverResponse["teams"]:
-        if team["id"] == serverResponse["playerInfo"]["teamId"]:
-            myteam = team
+    myId = serverResponse["PlayerInfo"]["Id"]
+    myteam = []
+    enemyteam = []
+    for team in serverResponse["Teams"]:
+        if team["Id"] == serverResponse["PlayerInfo"]["TeamId"]:
+            for characterJson in team["Characters"]:
+                character = Character()
+                character.serialize(characterJson)
+                myteam.append(character)
         else:
-            enemyteam = team
+            for characterJson in team["Characters"]:
+                character = Character()
+                character.serialize(characterJson)
+                enemyteam.append(character)
 
-    for character in myteam["characters"]:
-        if character["x"] == enemyteam["characters"][0]["x"] and character["y"] == enemyteam["characters"][0]["y"]:
-            """actions.append({
-                "action": "attack",
-                "characterId": character["id"],
-                "targetId": enemyteam["characters"][0]["id"],
-            })"""
+    target = enemyteam[0]
+    for character in myteam:
+        try:
+            # Check if character is in range, throw exception if not
+            character.in_range_of(target, gameMap)
+
             actions.append({
-                "action": "cast",
-                "characterId": character["id"],
-                "targetId": enemyteam["characters"][0]["id"],
-                "abilityId": 2
+                "Action": "Attack",
+                "CharacterId": character.id,
+                "TargetId": enemyteam[0].id,
             })
-        else:
+        except OutOfRangeException as e:
             actions.append({
-                "action": "move",
-                "characterId": character["id"],
-                "targetId": enemyteam["characters"][0]["id"],
+                "Action": "Move",
+                "CharacterId": character.id,
+                "TargetId": enemyteam[0].id,
             })
 
     # Send actions to the server
     return {
-        'teamName': 'test',
-        'actions': actions
+        'TeamName': 'Test',
+        'Actions': actions
     }
 
 # Main method
@@ -114,7 +105,7 @@ if __name__ == "__main__":
 
                     # Send next turn (if appropriate)
                     else:
-                        msg = processTurn(value) if "playerInfo" in value else initialResponse()
+                        msg = processTurn(value) if "PlayerInfo" in value else initialResponse()
                         s.sendall(json.dumps(msg) + '\n')
                         data = s.recv(1024)
             else:

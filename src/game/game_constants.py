@@ -14,7 +14,7 @@ Defines the classes
     Abilties - list of abilities
 """
 classesJson = {
-	"archer" : {
+	"Archer" : {
 			"Health"        : 1000,
             "Damage"        : 100,
             "SpellPower"    : 0,
@@ -23,7 +23,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,2,12 ] #sprint, armordebuff
 	},
-	"assassin" : {
+	"Assassin" : {
 			"Health"        : 800,
             "Damage"        : 100,
             "SpellPower"    : 0,
@@ -32,7 +32,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,12,11 ] #sprint,backstab
 	},
-    "druid" : {
+    "Druid" : {
             "Health"        : 1200,
             "Damage"        : 40,
             "SpellPower"    : 0,
@@ -41,7 +41,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,3,4,13 ] #heal, ranged armor buff, root
     },
-    "enchanter" : {
+    "Enchanter" : {
             "Health"        : 800,
             "Damage"        : 40,
             "SpellPower"    : 0,
@@ -50,7 +50,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,6,7,5 ] #armor reduction, armor+dmg buff, silence
     },
-    "paladin" : {
+    "Paladin" : {
             "Health"        : 1400,
             "Damage"        : 50,
             "SpellPower"    : 0,
@@ -59,7 +59,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,3,14 ] #heal, med cd stun
     },
-    "sorcerer" : {
+    "Sorcerer" : {
             "Health"        : 1000,
             "Damage"        : 80,
             "SpellPower"    : 0,
@@ -68,7 +68,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,8,16 ] #self damage buff, dot spell
     },
-    "warrior" : {
+    "Warrior" : {
             "Health"        : 1200,
             "Damage"        : 75,
             "SpellPower"    : 0,
@@ -77,7 +77,7 @@ classesJson = {
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,1,15 ] #short cd stun, self armor buff
     },
-    "wizard" : {
+    "Wizard" : {
             "Health"        : 1000,
             "Damage"        : 50,
             "SpellPower"    : 0,
@@ -270,7 +270,7 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Rooted",
-            "Change": True,
+            "Change": -1,
             "Time": 2
         }],
         "CastTime"  : 1,
@@ -281,7 +281,7 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Stunned",
-            "Change": True,
+            "Change": -1,
             "Time": 1
         }],
         "CastTime"  : 1,
