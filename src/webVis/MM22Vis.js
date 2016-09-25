@@ -133,7 +133,7 @@ var serverJSON = [];
 
 //Number of milliseconds until the next bit of JSON will be processed
 //  and the visualizer is updated
-var TIME_TO_NEXT_UPDATE = 2000;
+var TIME_TO_NEXT_UPDATE = 1000;
 
 //Number of milliseconds allowed for each spell to be tweened
 //  i.e. to move from caster to target 
@@ -198,7 +198,7 @@ var teamB = [];
 
 //Mapping of characterID's to 
 //  corresponding index within statScreen.MultiPlayer
-var characterIDToMultiPlayerIndex = [];
+var characterIDToMultiPlayerIndex = {};
 
 
 
@@ -568,6 +568,8 @@ function create () {
       }
       
     }
+
+    console.log(characterIDToMultiPlayerIndex);
     //move the characters so they fit into the regions correctly
     moveCharactersQuadrantAbsolute(serverJSON[0]);
 
@@ -984,16 +986,23 @@ function moveCharactersQuadrantAbsolute(currTurn){
     //contains the positions(x,y) of players in an array as an object
     var playerPositionArray = [];
     var characterArray = convertTurnToPlayerArray(currTurn);
-    console.log(characterArray);
     characterArray.forEach(function(playerObject, index){
-        playerPositionArray[index] = {
-          x: playerObject.Position[0],
-          y: playerObject.Position[1]
-        };
+        //only move them if they're not dead
+        if(playerObject.Attributes.Health > 0){
+          playerPositionArray.push({
+            x: playerObject.Position[0],
+            y: playerObject.Position[1],
+            id: playerObject.Id
+          });
+        }
+        //the player is dead, remove their sprite
+        else{
+          var statScreenIndex = characterIDToMultiPlayerIndex[playerObject.Id];
+          statScreen.MultiPlayer[statScreenIndex].Sprite.kill();
+        }
     });
     
-
-    for(var index = 0; index < characterArray.length; index++){
+    for(var index = 0; index < playerPositionArray.length; index++){
         //marks the coordinates of where the player will be after moving
         var newQuadrantRow = 0;
         var newQuadrantCol = 0;
@@ -1001,12 +1010,14 @@ function moveCharactersQuadrantAbsolute(currTurn){
         newQuadrantCol = playerPositionArray[index].x;
         newQuadrantRow = playerPositionArray[index].y;
         var newPosition = calcXAndY(newQuadrantCol, newQuadrantRow);
+
+        var statScreenIndex = characterIDToMultiPlayerIndex[playerPositionArray[index].id];
         //move them into the quadrant at the top-left corner
-        statScreen["MultiPlayer"][index].Sprite.x = newPosition.x;
-        statScreen["MultiPlayer"][index].Sprite.y = newPosition.y;
+        statScreen["MultiPlayer"][statScreenIndex].Sprite.x = newPosition.x;
+        statScreen["MultiPlayer"][statScreenIndex].Sprite.y = newPosition.y;
         //move them again to the next column if they're isn't room in the quadrant
-        statScreen["MultiPlayer"][index].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-        statScreen["MultiPlayer"][index].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
+        statScreen["MultiPlayer"][statScreenIndex].Sprite.x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
+        statScreen["MultiPlayer"][statScreenIndex].Sprite.y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
         //update the column part of the "tuple"
         nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
         //if the column is 3, move to the next row
