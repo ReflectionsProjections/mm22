@@ -114,7 +114,3 @@ hs_err_pid*
 
 # Pycharm
 .idea
-
-test-clients/c/client
-mm20-passwords.txt
-src/game/test.py
