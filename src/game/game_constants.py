@@ -104,19 +104,19 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 0,
             "Attribute": "Stunned",
-            "Change": False,
+            "Change": 1,
             "Time": 0
         },
         {
             "Target": 0,
             "Attribute": "Silenced",
-            "Change": False,
+            "Change": 1,
             "Time": 0
         },
         {
             "Target": 0,
             "Attribute": "Rooted",
-            "Change": False,
+            "Change": 1,
             "Time": 0
         }],
         "CastTime"  : 0,
@@ -127,7 +127,7 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Stunned",
-            "Change": True,
+            "Change": -1,
             "Time": 1
         }],
         "CastTime"  : 0,
@@ -171,7 +171,7 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Silenced",
-            "Change": True,
+            "Change": -1,
             "Time": 2
         }],
         "CastTime"  : 2,
@@ -226,7 +226,7 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Stunned",
-            "Change": True,
+            "Change": -1,
             "Time": 1
         }],
         "CastTime"  : 2,

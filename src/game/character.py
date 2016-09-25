@@ -377,11 +377,11 @@ class Attributes(object):
         if attribute_name == 'MovementSpeed':
             self.movementSpeed += change
         if attribute_name == 'Stunned':
-            self.stunned += change
+            self.stunned = min(self.stunned + change, 0)
         if attribute_name == 'Silenced':
-            self.silenced += change
+            self.silenced += min(self.silenced + change, 0)
         if attribute_name == 'Rooted':
-            self.rooted += change
+            self.rooted += min(self.rooted + change, 0)
 
     def get_attribute(self, attribute_name):
         """

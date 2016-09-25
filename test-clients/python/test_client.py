@@ -10,12 +10,17 @@ sys.path.append("../..")
 from src.game.character import *
 from src.game.gamemap import *
 
+# Game map that you can use to query 
 gameMap = GameMap()
+
+# --------------------------- SET THIS IS UP -------------------------
+teamName = "Test"
+# ---------------------------------------------------------------------
 
 # Set initial connection data
 def initialResponse():
-    # @competitors YOUR CODE HERE
-    return {'TeamName':'Test',
+# ------------------------- CHANGE THESE VALUES -----------------------
+    return {'TeamName':teamName,
             'Characters': [
                 {"CharacterName": "Druid",
                  "ClassId": "Druid"},
@@ -24,9 +29,11 @@ def initialResponse():
                 {"CharacterName": "Wizard",
                  "ClassId": "Wizard"},
             ]}
+# ---------------------------------------------------------------------
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
+# --------------------------- CHANGE THIS SECTION -------------------------
     actions = []
     myId = serverResponse["PlayerInfo"]["Id"]
     myteam = []
@@ -42,6 +49,7 @@ def processTurn(serverResponse):
                 character = Character()
                 character.serialize(characterJson)
                 enemyteam.append(character)
+# ------------------ You shouldn't change above but you can ---------------
     target = None
     for character in enemyteam:
         if not character.is_dead():
@@ -66,9 +74,10 @@ def processTurn(serverResponse):
 
     # Send actions to the server
     return {
-        'TeamName': 'Test',
+        'TeamName': teamName,
         'Actions': actions
     }
+# ---------------------------------------------------------------------
 
 # Main method
 # @competitors DO NOT MODIFY
