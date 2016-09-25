@@ -463,8 +463,8 @@ function preload () {
     game.load.image('Archer2', 'assets/Archer2.png');
     game.load.image('Druid1', 'assets/Druid1.png');
     game.load.image('Druid2', 'assets/Druid2.png');
-    game.load.image('Enchantress1', 'assets/Enchantress1.png');
-    game.load.image('Enchantress2', 'assets/Enchantress2.png');
+    game.load.image('Enchanter1', 'assets/Enchanter1.png');
+    game.load.image('Enchanter2', 'assets/Enchanter2.png');
     game.load.image('Knight1', 'assets/Knight1.png');
     game.load.image('Knight2', 'assets/Knight2.png');
     game.load.image('Mage1', 'assets/Mage1.png');
@@ -1343,53 +1343,56 @@ function processTurn(){
 
   */
 function resolveActions(currTurn){
-  //constant determined by Python Game to signify a successful spell
-  var SPELL_SUCCESSFUL = "ok";
+  //constant determined by Python Game to signify a successful action
+  var ACTION_SUCCESSFUL = "Ok";
 
   var teamATweens = [];
   var teamBTweens = [];
+
+  console.log(currTurn);
   for(var i = 0; i < currTurn.TurnResults.length; i++){
     currTurn.TurnResults[i].forEach(function(action){
-      var actionType = action.Action;
-      //the id of the character making the action
-      var casterID = action.CharacterId;
-      var casterMultiPlayerIndex = characterIDToMultiPlayerIndex[casterID];
-      var casterSprite = statScreen.MultiPlayer[casterMultiPlayerIndex].Sprite;
-      //the id of the character targetted by the action
-      var targetID = action.TargetId;
-      var targetMultiPlayerIndex = characterIDToMultiPlayerIndex[targetID];
-      var targetSprite = statScreen.MultiPlayer[targetMultiPlayerIndex].Sprite;
-      switch(actionType){
-        case "Attack":
-          //do attack stuff
-          console.log(casterMultiPlayerIndex + " is attacking " + targetMultiPlayerIndex);
-          var attackTween = game.add.tween(casterSprite).to(
-              {
-                x: targetSprite.x,
-                y: targetSprite.y
-              },
-              TIME_FOR_ATTACKS/4,
-              null,
-              false,
-              0,
-              0,
-              true
-          );
-          if(i == 0){
-            teamATweens.push(attackTween);
-          }
-          else{
-            teamBTweens.push(attackTween);
-          }
-          break;
-        case "Move":
-          //do nothing since movement is handled by another function
-          break;
-        case "Cast":
-          //the spell was successfully cast, so call addSpell and 
-          //  pass in corresponding arguments
-          if(action.status == SPELL_SUCCESSFUL){
-            console.log("Casting Spell");
+      if(action.Status == ACTION_SUCCESSFUL){
+        var actionType = action.Action;
+        //the id of the character making the action
+        var casterID = action.CharacterId;
+        var casterMultiPlayerIndex = characterIDToMultiPlayerIndex[casterID];
+        var casterSprite = statScreen.MultiPlayer[casterMultiPlayerIndex].Sprite;
+        //the id of the character targetted by the action
+        var targetID = action.TargetId;
+        var targetMultiPlayerIndex = characterIDToMultiPlayerIndex[targetID];
+        var targetSprite = statScreen.MultiPlayer[targetMultiPlayerIndex].Sprite;
+        switch(actionType){
+          case "Attack":
+            //do attack stuff
+            console.log(casterMultiPlayerIndex + " is attacking " + targetMultiPlayerIndex);
+            var attackTween = game.add.tween(casterSprite).to(
+                {
+                  x: targetSprite.x,
+                  y: targetSprite.y
+                },
+                TIME_FOR_ATTACKS/4,
+                null,
+                false,
+                0,
+                0,
+                true
+            );
+            //It's an attack from team A
+            if(i == 0){
+              teamATweens.push(attackTween);
+            }
+            //Attack from team B
+            else{
+              teamBTweens.push(attackTween);
+            }
+            break;
+          case "Move":
+            //do nothing since movement is handled by another function
+            break;
+          case "Cast":
+            //the spell was successfully cast, so call addSpell and 
+            //  pass in corresponding arguments
             var casterIndex = characterIDToMultiPlayerIndex[action.CharacterId];
             var casterSrite = statScreen.MultiPlayer[casterIndex].Sprite;
             var targetIndex = characterIDToMultiPlayerIndex[action.TargetId];
@@ -1397,10 +1400,10 @@ function resolveActions(currTurn){
             var spellName = "spell" + action.AbilityId;
 
             addSpell(casterSprite, casterIndex, targetSprite, spellName);
-
-          }        
-          break;
+            break;
+        }
       }
+      
   });
 
   } //end for loop for turnResults
