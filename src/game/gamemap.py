@@ -38,11 +38,13 @@ class GameMap:
             for i in GameMap.path_between(pos1[1], pos2[1]):
                 if not self.is_inbounds((pos1[0], i)) or i >= max_length:
                     return False
+            return True
         elif self.is_same_row(pos1, pos2):
             for i in GameMap.path_between(pos1[0], pos2[0]):
                 if not self.is_inbounds((i, pos1[1])) or i >= max_length:
                     return False
-        return True
+            return True
+        return False
 
     def can_move_to(self, pos1, pos2, max_distance=None):
         if max_distance is None:
