@@ -43,14 +43,6 @@
      TIME_TO_NEXT_UPDATE.
 
     
-    TODO: Keep track of Asset Lists
-    TODO: Figure out how the movement system will be translated
-        into the JSON, a.k.a what calculation has to be done by the
-        visualizer (Jack, Eric, Asaf)
-    TODO: Create queue for JSON to be parsed
-    TODO: Remove any dummy data/variables/JSON
-
-
     -----MAP----
     A 5x5 configuration with 120x120 pixel spaces for "quadrants"
     Each quadrant has a 3x3 configuration, with each element 
@@ -200,10 +192,6 @@ var teamB = [];
 //  corresponding index within statScreen.MultiPlayer
 var characterIDToMultiPlayerIndex = {};
 
-
-
-//Group containing all the spells to be cast on one turn
-var spells;
 
 
 
@@ -443,20 +431,6 @@ var statScreen = {
 //  relative to this coordinate
 var ATTRIBUTE_STRINGS_Y = 230;
 
-//dummyJSON for testing
-var dummyPlayer = {
-    "stats" : {
-            "Health"        : 500,
-            "Damage"        : 50,
-            "SpellPower" : 50,
-            "AttackRange"   : 5,
-            "Armor"         : 10,
-            "MovementSpeed" : 5,
-            "Abilities"     : [ 1 ]
-    }
-
-};
-
 
 //Handles to the Text objects that will act like buttons to switch
 //  between the single player and multi-player overlay
@@ -497,41 +471,30 @@ function preload () {
     game.load.image('Sorcerer2', 'assets/Sorcerer2.png');
     game.load.image('Paladin1', 'assets/Paladin1.png');
     game.load.image('Paladin2', 'assets/Paladin2.png');
+    game.load.image('Assassin1', 'assets/Assassin1.png');
+    game.load.image('Assassin2', 'assets/Assassin2.png');
 
-    //TODO: Add Assassin class
-    
 
-    //sprites for the spells
-    //TODO: NEEDED ASSETS FOR SPELLS 
-    // Armor Debuff Y 
-    // Backstab Y
-    // Sprint Y
-    // Root Y
-    // Corruption Y
-    // Silence Y
+
+    //Spell assets
     game.load.image('spell0', 'assets/Burst.png');
     game.load.image('spell1', 'assets/Stun.png');
-    //Armor Debuff
-    game.load.image('spell2', 'assets/defaultSpell.png');
+    game.load.image('spell2', 'assets/RangeArmorDebuff.png');
     game.load.image('spell3', 'assets/RangeHeal.png');
     game.load.image('spell4', 'assets/RangeArmorBuff.png');
-    //Silence
-    game.load.image('spell5', 'assets/defaultSpell.png');
+    game.load.image('spell5', 'assets/Silence.png');
     game.load.image('spell6', 'assets/RangeAttackDebuffCurse.png');
     game.load.image('spell7', 'assets/RangeAttackBuff.png');
     game.load.image('spell8', 'assets/SacrificeHealth.png');
     game.load.image('spell9', 'assets/DeepFreeze.png');
     game.load.image('spell10', 'assets/Frostbolt.png');
-    //Backstab
-    game.load.image('spell11', 'assets/defaultSpell.png');
-    //Sprint
-    game.load.image('spell12', 'assets/defaultSpell.png');
-    //Root
-    game.load.image('spell13', 'assets/defaultSpell.png');
+    game.load.image('spell11', 'assets/Backstab.png');
+    //"Sprint"
+    game.load.image('spell12', 'assets/SpeedBuff.png');
+    game.load.image('spell13', 'assets/Root.png');
     game.load.image('spell14', 'assets/Stun.png');
     game.load.image('spell15', 'assets/ArmorBuff.png');
-    //Corruption
-    game.load.image('spell16', 'assets/defaultSpell.png');
+    game.load.image('spell16', 'assets/Corruption.png');
 
 
     
@@ -551,9 +514,6 @@ function create () {
 
     //set background image
     var background = game.add.sprite(0, 0, 'background');
-
-    //create group for spells
-    spells = game.add.group();
 
     //create group for characters
     characters = game.add.group();
@@ -610,7 +570,6 @@ function create () {
       
     }
 
-    console.log(characterIDToMultiPlayerIndex);
     //move the characters so they fit into the regions correctly
     moveCharactersQuadrantAbsolute(serverJSON[0]);
 
@@ -702,7 +661,7 @@ var spellList = [];
 
 
 /*
-    Adds a spell to the spells group.
+    Adds spell to spellList
     Call releaseSpells() to move all the spell sprites
         to their respective targets.
     If you want a spell to target the caster (self-heal, 
@@ -739,7 +698,7 @@ function addSpell(caster, casterIndex, target, spellName){
     The spell first remains at the sprite of the caster
       (so people can see who is casting the spell),
       then it travels to it's target.
-    This function clears both spellList and the spells group.
+    This function clears spellList.
 */
 function releaseSpells(){
   if(spellList.length > 0){
@@ -797,42 +756,6 @@ function releaseSpells(){
 
 
 
-//Dummy JSON to test moveCharactersQuadrant()
-//number of quadrants to move in the x or y direction
-var dummyMovement = {
-    "playerOne" : 
-    {
-        "x" : 1,
-        "y" : 1
-    },
-    "playerTwo" : 
-    {
-        "x" : 0,
-        "y" : 1
-    },
-    "playerThree" : 
-    {
-        "x" : 1,
-        "y" : 0
-    },
-    "playerFour" : 
-    {
-        "x" : 0,
-        "y" : -1
-    },
-    "playerFive" : 
-    {
-        "x" : -1,
-        "y" : 0
-    },
-    "playerSix" : 
-    {
-        "x" : 0,
-        "y" : 0
-    }
-};
-
-
 //Represents the map wih a 5x5 array of "tuples"
 //Each "tuple" is (row,column) that is available for
 //  the next sprite to be inserted
@@ -856,158 +779,6 @@ var nextQuadrantSpaceAvailable = [
     [[0,0],[0,0],[0,0],[0,0],[0,0] ],
 
 ];
-
-
-/**
-    Moves a character from one quadrant to another.
-    
-    Moves using JSON that gives displacement of each player
-    in relation to their old quadrant.
-        If a player has an x of 1 and y of -1, they will move
-        one box to the right and up one box.
-
-
-    If multiple characters are in the same quadrant,
-      space them out so each character sprite can be 
-      visible. 
-
-    Each quadrant is defined to be 120x120 pixels
-
-    NOTE: Does not check to see if the move is valid
-        (does not check if the character will move off of the map,
-        into a pillar)
-
-    WARNING: This method is deprecated and needs to be refactored
-      to use statScreen["MultiPlayer"].Sprite instead of playerOne,
-      playerTwo, playerThree...
-
-*/
-function moveCharactersQuadrant(currTurn){
-
-    //reset nextQuadrantSpaceAvailable so all spaces are available
-    for(var i = 0; i < nextQuadrantSpaceAvailable.length; i++){
-        for(var j = 0; j < nextQuadrantSpaceAvailable[i].length; j++){
-            nextQuadrantSpaceAvailable[i][j][0] = 0;
-            nextQuadrantSpaceAvailable[i][j][1] = 0;
-        } 
-    }
-    for(var k in dummyMovement){
-        //marks the coordinates of where the player will be after moving
-        var newQuadrantRow = 0;
-        var newQuadrantCol = 0;
-        switch(k){
-            case "playerOne":
-                //calculate the player's new destination
-                newQuadrantCol = (statScreen["MultiPlayer"][0].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][0].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant at the top-left corner
-                statScreen["MultiPlayer"][0].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][0].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][0].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][0].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            case "playerTwo":
-                newQuadrantCol = (statScreen["MultiPlayer"][1].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][1].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
-                statScreen["MultiPlayer"][1].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][1].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][1].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][1].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            case "playerThree":
-                newQuadrantCol = (statScreen["MultiPlayer"][2].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][2].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
-                statScreen["MultiPlayer"][2].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][2].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][2].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][2].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            case "playerFour":
-                newQuadrantCol = (statScreen["MultiPlayer"][3].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][3].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
-                statScreen["MultiPlayer"][3].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][3].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][3].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][3].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            case "playerFive":
-                newQuadrantCol = (statScreen["MultiPlayer"][4].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][4].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
-                statScreen["MultiPlayer"][4].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][4].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][4].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][4].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            case "playerSix":
-                newQuadrantCol = (statScreen["MultiPlayer"][5].x + dummyMovement[k]["x"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                newQuadrantRow = (statScreen["MultiPlayer"][5].y + dummyMovement[k]["y"] * QUADRANT_DIMENSION)/QUADRANT_DIMENSION;
-                //move them into the quadrant
-                statScreen["MultiPlayer"][5].x += dummyMovement[k]["x"] * QUADRANT_DIMENSION;
-                statScreen["MultiPlayer"][5].y += dummyMovement[k]["y"] * QUADRANT_DIMENSION;
-                //move them again to the next column if they're isn't room in the quadrant
-                statScreen["MultiPlayer"][5].x += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] * CHARACTER_DIMENSION;
-                statScreen["MultiPlayer"][5].y += nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] * CHARACTER_DIMENSION;
-                //update the column part of the "tuple"
-                nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1]+= 1;
-                //if the column is 3, move to the next row
-                if(nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] === 3){
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][1] = 0;
-                    nextQuadrantSpaceAvailable[newQuadrantRow][newQuadrantCol][0] += 1;
-                }
-                break;
-            default:
-                break;
-        }
-    }
-
-
-
-
-}
 
 
 /**
@@ -1171,8 +942,6 @@ function initSinglePlayerStatScreen(character){
 /**
     Creates The Text Objects for the multiplayer stat screen.
     Like initSinglePlayerScreen, this method should be called only once 
-
-    TODO: Have Health Bars be From Actual JSON Rather Than Random Data
 */
 function initMultiPlayerStatScreen(){
     console.log("initMultiPlayerStatScreen");
@@ -1382,19 +1151,13 @@ function processTurn(){
   if(serverJSON.length > 0){
     //dequeue
     var currTurn = serverJSON.shift();
-    console.log(currTurn);
+    //console.log(currTurn);
     statScreen.CurrentTurn = currTurn;
     //move the sprites
     moveCharactersQuadrantAbsolute(currTurn);
 
     //resolves everything in turnResults (attacks/spells)
-    //TODO: handle spells
     resolveActions(currTurn);
-
-
-    //TODO: This is for testing, remove this line in production
-    //Uncomment this below to see some spells in action
-    //testIfSpellsWork();
 
     //update both stat screens (although only one will be showing)
     //  at any time
@@ -1415,7 +1178,6 @@ function resolveActions(currTurn){
   var teamATweens = [];
   var teamBTweens = [];
 
-  console.log(currTurn);
   for(var i = 0; i < currTurn.TurnResults.length; i++){
     currTurn.TurnResults[i].forEach(function(action){
       if(action.Status == ACTION_SUCCESSFUL){
@@ -1431,7 +1193,6 @@ function resolveActions(currTurn){
         switch(actionType){
           case "Attack":
             //do attack stuff
-            console.log(casterMultiPlayerIndex + " is attacking " + targetMultiPlayerIndex);
             var attackTween = game.add.tween(casterSprite).to(
                 {
                   x: targetSprite.x,
@@ -1508,7 +1269,6 @@ function resolveActions(currTurn){
     character
 */
 function changeStatScreen(character){
-    console.log(character);
     //update PlayerIndex of statScreen 
     statScreen.SinglePlayer.PlayerIndex = character.index;
     statScreen.SinglePlayer.CharacterNameString = character.name;
@@ -1748,69 +1508,6 @@ function convertTurnToPlayerArray(currTurn){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-//---------------Functions Used for Testing/Development--------------//
-
-//Helper function for moveCharactersQuadrantTest()
-//Randomizes the x and y of dummyLocation to an integer [0-4]
-function randomizeMovement(){
-    for (var k in dummyMovement){
-        //ensure the property is not part of the prototype
-        if(dummyMovement.hasOwnProperty(k)){
-             for(var l in dummyMovement[k]){
-                dummyMovement[k][l] = Math.floor(Math.random()*5);
-            }
-        }
-       
-    }
-}
-
-
-//Populates the queue with random data 
-
-function populateQueue(){
-    for(var i = 0 ; i < 10; i++){
-        var asdf = new Move();
-        asdf.stats.Health = Math.floor(Math.random()*500);
-        //for(var k in asdf["stats"]){
-        //    if(asdf["stats"].hasOwnProperty(k)){
-        //        asdf["stats"][k] = Math.floor(Math.random()*300);
-        //    }
-        //}
-        serverJSON.push(asdf);
-    }
-}
-
-function Move(){
-  this.stats = {
-    "Health": 0,
-    "Damage" : 20,
-    "SpellPower" : 5,
-    "AttackRange" : 7,
-    "Armor" : 20,
-    "MovementSpeed" : 8,
-  };
-}
-
-//Tests addSpells and releaseSpells
-function testIfSpellsWork(){
-    for(var i = 0; i < 6; i++){
-      addSpell(statScreen["MultiPlayer"][i].Sprite, i, statScreen["MultiPlayer"][i].Sprite, "spell2");
-    }
-    addSpell(statScreen["MultiPlayer"][0].Sprite, 0, statScreen["MultiPlayer"][5].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][4].Sprite, 4, statScreen["MultiPlayer"][1].Sprite, "spell1");
-    addSpell(statScreen["MultiPlayer"][3].Sprite, 3, statScreen["MultiPlayer"][0].Sprite, "spell1");
-    releaseSpells();
-}
 
 
 
