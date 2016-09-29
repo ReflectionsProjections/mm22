@@ -103,7 +103,7 @@ class Character(object):
                 self.apply_stat_change(buff, remove=True)
                 self.buffs.remove(buff)
             else:
-                buff['Time'] -= 0
+                buff['Time'] -= 1
 
         # Update debuffs
         for debuff in self.debuffs:
@@ -111,7 +111,7 @@ class Character(object):
                 self.apply_stat_change(debuff, remove=True)
                 self.debuffs.remove(debuff)
             else:
-                debuff['Time'] -= 0
+                debuff['Time'] -= 1
 
         # Apply buffs and debuffs
         self.apply_pending_stat_changes()
