@@ -73,7 +73,7 @@ classesJson = {
             "Damage"        : 75,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
-            "Armor"         : 45,
+            "Armor"         : 50,
             "MovementSpeed" : 1,
             "Abilities"     : [ 0,1,15 ] #short cd stun, self armor buff
     },
@@ -149,18 +149,18 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 2,
             "Attribute": "Health",
-            "Change": 200,
+            "Change": 250,
             "Time": 0
         }],
-        "CastTime"  : 1,
-        "Cooldown"  : 5,
+        "CastTime"  : 2,
+        "Cooldown"  : 3,
         "Range"     : 1,
     },
     {   #4 ranged armor buff
         "StatChanges": [{
             "Target": 2,
             "Attribute": "Armor",
-            "Change": 20,
+            "Change": 40,
             "Time": 3
         }],
         "CastTime"  : 0,
@@ -174,8 +174,8 @@ abilitiesList = [
             "Change": -1,
             "Time": 3
         }],
-        "CastTime"  : 2,
-        "Cooldown"  : 8,
+        "CastTime"  : 0,
+        "Cooldown"  : 6,
         "Range"     : 2,
     },
     {   #6 ranged damage reduction curse
@@ -186,24 +186,24 @@ abilitiesList = [
             "Time": 3
         }],
         "CastTime"  : 0,
-        "Cooldown"  : 8,
+        "Cooldown"  : 5,
         "Range"     : 2,
     },
     {   #7 ranged armor and damage buff
         "StatChanges": [{
             "Target": 2,
             "Attribute": "Armor",
-            "Change": 10,
+            "Change": 20,
             "Time": 3
         },
         {
             "Target": 2,
             "Attribute": "Damage",
-            "Change": 20,
+            "Change": 30,
             "Time": 3
         }],
-        "CastTime"  : 0,
-        "Cooldown"  : 8,
+        "CastTime"  : 2,
+        "Cooldown"  : 6,
         "Range"     : 2,
     },
     {   #8 sacrifice health for damage (self)
@@ -219,7 +219,7 @@ abilitiesList = [
             "Time" : 3
         }],
         "CastTime"  : 0,
-        "Cooldown"  : 6,
+        "Cooldown"  : 0,
         "Range"     : 0,
     },
     {   #9 deep freeze
@@ -229,19 +229,19 @@ abilitiesList = [
             "Change": -1,
             "Time": 2
         }],
-        "CastTime"  : 2,
-        "Cooldown"  : 12,
+        "CastTime"  : 0,
+        "Cooldown"  : 10,
         "Range"     : 2,
     },
     {   #10 frostbolt
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -150,
+            "Change": -250,
             "Time": 0
         }],
-        "CastTime"  : 1,
-        "Cooldown"  : 4,
+        "CastTime"  : 2,
+        "Cooldown"  : 3,
         "Range"     : 1,
     },
     {   #11 Backstab
@@ -252,7 +252,7 @@ abilitiesList = [
             "Time": 0
         }],
         "CastTime"  : 0,
-        "Cooldown"  : 10,
+        "Cooldown"  : 6,
         "Range"     : 0,
     },
     {   #12 Sprint
@@ -260,7 +260,7 @@ abilitiesList = [
             "Target": 0,
             "Attribute": "MovementSpeed",
             "Change": 1,
-            "Time": 2
+            "Time": 3
         }],
         "CastTime"  : 0,
         "Cooldown"  : 8,
@@ -273,8 +273,8 @@ abilitiesList = [
             "Change": -1,
             "Time": 3
         }],
-        "CastTime"  : 1,
-        "Cooldown"  : 8,
+        "CastTime"  : 0,
+        "Cooldown"  : 6,
         "Range"     : 1,
     },
     {   #14 Smite
@@ -284,30 +284,30 @@ abilitiesList = [
             "Change": -1,
             "Time": 2
         }],
-        "CastTime"  : 1,
-        "Cooldown"  : 10,
+        "CastTime"  : 0,
+        "Cooldown"  : 8,
         "Range"     : 1,
     },
     {   #15 self armor buff
         "StatChanges": [{
             "Target": 0,
             "Attribute": "Armor",
-            "Change": 15,
+            "Change": 30,
             "Time": 3
         }],
-        "CastTime"  : 0,
-        "Cooldown"  : 10,
+        "CastTime"  : 2,
+        "Cooldown"  : 7,
         "Range"     : 0,
     },
     {   #16 corruption
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -100,
+            "Change": -150,
             "Time": 3
         }],
-        "CastTime"  : 1,
-        "Cooldown"  : 10,
-        "Range"     : 2,
+        "CastTime"  : 2,
+        "Cooldown"  : 8,
+        "Range"     : 1,
     },
 ]
