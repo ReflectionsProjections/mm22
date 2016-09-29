@@ -46,6 +46,8 @@ class Character(object):
         self.buffs = []
         self.debuffs = []
         self.pending_stat_changes = []
+        self.map = None
+        self.target = None
 
     def init(self, json, x, y):
         error = ""
@@ -83,19 +85,17 @@ class Character(object):
         self.abilities = {}
         for ability in self.classJson['Abilities']:
             self.abilities[ability] = 0
-
         return error
 
     def update(self):
         if self.casting:
             if self.casting["CurrentCastTime"] == 0:
-                self.cast_ability(self.casting["AbilityId"], self.casting["Target"], self.casting["Map"])
+                self.cast_ability(self.casting["AbilityId"], self.target, self.map)
             self.casting["CurrentCastTime"] -= 1
 
         # Update ability cooldowns
-        for ability in self.abilities:
+        for ability, _ in self.abilities.items():
             if self.abilities[ability] > 0:
-                #should this be -= 1???
                 self.abilities[ability] -= 1
 
         # Update buffs
@@ -179,7 +179,9 @@ class Character(object):
 
         cast_time = gameConstants.abilitiesList[ability_id]['CastTime']
         if cast_time > 0:
-            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time, "Target": target, "Map": map}
+            self.map = map
+            self.target = target
+            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time}
         else:
             self.cast_ability(ability_id, target, map)
 
@@ -315,6 +317,7 @@ class Character(object):
     def deserialize(self):
         """ Returns information about character as a json
         """
+
         return {'Id': self.id,
                 'Name': self.name,
                 'Position': self.position,

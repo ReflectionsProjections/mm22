@@ -57,11 +57,10 @@ class Game(object):
         # If there is an error, return false and error
         if error:
             return False, error
-
         # Add player to game data
         new_team = Team(jsonObject['TeamName'])
         for character in jsonObject['Characters']:
-            new_team.add_character(character)
+            error = new_team.add_character(character)
 
         self.teams[new_team.id] = new_team
 

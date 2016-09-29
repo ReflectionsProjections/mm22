@@ -10,30 +10,28 @@ sys.path.append("../..")
 from src.game.character import *
 from src.game.gamemap import *
 
-# Game map that you can use to query 
 gameMap = GameMap()
-
-# --------------------------- SET THIS IS UP -------------------------
-teamName = "Test"
-# ---------------------------------------------------------------------
 
 # Set initial connection data
 def initialResponse():
-# ------------------------- CHANGE THESE VALUES -----------------------
-    return {'TeamName':teamName,
+    # @competitors YOUR CODE HERE
+    return {'TeamName':'Test',
             'Characters': [
-                {"CharacterName": "Druid",
-                 "ClassId": "Druid"},
-                {"CharacterName": "Archer",
-                 "ClassId": "Archer"},
-                {"CharacterName": "Wizard",
-                 "ClassId": "Wizard"},
+                {"CharacterName": "Tyler_Kim",
+                 "ClassId": "Paladin"},
+                {"CharacterName": "Richard_Stallman",
+                 "ClassId": "Paladin"},
+                {"CharacterName": "Donald_Trump",
+                 "ClassId": "Paladin"},
             ]}
-# ---------------------------------------------------------------------
 
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
-# --------------------------- CHANGE THIS SECTION -------------------------
+
+    # ID
+    # TeamName
+    # Characters
+
     actions = []
     myId = serverResponse["PlayerInfo"]["Id"]
     myteam = []
@@ -49,21 +47,44 @@ def processTurn(serverResponse):
                 character = Character()
                 character.serialize(characterJson)
                 enemyteam.append(character)
-# ------------------ You shouldn't change above but you can ---------------
     target = None
     for character in enemyteam:
         if not character.is_dead():
             target = character
     if target:
         for character in myteam:
-            if character.in_range_of(target, gameMap):
-                actions.append({
-                    "Action": "Cast",
-                    "CharacterId": character.id,
-                    "TargetId": target.id,
-                    "AbilityId": 3
-                })
-            else:
+            try:
+                # Check if character is in range, throw exception if not
+                character.in_range_of(target, gameMap)
+
+                try:
+                    
+                    if(character.can_use_ability(3) and (character.get_attribute('Health')/character.get_attribute('MaxHealth') < 0.5)):
+                        actions.append({
+                            "Action": "Cast",
+                            "CharacterId": character.id,
+                            "TargetId": character.id,
+                            "AbilityId": 3
+                        })
+
+                except:
+
+                    try:
+                        if(character.can_use_ability(14)):
+                            actions.append({
+                                "Action": "Cast",
+                                "CharacterId": character.id,
+                                "TargetId": target.id,
+                                "AbilityId": 14
+                            })
+                    except:
+                        actions.append({
+                            "Action": "Attack",
+                            "CharacterId": character.id,
+                            "TargetId": target.id,
+                        })
+
+            except OutOfRangeException as e:
                 actions.append({
                     "Action": "Move",
                     "CharacterId": character.id,
@@ -72,10 +93,9 @@ def processTurn(serverResponse):
 
     # Send actions to the server
     return {
-        'TeamName': teamName,
+        'TeamName': 'Test',
         'Actions': actions
     }
-# ---------------------------------------------------------------------
 
 # Main method
 # @competitors DO NOT MODIFY

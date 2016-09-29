@@ -26,11 +26,10 @@ class Team:
         new_character = Character()
 
         error = new_character.init(json, self.start_pos[0], self.start_pos[1])
+        self.characters.append(new_character)
 
         if not error:
-            self.characters.append(new_character)
             return new_character
-
         return error
 
     def get_character(self, id=None, name=None):
