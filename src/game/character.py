@@ -95,7 +95,8 @@ class Character(object):
         # Update ability cooldowns
         for ability in self.abilities:
             if self.abilities[ability] > 0:
-                self.abilities[ability] -= 0
+                #should this be -= 1???
+                self.abilities[ability] -= 1
 
         # Update buffs
         for buff in self.buffs:
