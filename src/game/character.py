@@ -94,7 +94,8 @@ class Character(object):
         # Update ability cooldowns
         for ability in self.abilities:
             if self.abilities[ability] > 0:
-                self.abilities[ability] -= 0
+                #should this be -= 1???
+                self.abilities[ability] -= 1
 
         # Update buffs
         for buff in self.buffs:
@@ -102,7 +103,7 @@ class Character(object):
                 self.apply_stat_change(buff, remove=True)
                 self.buffs.remove(buff)
             else:
-                buff['Time'] -= 0
+                buff['Time'] -= 1
 
         # Update debuffs
         for debuff in self.debuffs:
@@ -110,7 +111,7 @@ class Character(object):
                 self.apply_stat_change(debuff, remove=True)
                 self.debuffs.remove(debuff)
             else:
-                debuff['Time'] -= 0
+                debuff['Time'] -= 1
 
         # Apply buffs and debuffs
         self.apply_pending_stat_changes()
