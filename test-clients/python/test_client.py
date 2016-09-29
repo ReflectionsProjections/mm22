@@ -26,8 +26,8 @@ def initialResponse():
                  "ClassId": "Druid"},
                 {"CharacterName": "Archer",
                  "ClassId": "Archer"},
-                {"CharacterName": "Wizard",
-                 "ClassId": "Wizard"},
+                {"CharacterName": "Warrior",
+                 "ClassId": "Warrior"},
             ]}
 # ---------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ def processTurn(serverResponse):
                     "Action": "Cast",
                     "CharacterId": character.id,
                     "TargetId": target.id,
-                    "AbilityId": 3
+                    "AbilityId": 15
                 })
             else:
                 actions.append({

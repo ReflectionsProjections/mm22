@@ -1,3 +1,4 @@
+import copy
 import src.game.game_constants as gameConstants
 # Abilities
 class InvalidAbilityIdException(Exception):
@@ -101,7 +102,7 @@ class Character(object):
         # Update buffs
         for buff in self.buffs:
             if buff['Time'] == 0:
-                self.apply_stat_change(buff, remove=True)
+                self.apply_stat_change(buff, True)
                 self.buffs.remove(buff)
             else:
                 buff['Time'] -= 1
@@ -109,7 +110,7 @@ class Character(object):
         # Update debuffs
         for debuff in self.debuffs:
             if debuff['Time'] == 0:
-                self.apply_stat_change(debuff, remove=True)
+                self.apply_stat_change(debuff, True)
                 self.debuffs.remove(debuff)
             else:
                 debuff['Time'] -= 1
@@ -137,12 +138,15 @@ class Character(object):
         :param ability_id: id of the ability to check
         :return: True if yes, Exception if false
         """
+
         # Does this character actually have the ability?
         if ability_id not in self.abilities:
             if ret:
                 raise InvalidAbilityIdException
             else:
                 return False
+        elif ability_id == 0:
+            return True
         # Is the character stunned
         elif self.attributes.get_attribute("Stunned"):
             if ret:
@@ -205,7 +209,7 @@ class Character(object):
         self.casting = None
 
         # Get ability json
-        ability = gameConstants.abilitiesList[ability_id].copy()
+        ability = copy.deepcopy(gameConstants.abilitiesList[ability_id])
 
         # Apply cool down
         self.abilities[ability_id] = ability["Cooldown"]
