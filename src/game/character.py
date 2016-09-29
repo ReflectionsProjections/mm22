@@ -83,7 +83,6 @@ class Character(object):
         self.abilities = {}
         for ability in self.classJson['Abilities']:
             self.abilities[ability] = 0
-
         return error
 
     def update(self):
