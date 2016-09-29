@@ -25,7 +25,7 @@ classesJson = {
 	},
 	"Assassin" : {
 			"Health"        : 800,
-            "Damage"        : 100,
+            "Damage"        : 110,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
             "Armor"         : 25,
@@ -33,8 +33,8 @@ classesJson = {
             "Abilities"     : [ 0,12,11 ] #sprint,backstab
 	},
     "Druid" : {
-            "Health"        : 1200,
-            "Damage"        : 40,
+            "Health"        : 1000,
+            "Damage"        : 60,
             "SpellPower"    : 0,
             "AttackRange"   : 1,
             "Armor"         : 30,
@@ -42,8 +42,8 @@ classesJson = {
             "Abilities"     : [ 0,3,4,13 ] #heal, ranged armor buff, root
     },
     "Enchanter" : {
-            "Health"        : 800,
-            "Damage"        : 40,
+            "Health"        : 1000,
+            "Damage"        : 45,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
             "Armor"         : 25,
@@ -51,7 +51,7 @@ classesJson = {
             "Abilities"     : [ 0,6,7,5 ] #armor reduction, armor+dmg buff, silence
     },
     "Paladin" : {
-            "Health"        : 1400,
+            "Health"        : 1100,
             "Damage"        : 50,
             "SpellPower"    : 0,
             "AttackRange"   : 0,
@@ -60,7 +60,7 @@ classesJson = {
             "Abilities"     : [ 0,3,14 ] #heal, med cd stun
     },
     "Sorcerer" : {
-            "Health"        : 1000,
+            "Health"        : 800,
             "Damage"        : 80,
             "SpellPower"    : 0,
             "AttackRange"   : 2,
@@ -128,7 +128,7 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Stunned",
             "Change": -1,
-            "Time": 1
+            "Time": 2
         }],
         "CastTime"  : 0,
         "Cooldown"  : 6,
@@ -172,7 +172,7 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Silenced",
             "Change": -1,
-            "Time": 2
+            "Time": 3
         }],
         "CastTime"  : 2,
         "Cooldown"  : 8,
@@ -203,7 +203,7 @@ abilitiesList = [
             "Time": 3
         }],
         "CastTime"  : 0,
-        "Cooldown"  : 10,
+        "Cooldown"  : 8,
         "Range"     : 2,
     },
     {   #8 sacrifice health for damage (self)
@@ -227,11 +227,11 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Stunned",
             "Change": -1,
-            "Time": 1
+            "Time": 2
         }],
         "CastTime"  : 2,
         "Cooldown"  : 12,
-        "Range"     : 1,
+        "Range"     : 2,
     },
     {   #10 frostbolt
         "StatChanges": [{
@@ -271,7 +271,7 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Rooted",
             "Change": -1,
-            "Time": 2
+            "Time": 3
         }],
         "CastTime"  : 1,
         "Cooldown"  : 8,
@@ -282,7 +282,7 @@ abilitiesList = [
             "Target": 1,
             "Attribute": "Stunned",
             "Change": -1,
-            "Time": 1
+            "Time": 2
         }],
         "CastTime"  : 1,
         "Cooldown"  : 10,
