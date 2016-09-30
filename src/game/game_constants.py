@@ -1,6 +1,6 @@
 numPlayers = 2
 numCharacterPerTeam = 3
-totalTurns = 400
+totalTurns = 180
 
 """
 Defines the classes

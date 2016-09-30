@@ -9,7 +9,7 @@ port = 1337
 logFile = "gamerunner/log.json"
 
 # Default client path
-defaultClient = "test-clients/python/"
+defaultClient = "clients/default/"
 
 # Python terminal colors; useful for debugging
 # Make sure to concat a "printColors.RESET" to the end of your statement!
