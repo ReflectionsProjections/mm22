@@ -7,6 +7,7 @@ import sys
 from socket import error as SocketError
 import errno
 sys.path.append("../..")
+import src.game.game_constants as game_consts
 from src.game.character import *
 from src.game.gamemap import *
 
@@ -58,6 +59,7 @@ def processTurn(serverResponse):
     for character in enemyteam:
         if not character.is_dead():
             target = character
+            break
 
     # If we found a target
     if target:
@@ -71,10 +73,12 @@ def processTurn(serverResponse):
                         # Do I have an ability not on cooldown
                         if cooldown == 0:
                             # If I do cast it
+                            ability = game_consts.abilitiesList[int(abilityId)]
+                            # Get ability
                             actions.append({
                                 "Action": "Cast",
                                 "CharacterId": character.id,
-                                "TargetId": target.id,
+                                "TargetId": target.id if ability["StatChanges"][0]["Change"] < 0 else character.id,
                                 "AbilityId": int(abilityId)
                             })
                             cast = True
