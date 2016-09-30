@@ -78,6 +78,7 @@ def processTurn(serverResponse):
                             actions.append({
                                 "Action": "Cast",
                                 "CharacterId": character.id,
+                                # Am I buffing or debuffing? If buffing, target myself
                                 "TargetId": target.id if ability["StatChanges"][0]["Change"] < 0 else character.id,
                                 "AbilityId": int(abilityId)
                             })

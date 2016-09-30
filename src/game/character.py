@@ -135,6 +135,21 @@ class Character(object):
                 return False
         return True
 
+    def in_ability_range_of(self, target, map, ability_id, ret=False):
+        if ability_id not in self.abilities:
+            if ret:
+                raise InvalidAbilityIdException
+            else:
+                return False
+
+        if not map.in_vision_of(self.position,
+                                target.position,
+                                gameConstants.abilitiesList[ability_id]["Range"]):
+            if ret:
+                raise OutOfRangeException
+            else:
+                return False
+
     def can_use_ability(self, ability_id, ret=False):
         """ Checks if a character can use an ability (must have that ability)
         :param ability_id: id of the ability to check
