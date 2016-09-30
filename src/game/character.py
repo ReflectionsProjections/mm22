@@ -1,5 +1,6 @@
 import copy
 import src.game.game_constants as gameConstants
+
 # Abilities
 class InvalidAbilityIdException(Exception):
     pass
@@ -89,10 +90,11 @@ class Character(object):
         return error
 
     def update(self):
-        if self.casting:
+        if self.casting is not None:
             if self.casting["CurrentCastTime"] == 0:
                 self.cast_ability(self.casting["AbilityId"], self.target, self.map)
-            self.casting["CurrentCastTime"] -= 1
+            else:
+                self.casting["CurrentCastTime"] -= 1
 
         # Update ability cooldowns
         for ability, _ in self.abilities.items():
@@ -145,6 +147,13 @@ class Character(object):
                 raise InvalidAbilityIdException
             else:
                 return False
+        # Is the ability on cool down
+        elif self.abilities[ability_id] != 0:
+            if ret:
+                raise AbilityOnCooldownException
+            else:
+                return False
+        # Is it the burst ability?
         elif ability_id == 0:
             return True
         # Is the character stunned
@@ -159,12 +168,6 @@ class Character(object):
                 raise SilencedException
             else:
                 return False
-        # Is the ability on cool down
-        elif self.abilities[ability_id] != 0:
-            if ret:
-                raise AbilityOnCooldownException
-            else:
-                return False
         return True
 
 # -------------------------------------------------------------
@@ -175,7 +178,7 @@ class Character(object):
 
         if not map.in_vision_of(self.position,
                                 target.position,
-                                self.attributes.get_attribute("AttackRange")):
+                                gameConstants.abilitiesList[ability_id]["Range"]):
             raise OutOfRangeException
 
         # Reset casting
@@ -221,9 +224,9 @@ class Character(object):
                     stat_change['Change'] = stat_change['Change'] + self.attributes.get_attribute("SpellPower")
                 elif stat_change['Change'] < 0:
                     stat_change['Change'] = stat_change['Change'] - self.attributes.get_attribute("SpellPower")
-            if stat_change['Target'] == 0:
+            if stat_change['Target'] == 0 and target is self:
                 self.add_stat_change(stat_change)
-            elif stat_change['Target'] in [1, 2, 3] and target is not None:
+            elif stat_change['Target'] == 1:
                 target.add_stat_change(stat_change)
 
     def add_stat_change(self, stat_change):
@@ -405,11 +408,11 @@ class Attributes(object):
         if attribute_name == 'MovementSpeed':
             self.movementSpeed += change
         if attribute_name == 'Stunned':
-            self.stunned = min(self.stunned + change, 0)
+            self.stunned = max(min(self.stunned + change, 0), -1)
         if attribute_name == 'Silenced':
-            self.silenced += min(self.silenced + change, 0)
+            self.silenced = max(min(self.silenced + change, 0), -1)
         if attribute_name == 'Rooted':
-            self.rooted += min(self.rooted + change, 0)
+            self.rooted = max(min(self.rooted + change, 0), -1)
 
     def get_attribute(self, attribute_name):
         """

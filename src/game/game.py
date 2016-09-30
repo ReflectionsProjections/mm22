@@ -3,6 +3,8 @@ from src.game.character import *
 from src.game.team import Team
 import src.game.game_constants as gameConst
 
+class UnableToHealDueToTimeException(Exception):
+    pass
 class InvalidPlayerException(Exception):
     pass
 class InvalidCharacterException(Exception):
@@ -144,6 +146,10 @@ class Game(object):
                             if target.is_dead():
                                 raise DeadTargetException
 
+                        # Check ability id
+                        if abilityId is not None and type(abilityId) is not int:
+                            raise InvalidAbilityIdException
+
                         if action == "Move":
                             if target:
                                 character.move_towards_target(target, self.map)
@@ -166,13 +172,17 @@ class Game(object):
                         elif action == "Cast":
                             if target is None:
                                 raise InvalidTargetException
-                            if not abilityId:
+                            if abilityId is None:
                                 raise InvalidAbilityIdException
 
-                            character.use_ability(abilityId, target, self.map)
+                            if not (self.turnsExecuted > 120 and abilityId == 3):
+                                character.use_ability(abilityId, target, self.map)
+                            else:
+                                raise UnableToHealDueToTimeException
                         else:
                             actionResult["Message"] = "Invalid action type."
-
+                    except UnableToHealDueToTimeException:
+                        actionResult["Message"] = "Time limit on healing! Unable to heal!"
                     except InvalidCharacterException:
                         actionResult["Message"] = "Invalid Character"
                     except InvalidTargetException:

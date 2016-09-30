@@ -34,10 +34,12 @@ def initialResponse():
 # Determine actions to take on a given turn, given the server response
 def processTurn(serverResponse):
 # --------------------------- CHANGE THIS SECTION -------------------------
+    # Setup helper variables
     actions = []
     myId = serverResponse["PlayerInfo"]["Id"]
     myteam = []
     enemyteam = []
+    # Find each team and serialize the objects
     for team in serverResponse["Teams"]:
         if team["Id"] == serverResponse["PlayerInfo"]["TeamId"]:
             for characterJson in team["Characters"]:
@@ -50,20 +52,41 @@ def processTurn(serverResponse):
                 character.serialize(characterJson)
                 enemyteam.append(character)
 # ------------------ You shouldn't change above but you can ---------------
+
+    # Choose a target
     target = None
     for character in enemyteam:
         if not character.is_dead():
             target = character
+
+    # If we found a target
     if target:
         for character in myteam:
+            # If I am in range, either move towards target
             if character.in_range_of(target, gameMap):
-                actions.append({
-                    "Action": "Cast",
-                    "CharacterId": character.id,
-                    "TargetId": target.id,
-                    "AbilityId": 15
-                })
-            else:
+                # Am I already trying to cast something?
+                if character.casting is None:
+                    cast = False
+                    for abilityId, cooldown in character.abilities.items():
+                        # Do I have an ability not on cooldown
+                        if cooldown == 0:
+                            # If I do cast it
+                            actions.append({
+                                "Action": "Cast",
+                                "CharacterId": character.id,
+                                "TargetId": target.id,
+                                "AbilityId": int(abilityId)
+                            })
+                            cast = True
+                            break
+                    # Was I able to cast something? Eitherwise attack
+                    if not cast:
+                        actions.append({
+                            "Action": "Attack",
+                            "CharacterId": character.id,
+                            "TargetId": target.id,
+                        })
+            else: # Not in range, move towards
                 actions.append({
                     "Action": "Move",
                     "CharacterId": character.id,

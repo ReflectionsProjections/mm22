@@ -7,10 +7,10 @@ Defines the classes
 - Must contain in json
     Health - health of class
     Damage - damage dealt from autoattack
-    SpellPower - added amount to spells in given direction
+    SpellPower - added amount to spells in given direction (+ for healing, - for damage)
     AttackRange - range of attack in zones (range 0 = melee range)
     Armor - damage removed from each attack
-    MovementSpeed - cooldown (in ticks) on ability to move to adjacent zone
+    MovementSpeed - distant you can move in one turn
     Abilties - list of abilities
 """
 classesJson = {
@@ -92,7 +92,7 @@ classesJson = {
 Defines the abilities
 - Must contain in json:
     List of stat changes
-        Target - 0 for self, 1 for enemy target, 2 for ally target, 3 for anyone
+        Target - 0 for self, 1 for any target
         Attribute - Attribute of target to change
         Value - Value of attribute being changed
         Time - Total time this ability affects target in ticks
@@ -147,7 +147,7 @@ abilitiesList = [
     },
     {   #3 ranged heal
         "StatChanges": [{
-            "Target": 2,
+            "Target": 1,
             "Attribute": "Health",
             "Change": 250,
             "Time": 0
@@ -158,7 +158,7 @@ abilitiesList = [
     },
     {   #4 ranged armor buff
         "StatChanges": [{
-            "Target": 2,
+            "Target": 1,
             "Attribute": "Armor",
             "Change": 40,
             "Time": 3
@@ -191,13 +191,13 @@ abilitiesList = [
     },
     {   #7 ranged armor and damage buff
         "StatChanges": [{
-            "Target": 2,
+            "Target": 1,
             "Attribute": "Armor",
             "Change": 20,
             "Time": 3
         },
         {
-            "Target": 2,
+            "Target": 1,
             "Attribute": "Damage",
             "Change": 30,
             "Time": 3
