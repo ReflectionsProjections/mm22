@@ -8,7 +8,6 @@ sys.path.append(path)
 
 from subprocess import Popen
 import argparse
-import json
 
 from src.game.game import Game
 from src.server.server import MMServer
@@ -67,21 +66,14 @@ def parse_args():
         default=miscConstants.logFile)
     parser.add_argument(
         "-c", "--client",
-        help="Specifies one or more clients to run. " +
-        "Example: ./gamerunner.py -p 3 -c myClient -c python " +
-        "The gamerunner will run a number of default clients (location optionally"
-        "specified with -d) equal to players - specified clients",
+        help="Specifies one or two clients to run. " +
+        "Example: ./gamerunner.py -c default -c python ",
         action="append")
     parser.add_argument(
         "-d", "--defaultClient",
         help="The default client to use when others aren't specified."
         "Default: {0}".format(miscConstants.defaultClient),
         default=os.path.join(*miscConstants.defaultClient.split("/")))
-    parser.add_argument(
-        "-th", "--turnsinhour",
-        help="Set the game's length.",
-        default=400,
-        type=int)
 
     args = parser.parse_args()
 

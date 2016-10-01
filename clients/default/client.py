@@ -21,7 +21,7 @@ teamName = "Test"
 # Set initial connection data
 def initialResponse():
 # ------------------------- CHANGE THESE VALUES -----------------------
-    return {'TeamName':teamName,
+    return {'TeamName': teamName,
             'Characters': [
                 {"CharacterName": "Druid",
                  "ClassId": "Druid"},
@@ -37,7 +37,6 @@ def processTurn(serverResponse):
 # --------------------------- CHANGE THIS SECTION -------------------------
     # Setup helper variables
     actions = []
-    myId = serverResponse["PlayerInfo"]["Id"]
     myteam = []
     enemyteam = []
     # Find each team and serialize the objects
@@ -72,7 +71,7 @@ def processTurn(serverResponse):
                     for abilityId, cooldown in character.abilities.items():
                         # Do I have an ability not on cooldown
                         if cooldown == 0:
-                            # If I do cast it
+                            # If I can, then cast it
                             ability = game_consts.abilitiesList[int(abilityId)]
                             # Get ability
                             actions.append({
@@ -84,7 +83,7 @@ def processTurn(serverResponse):
                             })
                             cast = True
                             break
-                    # Was I able to cast something? Eitherwise attack
+                    # Was I able to cast something? Either wise attack
                     if not cast:
                         actions.append({
                             "Action": "Attack",

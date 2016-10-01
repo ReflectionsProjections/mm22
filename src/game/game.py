@@ -111,7 +111,6 @@ class Game(object):
                     if action != action_type:
                         continue
 
-
                     teamId = self.playerInfos[playerId]["TeamId"]
                     characterId = actionJson.get("CharacterId", None)
                     targetId = actionJson.get("TargetId", None)
@@ -218,7 +217,8 @@ class Game(object):
         # Update everyone
         for teamId, team in self.teams.items():
             for character in team.characters:
-                character.update()
+                if not character.is_dead():
+                    character.update()
 
         # Determine winner if appropriate
         alive_teams = []

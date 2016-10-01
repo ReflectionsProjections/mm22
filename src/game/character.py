@@ -90,6 +90,9 @@ class Character(object):
         return error
 
     def update(self):
+        if self.is_dead():
+            return
+
         if self.casting is not None:
             if self.casting["CurrentCastTime"] == 0:
                 self.cast_ability(self.casting["AbilityId"], self.target, self.map)
