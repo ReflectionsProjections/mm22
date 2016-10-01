@@ -256,12 +256,18 @@ class Game(object):
             gameDone = False
             print("Game ran out of time! Tied!")
             print("Tie break determination: ")
-            if self.teams[1].get_remain_percent_health() > self.teams[2].get_remain_percent_health():
-                print("Team " + self.teams[1].name + " Won")
-            if self.teams[1].get_remain_percent_health() < self.teams[2].get_remain_percent_health():
-                print("Team " + self.teams[2].name + " Won")
+            if self.teams[1].get_num_alive_char() == self.teams[2].get_num_alive_char():
+                if self.teams[1].get_remain_percent_health() > self.teams[2].get_remain_percent_health():
+                    print("Team " + self.teams[1].name + " Won")
+                elif self.teams[1].get_remain_percent_health() < self.teams[2].get_remain_percent_health():
+                    print("Team " + self.teams[2].name + " Won")
+                else:
+                    print("Both teams have same health. Tie!")
             else:
-                print("Both teams have same health. Tie!")
+                if self.teams[1].get_num_alive_char() > self.teams[2].get_num_alive_char():
+                    print("Team " + self.teams[1].name + " Won")
+                elif self.teams[1].get_num_alive_char() < self.teams[2].get_num_alive_char():
+                    print("Team " + self.teams[2].name + " Won")
 
         return gameDone
 
