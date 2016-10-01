@@ -303,11 +303,11 @@ abilitiesList = [
         "StatChanges": [{
             "Target": 1,
             "Attribute": "Health",
-            "Change": -150,
-            "Time": 3
+            "Change": -200,
+            "Time": 0
         }],
         "CastTime"  : 2,
-        "Cooldown"  : 8,
+        "Cooldown"  : 5,
         "Range"     : 1,
     },
 ]

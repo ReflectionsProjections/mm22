@@ -158,6 +158,7 @@ class Character(object):
                 raise OutOfRangeException
             else:
                 return False
+        return True
 
     def can_use_ability(self, ability_id, ret=False):
         """ Checks if a character can use an ability (must have that ability)
