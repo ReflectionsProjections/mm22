@@ -253,6 +253,8 @@ class Character(object):
                 self.add_stat_change(stat_change)
             elif stat_change['Target'] == 1:
                 target.add_stat_change(stat_change)
+            else:
+                raise InvalidTargetException
 
     def add_stat_change(self, stat_change):
         self.pending_stat_changes.append(stat_change)
