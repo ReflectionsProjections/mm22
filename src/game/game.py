@@ -224,7 +224,11 @@ class Game(object):
         # Update everyone
         for teamId, team in self.teams.items():
             for character in team.characters:
-                character.update()
+                try:
+                    character.update()
+                except:
+                    pass
+
 
         # Determine winner if appropriate
         alive_teams = []
