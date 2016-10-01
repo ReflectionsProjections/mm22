@@ -1147,8 +1147,14 @@ function showSinglePlayerStatScreen(){
       (although only one is visible at any time)
     
 */
+var turnNum = 0;
 function processTurn(){
   if(serverJSON.length > 0){
+
+    console.log("Turn Number : " + turnNum);
+    turnNum++;
+
+    
     //dequeue
     var currTurn = serverJSON.shift();
     //console.log(currTurn);
