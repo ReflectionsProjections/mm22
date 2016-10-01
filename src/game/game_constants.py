@@ -308,6 +308,6 @@ abilitiesList = [
         }],
         "CastTime"  : 2,
         "Cooldown"  : 5,
-        "Range"     : 1,
+        "Range"     : 2,
     },
 ]
