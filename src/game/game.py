@@ -167,6 +167,9 @@ class Game(object):
 
                             character.in_range_of(target, self.map, True)
 
+                            if character.attributes.get_attribute("Stunned"):
+                                raise StunnedException
+
                             target.add_stat_change({
                                 "Target": 1,
                                 "Attribute": "Health",
