@@ -52,6 +52,7 @@ class Character(object):
         self.target = None
         self.dead = False
         self.actioned = False
+        self.pending_position = None
 
     def init(self, json, x, y):
         error = ""
@@ -120,6 +121,11 @@ class Character(object):
                 self.debuffs.remove(debuff)
             else:
                 debuff['Time'] -= 1
+
+        # Update Position
+        if self.pending_position is not None:
+            self.position = self.pending_position
+            self.pending_position = None
 
         # Apply buffs and debuffs
         self.apply_pending_stat_changes()
@@ -349,7 +355,7 @@ class Character(object):
         else:
             new_loc = path[movement_speed]
 
-        self.position = new_loc
+        self.pending_position = new_loc
         self.casting = None
 
     def move_towards_position(self, new_pos, map):
@@ -374,7 +380,7 @@ class Character(object):
         else:
             new_loc = path[movement_speed]
 
-        self.position = new_loc
+        self.pending_position = new_loc
         self.casting = None
 
     def deserialize(self):
