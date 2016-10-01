@@ -211,6 +211,8 @@ class Character(object):
 
         if not target:
             raise InvalidTargetException
+        if target.dead:
+            raise InvalidTargetException
 
         ability = gameConstants.abilitiesList[ability_id]
 
@@ -241,6 +243,8 @@ class Character(object):
         self.casting = None
 
         if not target:
+            raise InvalidTargetException
+        elif not target.dead:
             raise InvalidTargetException
 
         # Check if we can use the ability
