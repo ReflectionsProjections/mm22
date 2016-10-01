@@ -61,7 +61,7 @@ latex
 
 # Default log file
 serverlog.json
-
+log.json
 #ignore map.cache
 */map.cache
 map.cache
