@@ -354,7 +354,7 @@ class Character(object):
         if movement_speed >= len(path) - 1:
             new_loc = path[-1]
         else:
-            new_loc = path[movement_speed + 1]
+            new_loc = path[movement_speed]
 
         self.position = new_loc
         self.casting = None
