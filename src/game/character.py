@@ -234,6 +234,9 @@ class Character(object):
         :param character: Character object to cast on, if needed
         :return: None or string error
         """
+        # Remove current casting
+        self.casting = None
+
         if not target:
             raise InvalidTargetException
 
@@ -242,9 +245,6 @@ class Character(object):
 
         # Check if we are in range
         self.in_range_of(target, map, True)
-
-        # Remove current casting
-        self.casting = None
 
         # Get ability json
         ability = copy.deepcopy(gameConstants.abilitiesList[ability_id])
