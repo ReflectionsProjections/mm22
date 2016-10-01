@@ -244,7 +244,7 @@ class Character(object):
 
         if not target:
             raise InvalidTargetException
-        elif not target.dead:
+        elif target.dead:
             raise InvalidTargetException
 
         # Check if we can use the ability
