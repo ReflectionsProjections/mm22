@@ -230,6 +230,8 @@ class Game(object):
             if alive_team:
                 alive_teams.append(team.id)
 
+        print("Finished turn " + str(self.turnsExecuted))
+
         # Done!
         self.queuedTurns = {}
         self.turnsExecuted += 1

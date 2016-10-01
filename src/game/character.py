@@ -135,6 +135,21 @@ class Character(object):
                 return False
         return True
 
+    def in_ability_range_of(self, target, map, ability_id, ret=False):
+        if ability_id not in self.abilities:
+            if ret:
+                raise InvalidAbilityIdException
+            else:
+                return False
+
+        if not map.in_vision_of(self.position,
+                                target.position,
+                                gameConstants.abilitiesList[ability_id]["Range"]):
+            if ret:
+                raise OutOfRangeException
+            else:
+                return False
+
     def can_use_ability(self, ability_id, ret=False):
         """ Checks if a character can use an ability (must have that ability)
         :param ability_id: id of the ability to check
@@ -239,10 +254,21 @@ class Character(object):
 
     def apply_stat_change(self, stat_change, remove=False):
         change = stat_change['Change']
+
+        # If we are getting attacked, reduce amount by armor
         if stat_change['Attribute'] == 'Health':
             if change < 0:  # damage
                 change = min(0, change + self.attributes.get_attribute("Armor"))
 
+        # This need to be checked after change so that we only remove if applying anti-cc not removing ccs
+        # Are we breaking out of crowd control?
+        if stat_change['Attribute'] in ['Rooted', 'Silenced', 'Stunned'] and change > 0:
+            # If so remove debuffs with changes to crowd control
+            for debuff in self.debuffs:
+                if stat_change['Attribute'] in ['Rooted', 'Silenced', 'Stunned']:
+                    self.debuffs.remove(debuff)
+
+        # Are we applying or removing?
         stat_change['Change'] = change * (-1 if remove else 1)
 
         # Apply stat change
@@ -250,6 +276,7 @@ class Character(object):
             stat_change['Attribute'],
             stat_change['Change'])
 
+        # If the stat change is not on going then stop
         if stat_change['Time'] == 0:
             return
 

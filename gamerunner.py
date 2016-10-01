@@ -115,9 +115,9 @@ class Logger(object):
 
     def print_stuff(self, data):
         self.turns.append(data)
-        print("Turn finished: " + str(len(self.turns) - 1))
 
     def write_to_file(self):
+        print("Game finished - writing log to file")
         with open(self.filename, 'a') as outfile:
             for turn in self.turns:
                 outfile.write(turn + "\n")
