@@ -238,7 +238,7 @@ class Game(object):
                 if not character.dead:
                     alive_team = True
             if alive_team:
-                alive_teams.append(team.id)
+                alive_teams.append(team.name)
 
         print("Finished turn " + str(self.turnsExecuted))
 
