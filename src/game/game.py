@@ -254,7 +254,8 @@ class Game(object):
             print("Team " + self.teams[2].name + " Won")
         if self.turnsExecuted > self.totalTurns:
             gameDone = False
-            print("Game ran out of time!")
+            print("Game ran out of time! Tied!")
+            print("Tie break determination: ")
             if self.teams[1].get_remain_percent_health() > self.teams[2].get_remain_percent_health():
                 print("Team " + self.teams[1].name + " Won")
             if self.teams[1].get_remain_percent_health() < self.teams[2].get_remain_percent_health():
