@@ -15,6 +15,8 @@ class DeadCharacterException(Exception):
     pass
 class DeadTargetException(Exception):
     pass
+class MoreThanOneActionException(Exception):
+    pass
 
 class Game(object):
 
@@ -133,6 +135,11 @@ class Game(object):
                         if character.dead:
                             raise DeadCharacterException
 
+                        if character.actioned is False:
+                            character.actioned = True
+                        else:
+                            raise MoreThanOneActionException
+
                         # Get target character object
                         target = None
                         if targetId:
@@ -206,6 +213,8 @@ class Game(object):
                         actionResult["Message"] = "Invalid new position"
                     except OutOfRangeException:
                         actionResult["Message"] = "Character out of range"
+                    except MoreThanOneActionException:
+                        actionResult["Message"] = "Character has more than one action"
                     except Exception as e:
                         raise  # Uncomment me to raise unhandled exceptions
                         actionResult["Message"] = "Unknown exception: " + str(e)
