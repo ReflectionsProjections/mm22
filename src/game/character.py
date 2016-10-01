@@ -50,6 +50,7 @@ class Character(object):
         self.pending_stat_changes = []
         self.map = None
         self.target = None
+        self.dead = False
 
     def init(self, json, x, y):
         error = ""
@@ -90,7 +91,7 @@ class Character(object):
         return error
 
     def update(self):
-        if self.is_dead():
+        if self.dead:
             return
 
         if self.casting is not None:
@@ -111,7 +112,6 @@ class Character(object):
                 self.buffs.remove(buff)
             else:
                 buff['Time'] -= 1
-
         # Update debuffs
         for debuff in self.debuffs:
             if debuff['Time'] == 0:
@@ -123,6 +123,9 @@ class Character(object):
         # Apply buffs and debuffs
         self.apply_pending_stat_changes()
         self.attributes.update()
+
+        if self.is_dead():
+            self.dead = True
 
 # ---------------------- Helper Functions -------------------
     def is_dead(self):
@@ -251,6 +254,7 @@ class Character(object):
         self.pending_stat_changes.append(stat_change)
 
     def apply_pending_stat_changes(self):
+        self.pending_stat_changes = sorted(self.pending_stat_changes, key=lambda stat_change: stat_change["Change"])
         for stat_change in self.pending_stat_changes:
             self.apply_stat_change(stat_change)
         self.pending_stat_changes = []

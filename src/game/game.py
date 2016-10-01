@@ -130,7 +130,7 @@ class Game(object):
                             raise InvalidCharacterException
 
                         # Is character dead?
-                        if character.is_dead():
+                        if character.dead:
                             raise DeadCharacterException
 
                         # Get target character object
@@ -142,7 +142,7 @@ class Game(object):
                                     break
                             if not target:
                                 raise InvalidTargetException
-                            if target.is_dead():
+                            if target.dead:
                                 raise DeadTargetException
 
                         # Check ability id
@@ -217,15 +217,14 @@ class Game(object):
         # Update everyone
         for teamId, team in self.teams.items():
             for character in team.characters:
-                if not character.is_dead():
-                    character.update()
+                character.update()
 
         # Determine winner if appropriate
         alive_teams = []
         for teamId, team in self.teams.items():
             alive_team = False
             for character in team.characters:
-                if not character.is_dead():
+                if not character.dead:
                     alive_team = True
             if alive_team:
                 alive_teams.append(team.id)
