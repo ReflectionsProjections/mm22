@@ -125,10 +125,13 @@ class Character(object):
         self.apply_pending_stat_changes()
         self.attributes.update()
 
+        self.actioned = False
+
+    def update_dead(self):
+        self.apply_pending_stat_changes()
+        self.attributes.update()
         if self.is_dead():
             self.dead = True
-
-        self.actioned = False
 
 # ---------------------- Helper Functions -------------------
     def is_dead(self):
@@ -244,7 +247,10 @@ class Character(object):
         self.can_use_ability(ability_id, True)
 
         # Check if we are in range
-        self.in_range_of(target, map, True)
+        if not map.in_vision_of(self.position,
+                                target.position,
+                                gameConstants.abilitiesList[ability_id]["Range"]):
+            raise OutOfRangeException
 
         # Get ability json
         ability = copy.deepcopy(gameConstants.abilitiesList[ability_id])

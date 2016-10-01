@@ -232,6 +232,9 @@ class Game(object):
                 except:
                     pass
 
+        for teamId, team in self.teams.items():
+            for character in team.characters:
+                character.update_dead()
 
         # Determine winner if appropriate
         alive_teams = []
