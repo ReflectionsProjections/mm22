@@ -148,7 +148,7 @@ class Client_program(object):
         try:
             commands = []
             if os.name == "nt":
-                path = os.path.join(self.client_path, "test_client.py").replace("\\","/")
+                path = os.path.join(self.client_path, "client.py").replace("\\","/")
                 commands += ["python", path]
             else:
                 path = os.path.join(self.client_path, "run.sh")
