@@ -236,16 +236,6 @@ class Game(object):
             for character in team.characters:
                 character.update_dead()
 
-        # Determine winner if appropriate
-        alive_teams = []
-        for teamId, team in self.teams.items():
-            alive_team = False
-            for character in team.characters:
-                if not character.dead:
-                    alive_team = True
-            if alive_team:
-                alive_teams.append(team.name)
-
         print("Finished turn " + str(self.turnsExecuted))
 
         # Done!
@@ -253,15 +243,25 @@ class Game(object):
         self.turnsExecuted += 1
         # False if game is finished\
         gameDone = True
-        if len(alive_teams) == 0:
+        if self.teams[1].get_num_alive_char() == 0 and self.teams[2].get_num_alive_char() == 0:
             gameDone = False
             print("Both teams died. Tie!")
-        elif len(alive_teams) == 1:
+        elif self.teams[1].get_num_alive_char() > 0 and  self.teams[2].get_num_alive_char() == 0:
             gameDone = False
-            print("Team " + str(alive_teams[0]) + " Won")
+            print("Team " + self.teams[1].name + " Won")
+        elif self.teams[2].get_num_alive_char() > 0 and self.teams[1].get_num_alive_char() == 0:
+            gameDone = False
+            print("Team " + self.teams[2].name + " Won")
         if self.turnsExecuted > self.totalTurns:
             gameDone = False
-            print("Game ran out of time. Tie!")
+            print("Game ran out of time!")
+            if self.teams[1].get_remain_percent_health() > self.teams[2].get_remain_percent_health():
+                print("Team " + self.teams[1].name + " Won")
+            if self.teams[1].get_remain_percent_health() < self.teams[2].get_remain_percent_health():
+                print("Team " + self.teams[2].name + " Won")
+            else:
+                print("Both teams have same health. Tie!")
+
         return gameDone
 
     # Return the results of a turn ("server response") for a particular player

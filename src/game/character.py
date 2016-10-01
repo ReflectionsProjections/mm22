@@ -298,7 +298,7 @@ class Character(object):
         if stat_change['Attribute'] in ['Rooted', 'Silenced', 'Stunned'] and change > 0:
             # If so remove debuffs with changes to crowd control
             for debuff in self.debuffs:
-                if stat_change['Attribute'] in ['Rooted', 'Silenced', 'Stunned']:
+                if debuff['Attribute'] in ['Rooted', 'Silenced', 'Stunned']:
                     self.debuffs.remove(debuff)
 
         # Are we applying or removing?

@@ -40,6 +40,21 @@ class Team:
             if character.name == name or character.id == id:
                 return character
 
+    def get_remain_percent_health(self):
+        total_health = 0
+        total_max_health = 0
+        for character in self.characters:
+            total_health += character.attributes.get_attribute("Health")
+            total_max_health += character.attributes.get_attribute("MaxHealth")
+        return float(total_health) / float(total_max_health)
+
+    def get_num_alive_char(self):
+        alive_chars = 0
+        for character in self.characters:
+            if not character.dead:
+                alive_chars += 1
+        return alive_chars
+
     def size(self):
         return len(self.characters)
 
