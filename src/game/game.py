@@ -160,7 +160,7 @@ class Game(object):
                             if target:
                                 character.move_towards_target(target, self.map)
                             elif location:
-                                character.move_towards_position(location, self.map)
+                                character.move_towards_position(tuple(location), self.map)
                             else:
                                 actionResult["Message"] = "Invalid target and couldn't find location"
                         elif action == "Attack":

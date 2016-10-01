@@ -120,7 +120,7 @@ abilitiesList = [
             "Time": 0
         }],
         "CastTime"  : 0,
-        "Cooldown"  : 10,
+        "Cooldown"  : 30,
         "Range"     : 0,
     },
     {   #1 melee stun 

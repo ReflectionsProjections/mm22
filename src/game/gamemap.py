@@ -79,7 +79,7 @@ class GameMap:
             return None
 
         search_pathes = [[pos1]]
-        searched_nodes = []
+        searched_nodes = [pos1]
 
         new_path = search_pathes.pop()
 
