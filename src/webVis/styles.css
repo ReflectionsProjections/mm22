@@ -11,3 +11,16 @@
     font-size : 2em;
     color: #4d78ff;           
 }
+#pauseButton{
+    width: 100px;
+    text-align: center;
+    float:left;
+    margin: auto;
+}
+#turnNumber{
+    float:left;
+}
+#gameControlWrapper{
+  width:100%;
+  margin-top: 10px;
+}
