@@ -156,6 +156,11 @@ var OFF_SCREEN = -500;
 //Reference to the game's timer
 var timer;
 
+//Pass processTurnTimerEvent to game.time.events.remove()
+var processTurnTimerEvent;
+
+
+
 // These Graphics Objects are used to draw Health Bars (drawRect)
 // Graphics Object for Single Player Stat Screen
 var singleGraphics;
@@ -447,7 +452,8 @@ var HEALTH_BAR_COLOR = 0x33CC33;
 //maximum width in pixels the Health Bar will be
 var HEALTH_BAR_MAX_WIDTH = 360;
 
-
+//Handle to HTML span to display turn number
+var spanTurnNumberElement;
 
 //------------Main Phaser Code---------------//
 
@@ -587,7 +593,7 @@ function create () {
     //  TIME_TO_NEXT_UPDATE milliseconds
     //This function will only update the screen if serverJSON has 
     //  data within it (we aren't waiting for the server to send JSON over)
-    game.time.events.loop(TIME_TO_NEXT_UPDATE, processTurn, this);
+    processTurnTimerEvent = game.time.events.loop(TIME_TO_NEXT_UPDATE, processTurn, this);
 
     //add Graphics Object to the Game (used for drawing primitive shapes--health bars)
     singleGraphics = game.add.graphics();
@@ -609,6 +615,9 @@ function create () {
     singleButton.inputEnabled = true;
     singleButton.events.onInputDown.add(showSinglePlayerStatScreen, this);
 
+    //set up handle on spanTurnNumberElement
+    spanTurnNumberElement = document.getElementById("turnNumber");
+    
 
     console.log(serverJSON);
 
@@ -1152,6 +1161,7 @@ function processTurn(){
   if(serverJSON.length > 0){
 
     console.log("Turn Number : " + turnNum);
+    turnNumber.innerHTML = "Turn Number: " + turnNum;
     turnNum++;
 
     
@@ -1512,6 +1522,26 @@ function convertTurnToPlayerArray(currTurn){
       });
   });
   return playerArray;
+}
+
+/**
+  Pauses/Resumes game when user clicks the pause/play button
+*/
+function pauseGame(){
+  var pauseButton = document.getElementById("pauseButton");
+  //Toggle button text and add/remove processTurn from core game timer as necessary
+  switch(pauseButton.value){
+    case "Pause":
+      pauseButton.value = "Resume"
+      game.time.events.removeAll();
+      break;
+    case "Resume":
+      pauseButton.value = "Pause"
+      processTurnTimerEvent = game.time.events.loop(TIME_TO_NEXT_UPDATE, processTurn, this);
+      break;
+    default:
+      break;
+  } 
 }
 
 
