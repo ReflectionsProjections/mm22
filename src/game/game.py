@@ -9,8 +9,6 @@ class InvalidPlayerException(Exception):
     pass
 class InvalidCharacterException(Exception):
     pass
-class InvalidTargetException(Exception):
-    pass
 class DeadCharacterException(Exception):
     pass
 class DeadTargetException(Exception):

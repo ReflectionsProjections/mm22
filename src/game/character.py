@@ -206,6 +206,16 @@ class Character(object):
                                 gameConstants.abilitiesList[ability_id]["Range"]):
             raise OutOfRangeException
 
+        if not target:
+            raise InvalidTargetException
+
+        ability = gameConstants.abilitiesList[ability_id]
+
+        # Iterate through stat changes
+        for stat_change in ability['StatChanges']:
+            if stat_change['Target'] == 0 and not (target is self):
+                raise InvalidTargetException
+
         # Reset casting
         self.casting = None
 
