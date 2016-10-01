@@ -213,7 +213,7 @@ class Character(object):
         if cast_time > 0:
             self.map = map
             self.target = target
-            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time, "TargetId": self.target}
+            self.casting = {"AbilityId": ability_id, "CurrentCastTime": cast_time, "TargetId": self.target.id}
         else:
             self.cast_ability(ability_id, target, map)
 
