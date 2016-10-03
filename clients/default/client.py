@@ -70,7 +70,7 @@ def processTurn(serverResponse):
                     cast = False
                     for abilityId, cooldown in character.abilities.items():
                         # Do I have an ability not on cooldown
-                        if cooldown == 0:
+                        if (abilityId != 0 and cooldown == 0) or (abilityId == 0 and character.attributes.get_attribute("Stunned")):
                             # If I can, then cast it
                             ability = game_consts.abilitiesList[int(abilityId)]
                             # Get ability
