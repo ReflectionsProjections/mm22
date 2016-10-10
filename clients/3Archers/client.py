@@ -15,7 +15,7 @@ from src.game.gamemap import *
 gameMap = GameMap()
 
 # --------------------------- SET THIS IS UP -------------------------
-teamName = "3Archer"
+teamName = "3Archers"
 # ---------------------------------------------------------------------
 turn = 0
 guard = True
